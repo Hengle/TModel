@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+
+namespace TModel.Modules
+{
+    internal class DirectoryModule : ModuleInterface
+    {
+        public override string ModuleName => "Directory";
+
+        public override void StartupModule()
+        {
+            Border border = new Border();
+            border.BorderThickness = new Thickness(8);
+            border.BorderBrush = Brushes.Coral;
+            border.Background = Brushes.DarkCyan;
+            border.Child = new TextBlock() { Text = "Tylers World", FontSize = 50, Foreground = Brushes.Black, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+            Content = border;
+        }
+    }
+}
