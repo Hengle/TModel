@@ -9,9 +9,12 @@ using System.Windows.Media;
 
 namespace TModel.Modules
 {
-    internal class DirectoryModule : ModuleInterface
+    internal class DirectoryModule : ModuleBase
     {
-        public override string ModuleName => "Directory";
+        public DirectoryModule() : base()
+        {
+            ModuleName = "Directory";
+        }
 
         public override void StartupModule()
         {

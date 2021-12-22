@@ -9,9 +9,12 @@ using System.Windows.Media;
 
 namespace TModel.Modules
 {
-    class ObjectViewerModule : ModuleInterface
+    class ObjectViewerModule : ModuleBase
     {
-        public override string ModuleName => "Object Viewer";
+        public ObjectViewerModule() : base()
+        {
+            ModuleName = "Object Viewer";
+        }
 
         public override void StartupModule()
         {

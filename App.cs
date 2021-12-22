@@ -16,16 +16,21 @@ namespace TModel
             MainFrame.Window.Title = "TModel";
             MainFrame.Window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             MainFrame.Window.ResizeMode = ResizeMode.CanResize;
+            MainFrame.Window.MinWidth = 400;
+            MainFrame.Window.MinHeight = 200;
             MainFrame.Window.Show();
             MainFrame.Window.Background = Brushes.DarkSlateGray;
             app.MainWindow = MainFrame.Window;
             ModulePanel ModulePanel = new ModulePanel();
 
-            ModulePanel.AddModule(new DirectoryModule());
-            ModulePanel.AddModule(new ObjectViewerModule());
-            ModulePanel.AddModule(new ObjectViewerModule());
+            ModuleContainer Module_One = new ModuleContainer(new DirectoryModule(), ModulePanel);
+            ModuleContainer Module_Two = new ModuleContainer(new GameContentModule(), ModulePanel);
 
-            ModulePanel.ConvertToSeperator(new ItemPreviewModule());
+            Module_One.AddModule(new ItemPreviewModule());
+            Module_Two.AddModule(new GameContentModule());
+
+            ModulePanel.AddModule(Module_One);
+            ModulePanel.AddModule(Module_Two);
 
             MainFrame.Window.Content = ModulePanel;
             app.Run();

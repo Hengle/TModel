@@ -22,6 +22,7 @@ namespace TModel
         /// The direction of this panel
         /// </summary>
         private Orientation Direction;
+        private Orientation OppositeDirection => Direction == Orientation.Horizontal ? Orientation.Vertical : Orientation.Horizontal;
 
         /// <summary>
         /// The number of modules that are contained inside of this widget
@@ -33,30 +34,37 @@ namespace TModel
         /// </summary>
         private List<ModuleContainer> Modules { get; } = new List<ModuleContainer>();
 
-        public ModulePanel(Orientation direction = Orientation.Horizontal, bool Create = true)
+        public ModulePanel(Orientation direction = Orientation.Horizontal)
         {
             Direction = direction;
         }
 
-        public void ConvertToSeperator(ModuleInterface NewModule)
+        /// <summary>
+        /// Replaces the <c>ContainerToReplace</c> with a new <see cref="ModulePanel"/> of the <c>OppositeDirection</c><br/>
+        /// containing the module that was there before and the NewModule.
+        /// </summary>
+        public void MakeSeperator(ModuleContainer ContainerToReplace, ModuleContainer NewModule)
         {
-            ModuleContainer MiddleModule = Modules[1];
-            int Index = Children.IndexOf(MiddleModule);
-            Children.Remove(MiddleModule);
-            ModulePanel NewModulePanel = new ModulePanel(Orientation.Vertical);
-            NewModulePanel.AddModule(MiddleModule);
+            // Module exists in this panel.
+            if (Modules.IndexOf(ContainerToReplace) == -1) throw new ArgumentException("Module does not exist in panel", nameof(ContainerToReplace));
+            // Gets index of current module for replacing it.
+            int Index = Children.IndexOf(ContainerToReplace);
+            // Removes original module.
+            Children.Remove(ContainerToReplace);
+            // Creates new module panel of OppositeDireciton.
+            ModulePanel NewModulePanel = new ModulePanel(OppositeDirection);
+            // Adds the module that was removed onto the new panel.
+            NewModulePanel.AddModule(ContainerToReplace);
+            // Adds the new module.
+            NewModule.ParentPanel = NewModulePanel;
             NewModulePanel.AddModule(NewModule);
+            // Sets the Grid Index for the new module
             if (Direction == Orientation.Horizontal)
                 Grid.SetColumn(NewModulePanel, Index);
             else
                 Grid.SetRow(NewModulePanel, Index);
-            Children.Insert(3, NewModulePanel);
-        }
-
-        public void AddModule(ModuleInterface module)
-        {
-            ModuleContainer moduleContainer = new ModuleContainer(module);
-            AddModule(moduleContainer);
+            // Adds new module to panel
+            Children.Add(NewModulePanel);
         }
 
         private void AddSplitter()
@@ -80,7 +88,7 @@ namespace TModel
                     gridSplitter.Height = 8;
                     gridSplitter.ResizeDirection = GridResizeDirection.Rows;
                 }
-                AddElement(gridSplitter, GridUnitType.Auto);
+                AddElement(gridSplitter, true);
             }
         }
 
@@ -88,20 +96,22 @@ namespace TModel
         {
             AddSplitter();
             Modules.Add(moduleContainer);
-            AddElement(moduleContainer, GridUnitType.Star);
+            AddElement(moduleContainer, false);
         }
 
-        private void AddElement(UIElement widget, GridUnitType type)
+        private void AddElement(UIElement widget, bool IsSeperator)
         {
+            GridUnitType GridType = IsSeperator ? GridUnitType.Auto : GridUnitType.Star;
+            double MinSize = IsSeperator ? 0 : 100;
             if (Direction == Orientation.Horizontal)
             {
                 Grid.SetColumn(widget, ModuleCount);
-                ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, type) });
+                ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridType), MinWidth = MinSize });
             }
             else
             {
                 Grid.SetRow(widget, ModuleCount);
-                RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, type) });
+                RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridType), MinHeight = MinSize });
             }
             Children.Add(widget);
         }

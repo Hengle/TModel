@@ -9,9 +9,12 @@ using System.Windows.Media;
 
 namespace TModel.Modules
 {
-    class ItemPreviewModule : ModuleInterface
+    class ItemPreviewModule : ModuleBase
     {
-        public override string ModuleName => "Item Preview";
+        public ItemPreviewModule()
+        {
+            ModuleName = "Item Preview";
+        }
 
         public override void StartupModule()
         {

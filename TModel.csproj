@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <StartupObject>TModel.MainApp</StartupObject>
+    <ApplicationIcon>NewTModelIcon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="NewTModelIcon.ico" />
+  </ItemGroup>
 
 </Project>
