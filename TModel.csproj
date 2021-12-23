@@ -5,7 +5,7 @@
 	  <TargetFramework>net5.0-windows</TargetFramework>
 	  <Nullable>enable</Nullable>
 	  <UseWPF>true</UseWPF>
-	  <StartupObject>TModel.MainApp</StartupObject>
+	  <StartupObject>TModel.App</StartupObject>
 	  <ApplicationIcon>NewTModelIcon.ico</ApplicationIcon>
 	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>

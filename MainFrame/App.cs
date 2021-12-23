@@ -4,35 +4,52 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Ink;
 using TModel.Modules;
+using System.IO;
+using CUE4Parse.FileProvider;
+using CUE4Parse.UE4.Versions;
 
 namespace TModel
 {
-    public class MainApp : Application
+    public class App : Application
     {
+        /// <summary>
+        /// Runs given action on the UI thread.
+        /// </summary>
+        /// <param name="action">Action to run.</param>
+        public static void Refresh(Action action)
+        {
+            Current.Dispatcher.Invoke(action);
+        }
+
         [STAThread]
         public static void Main()
         {
-            var app = new MainApp();
-            MainFrame.Window.Title = "TModel";
-            MainFrame.Window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            MainFrame.Window.ResizeMode = ResizeMode.CanResize;
-            MainFrame.Window.MinWidth = 400;
-            MainFrame.Window.MinHeight = 200;
-            MainFrame.Window.Show();
-            MainFrame.Window.Background = Brushes.DarkSlateGray;
-            app.MainWindow = MainFrame.Window;
+            FileProvider.Initialize(new VersionContainer(EGame.GAME_UE5_1));
+
+            Window Window = new Window();
+
+            var app = new App();
+            Window.Title = "TModel";
+            Window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            Window.ResizeMode = ResizeMode.CanResize;
+            Window.MinWidth = 400;
+            Window.MinHeight = 200;
+            Window.Show();
+            Window.Background = Brushes.DarkSlateGray;
+            app.MainWindow = Window;
             ModulePanel ModulePanel = new ModulePanel();
 
             ModuleContainer Module_One = new ModuleContainer(new DirectoryModule(), ModulePanel);
-            ModuleContainer Module_Two = new ModuleContainer(new ObjectViewerModule(), ModulePanel);
+            ModuleContainer Module_Two = new ModuleContainer(new FileManagerModule(), ModulePanel);
 
-            Module_One.AddModule(new ItemPreviewModule());
-            Module_Two.AddModule(new GameContentModule());
+            Module_One.AddModule(new GameContentModule());
+            Module_Two.AddModule(new ObjectViewerModule());
+            Module_Two.AddModule(new ItemPreviewModule());
 
             ModulePanel.AddModule(Module_One);
             ModulePanel.AddModule(Module_Two);
 
-            MainFrame.Window.Content = ModulePanel;
+            Window.Content = ModulePanel;
             app.Run();
         }
     }

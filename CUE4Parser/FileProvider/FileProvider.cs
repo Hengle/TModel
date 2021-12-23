@@ -28,6 +28,7 @@ using CUE4Parse.Utils;
 using Ionic.Zip;
 using Newtonsoft.Json;
 using Serilog;
+using TModel;
 
 namespace CUE4Parse.FileProvider
 {
@@ -70,9 +71,7 @@ namespace CUE4Parse.FileProvider
 
         public static bool IsCaseInsensitive { get; } = true;
 
-        public static readonly ConcurrentDictionary<IAesVfsReader, object?> UnloadedVfs = new();
-
-        public static IReadOnlyCollection<IAesVfsReader> UnloadedVfsKeys => (IReadOnlyCollection<IAesVfsReader>)UnloadedVfs.Keys;
+        public static List<IAesVfsReader> UnloadedVfs { get; } = new();
 
         public static List<IAesVfsReader> MountedVfs { get; } = new List<IAesVfsReader>();
 
@@ -120,9 +119,9 @@ namespace CUE4Parse.FileProvider
         /// </summary>
         /// <param name="directory">Location of pak files on disk</param>
         /// <param name="versions">Version to load</param>
-        public static void Initialize(DirectoryInfo directory, VersionContainer? versions = null)
+        public static void Initialize(VersionContainer? versions = null)
         {
-            WorkingDirectory = directory;
+            WorkingDirectory = new DirectoryInfo(Preferences.GameDirectory);
             Versions = versions ?? VersionContainer.Default;
 
             var availableFiles = new List<Dictionary<string, GameFile>> { IterateFiles(WorkingDirectory, SearchOption.TopDirectoryOnly) };
@@ -143,7 +142,7 @@ namespace CUE4Parse.FileProvider
                     var reader = new PakFileReader(file, stream[0], Versions) { IsConcurrent = true };
                     if (reader.IsEncrypted && !MissingKeys.Contains(reader.Info.EncryptionKeyGuid))
                         MissingKeys.Add(reader.Info.EncryptionKeyGuid);
-                    UnloadedVfs[reader] = null;
+                    UnloadedVfs.Add(reader);
                 }
                 catch (Exception e)
                 {
@@ -157,7 +156,7 @@ namespace CUE4Parse.FileProvider
                     var reader = new IoStoreReader(file, stream[0], stream[1], EIoStoreTocReadOptions.ReadDirectoryIndex, Versions) { IsConcurrent = true };
                     if (reader.IsEncrypted && !MissingKeys.Contains(reader.Info.EncryptionKeyGuid))
                         MissingKeys.Add(reader.Info.EncryptionKeyGuid);
-                    UnloadedVfs[reader] = null;
+                    UnloadedVfs.Add(reader);
                 }
                 catch (Exception e)
                 {
@@ -278,7 +277,7 @@ namespace CUE4Parse.FileProvider
             }
         }
 
-        public static IEnumerable<IAesVfsReader> UnloadedVfsByGuid(FGuid guid) => UnloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid);
+        public static IEnumerable<IAesVfsReader> UnloadedVfsByGuid(FGuid guid) => UnloadedVfs.Where(it => it.EncryptionKeyGuid == guid);
         public static void UnloadAllVfs()
         {
             foreach (var reader in MountedVfs)
@@ -286,7 +285,7 @@ namespace CUE4Parse.FileProvider
                 AesKeys.TryRemove(reader.EncryptionKeyGuid, out _);
                 MissingKeys.Add(reader.EncryptionKeyGuid);
                 MountedVfs.Remove(reader);
-                UnloadedVfs[reader] = null;
+                UnloadedVfs.Add(reader);
             }
         }
 
@@ -296,7 +295,7 @@ namespace CUE4Parse.FileProvider
         {
             var countNewMounts = 0;
             var tasks = new LinkedList<Task>();
-            foreach (var reader in UnloadedVfs.Keys)
+            foreach (var reader in UnloadedVfs)
             {
                 if (GlobalData == null && reader is IoStoreReader ioReader && reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase))
                 {
@@ -311,7 +310,7 @@ namespace CUE4Parse.FileProvider
                     try
                     {
                         reader.MountTo(Files, IsCaseInsensitive);
-                        UnloadedVfs.TryRemove(reader, out _);
+                        UnloadedVfs.Remove(reader);
                         MountedVfs.Add(reader);
                         Interlocked.Increment(ref countNewMounts);
                         return reader;
@@ -338,7 +337,8 @@ namespace CUE4Parse.FileProvider
             List<IAesVfsReader> completed = new List<IAesVfsReader>();
             var countNewMounts = 0;
             var tasks = new LinkedList<Task<IAesVfsReader?>>();
-            foreach (var reader in UnloadedVfsByGuid(guid))
+            IAesVfsReader[] Results = UnloadedVfsByGuid(guid).ToArray();
+            foreach (var reader in Results)
             {
                 if (GlobalData == null && reader is IoStoreReader ioReader && reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase))
                 {
@@ -355,7 +355,7 @@ namespace CUE4Parse.FileProvider
                     try
                     {
                         reader.MountTo(Files, key);
-                        UnloadedVfs.TryRemove(reader, out _);
+                        UnloadedVfs.Remove(reader);
                         MountedVfs.Add(reader);
                         Interlocked.Increment(ref countNewMounts);
                         return reader;
