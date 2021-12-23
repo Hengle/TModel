@@ -24,7 +24,7 @@ namespace CUE4Parse.UE4.Vfs
         /// <summary>
         /// If the <see cref="FArchive"/> should be cloned.
         /// </summary>
-        public bool IsConcurrent { get; set; } = true;
+        public bool IsConcurrent { get; set; } = false;
 
         public VersionContainer Versions { get; set; }
         public EGame GameVersion

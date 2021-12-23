@@ -14,4 +14,12 @@ namespace TModel.Sorters
             return x.Name.CompareTo(y.Name);
         }
     }
+
+    public class SizeSort : IComparer<IAesVfsReader>
+    {
+        public int Compare(IAesVfsReader? x, IAesVfsReader? y)
+        {
+            return x.FileCount.CompareTo(y.FileCount);
+        }
+    }
 }

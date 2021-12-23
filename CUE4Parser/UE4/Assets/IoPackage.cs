@@ -164,7 +164,14 @@ namespace CUE4Parse.UE4.Assets
             var packages = new IoPackage?[importedPackageIds.Length];
             for (int i = 0; i < importedPackageIds.Length; i++)
             {
-                FileProvider.FileProvider.TryLoadPackage(importedPackageIds[i], out packages[i]);
+                try
+                {
+                    FileProvider.FileProvider.TryLoadPackage(importedPackageIds[i], out packages[i]);
+                }
+                catch (Exception)
+                {
+                }
+
             }
             ImportedPackages = packages;
 

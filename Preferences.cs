@@ -16,7 +16,7 @@ namespace TModel
         public static string GameDirectory { get; set; } = @"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks";
 
 
-        // TODO: add reading and writing preferably in binary.
+        // TODO: add reading and writing functionality preferably in binary.
         public static void Save()
         {
 

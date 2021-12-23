@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using CUE4Parse.FileProvider;
+using CUE4Parse.UE4.Assets.Exports;
+using Newtonsoft.Json;
 
 namespace TModel.Modules
 {
@@ -18,12 +21,33 @@ namespace TModel.Modules
 
         public override void StartupModule()
         {
-            Border border = new Border();
-            border.BorderThickness = new Thickness(8);
-            border.BorderBrush = Brushes.Brown;
-            border.Background = Brushes.DeepPink;
-            border.Child = new TextBlock() { Text = "Objector", FontFamily = new FontFamily("Microsoft Sans Serif Bold"), FontSize = 80, Foreground = Brushes.SandyBrown, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
-            Content = border;
+            TextBlock textBlock = new TextBlock() { Style = CoreStyle.STextBlock.DefaultSmall };
+            textBlock.Background = Brushes.Black;
+            ScrollViewer scrollViewer = new ScrollViewer();
+            scrollViewer.Content = textBlock;
+            Content = scrollViewer;
+            DirectoryModule.SelectedItemChanged += (name) =>
+            {
+                string Final = "";
+                textBlock.Text = "";
+                Task LoadObject = new Task(() =>
+                {
+                    try
+                    {
+                        UObject[] Exports = FileProvider.LoadObjectExports(name);
+                        Final = JsonConvert.SerializeObject(Exports, Formatting.Indented);
+                    }
+                    catch
+                    {
+                        Final = "FAILED";
+                    }
+
+                });
+                LoadObject.GetAwaiter().OnCompleted(() => textBlock.Text = Final);
+                LoadObject.Start();
+            };
+
+            Background = Brushes.Black;
         }
     }
 }

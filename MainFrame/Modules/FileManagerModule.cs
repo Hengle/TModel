@@ -1,21 +1,16 @@
 ﻿using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
-using CUE4Parse.UE4.Objects.Engine;
-using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.Vfs;
-using Microsoft.Win32;
+using CUE4Parse.Utils;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using TModel.Sorters;
-using static CUE4Parse.Utils.StringUtils;
+using static TModel.ColorConverters;
 
 namespace TModel.Modules
 {
@@ -25,6 +20,8 @@ namespace TModel.Modules
     public class FileManagerModule : ModuleBase
     {
         StackPanel FilesPanel = new StackPanel();
+
+        public static Action ContextChanged;
 
         public FileManagerModule() : base()
         {
@@ -50,26 +47,33 @@ namespace TModel.Modules
             grid.Children.Add(ButtonPanel);
             grid.Children.Add(FilePanelScroller);
 
+            grid.Background = HexBrush("#2e3d54");
 
-            grid.Background = Brushes.DarkSlateBlue;
+            Button LoadButton = new Button() { Style = CoreStyle.SButton.Default };
 
-            Button LoadButton = new Button();
-            TextBlock ButtonText = new TextBlock();
-            ButtonText.Text = "Load";
-            ButtonText.Foreground = Brushes.Black;
-            ButtonText.FontSize = 40;
-            LoadButton.Content = ButtonText;
+            TextBlock LoadButtonText = new TextBlock() { Style = CoreStyle.STextBlock.DefaultLarge };
+            LoadButtonText.Text = "Load";
+            LoadButton.Content = LoadButtonText;
             LoadButton.Click += (sender, args) =>
             {
-                ButtonText.Text = "Unpacking";
-                LoadButton.IsEnabled = false;
+                var Before = FileProvider.MountedVfs;
+                LoadButtonText.Text = "Unpacking";
                 Task.Run(() =>
                 {
                     FileProvider.SubmitKey(new FGuid(), new FAesKey("DAE1418B289573D4148C72F3C76ABC7E2DB9CAA618A3EAF2D8580EB3A1BB7A63"));
+                    FileProvider.LoadMappings();
                 }).GetAwaiter().OnCompleted(() =>
                 {
-                    ButtonText.Text = "Finished";
+                    ContextChanged();
+                    LoadButtonText.Text = "Finished";
                     var Results = FileProvider.AesKeys;
+                    var After = FileProvider.MountedVfs;
+                    List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
+                    AllVFS.AddRange(FileProvider.MountedVfs);
+                    AllVFS.AddRange(FileProvider.UnloadedVfs);
+                    AllVFS.Sort(new NameSort());
+                    FilesPanel.Children.Clear();
+                    LoadFiles(AllVFS, true);
                 });
             };
 
@@ -78,8 +82,8 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(LoadButton);
 
-            Button SelectAllButton = new Button();
-            Button DeselectAllButton = new Button();
+            Button SelectAllButton = new Button() { Style = CoreStyle.SButton.Default };
+            Button DeselectAllButton = new Button() { Style = CoreStyle.SButton.Default };
 
 
             SelectAllButton.Click += (sender, args) =>
@@ -100,9 +104,8 @@ namespace TModel.Modules
 
 
 
-            TextBlock SelectButtonText = new TextBlock();
+            TextBlock SelectButtonText = new TextBlock() { Style = CoreStyle.STextBlock.DefaultMedium };
             SelectButtonText.Text = "Select All";
-            SelectButtonText.FontSize = 20;
             SelectButtonText.TextWrapping = TextWrapping.NoWrap;
             SelectButtonText.VerticalAlignment = VerticalAlignment.Center;
             SelectButtonText.HorizontalAlignment = HorizontalAlignment.Center;
@@ -111,9 +114,8 @@ namespace TModel.Modules
 
             Grid.SetRow(SelectAllButton, 0);
 
-            TextBlock DeselectAllButtonText = new TextBlock();
+            TextBlock DeselectAllButtonText = new TextBlock() { Style = CoreStyle.STextBlock.DefaultMedium };
             DeselectAllButtonText.Text = "Deselect All";
-            DeselectAllButtonText.FontSize = 20;
             DeselectAllButtonText.TextWrapping = TextWrapping.NoWrap;
             DeselectAllButtonText.VerticalAlignment = VerticalAlignment.Center;
             DeselectAllButtonText.HorizontalAlignment = HorizontalAlignment.Center;
@@ -131,27 +133,32 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(SelectionGrid);
 
-            LoadFiles();
+            FileProvider.UnloadedVfs.Sort(new NameSort());
+            LoadFiles(FileProvider.UnloadedVfs);
         }
 
-        private void LoadFiles()
+        private void LoadFiles(List<IAesVfsReader> files, bool tryload = false)
         {
-            FileProvider.UnloadedVfs.Sort(new NameSort());
-
-            foreach (var item in FileProvider.UnloadedVfs)
+            foreach (var item in files)
             {
-                if (item.Name.EndsWith(".pak"))
-                    FilesPanel.Children.Add(new FileManagerItem(item));
+                if (item.Name.EndsWith(".utoc"))
+                    FilesPanel.Children.Add(new FileManagerItem(item, tryload));
             }
         }
     }
 
     public class FileManagerItem : ContentControl
     {
-        private static bool Switcher = false;
-        CheckBox checkBox = new CheckBox() { IsEnabled = false };
-        public bool IsSelected => checkBox.IsChecked == false ? false : true;
+        CheckBox checkBox = new CheckBox()
+        {
+            IsEnabled = false,
+            LayoutTransform = new ScaleTransform(1.3, 1.3),
+            Margin = new Thickness(0),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
 
+        public bool IsSelected => checkBox.IsChecked == false ? false : true;
 
         public void Select()
         {
@@ -164,27 +171,31 @@ namespace TModel.Modules
         }
 
         // Needs name (and file size probs)
-        public FileManagerItem(IAesVfsReader reader)
+        public FileManagerItem(IAesVfsReader reader, bool tryload = false)
         {
-            Brush BackgroundBrush = Switcher ? Brushes.Peru : Brushes.Orange;
-            Switcher = !Switcher;
-            Border SingleFileBorder = new Border();
-
-
+            Brush BackgroundBrush = reader.FileCount > 0 ? HexBrush("073880") : HexBrush("031c40");
+            Border RootBorder = new Border()
+            {
+                Padding = new Thickness(5),
+                Background = BackgroundBrush,
+                BorderThickness = new Thickness(0),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Top
+            };
 
             MouseEnter += (sender, args) =>
             {
-                SingleFileBorder.Background = Brushes.OrangeRed;
+                RootBorder.Background = HexBrush("#0f00b2");
             };
 
             MouseLeave += (sender, args) =>
             {
-                SingleFileBorder.Background = BackgroundBrush;
+                RootBorder.Background = BackgroundBrush;
             };
 
             MouseLeftButtonDown += (sender, args) =>
             {
-                SingleFileBorder.Background = Brushes.Orchid;
+                RootBorder.Background = HexBrush("#1300d9");
                 if (IsSelected)
                     Deselect();
                 else
@@ -193,50 +204,59 @@ namespace TModel.Modules
 
             MouseLeftButtonUp += (sender, args) =>
             {
-                SingleFileBorder.Background = Brushes.OrangeRed;
+                RootBorder.Background = HexBrush("#0f00b2");
             };
 
+            TextBlock FilesCountText = new TextBlock()
+            {
+                Style = CoreStyle.STextBlock.DefaultSmall,
+                Text = reader.FileCount.ToString(),
+                TextAlignment = TextAlignment.Right,
+                Width = 60,
+            };
+
+            TextBlock MountPointText = new TextBlock()
+            {
+                Style = CoreStyle.STextBlock.DefaultSmall,
+                Text = reader.MountPoint.SubstringReverse(25, true),
+                ToolTip = reader.MountPoint,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                TextAlignment = TextAlignment.Right,
+                TextWrapping = TextWrapping.NoWrap,
+                Width = 300,
+            };
+
+            Grid MainPanel = new Grid();
+            MainPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
+            MainPanel.ColumnDefinitions.Add(new ColumnDefinition());
+            RootBorder.Child = MainPanel;
+
+            TextBlock FileNameText = new TextBlock()
+            {
+                Style = CoreStyle.STextBlock.DefaultSmall,
+                Text = reader.Name,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+
+            StackPanel DetailsPanel = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Right,
+            };
+            Grid.SetColumn(DetailsPanel, 1);
+            MainPanel.Children.Add(FileNameText);
+
+            DetailsPanel.Children.Add(MountPointText);
+            DetailsPanel.Children.Add(FilesCountText);
+            DetailsPanel.Children.Add(checkBox);
 
 
-            Grid SingleFilePanel = new Grid();
-            SingleFilePanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
-            SingleFilePanel.ColumnDefinitions.Add(new ColumnDefinition());
-            SingleFileBorder.Child = SingleFilePanel;
+            MainPanel.Children.Add(DetailsPanel);
 
-            TextBlock SingleFileName = new TextBlock();
-            SingleFileName.Text = reader.Name; // Name of file
-            SingleFileName.FontSize = 20;
-            SingleFileName.TextWrapping = TextWrapping.Wrap;
-            SingleFileName.VerticalAlignment = VerticalAlignment.Center;
-            SingleFileName.HorizontalAlignment = HorizontalAlignment.Left;
-
-            checkBox.LayoutTransform = new ScaleTransform(1.7, 1.7);
-            // checkBox.Width = 80;
-            // checkBox.Height = 80;
-            checkBox.Margin = new Thickness(0);
-            checkBox.VerticalAlignment = VerticalAlignment.Center;
-            checkBox.HorizontalAlignment = HorizontalAlignment.Right;
-
-            WrapPanel DeteailsPanel = new WrapPanel() { Orientation = Orientation.Horizontal };
-            DeteailsPanel.VerticalAlignment = VerticalAlignment.Center;
-            DeteailsPanel.HorizontalAlignment = HorizontalAlignment.Right;
-            SingleFilePanel.Children.Add(SingleFileName);
-
-            DeteailsPanel.Children.Add(checkBox); // Last
-
-            Grid.SetColumn(DeteailsPanel, 1);
-
-            SingleFilePanel.Children.Add(DeteailsPanel);
-
-
-            SingleFileBorder.Height = 40;
-            SingleFileBorder.Background = BackgroundBrush;
-            SingleFileBorder.BorderBrush = new SolidColorBrush(Colors.Black);
-            SingleFileBorder.BorderThickness = new Thickness(1.8);
-            SingleFileBorder.HorizontalAlignment = HorizontalAlignment.Stretch;
-            SingleFileBorder.VerticalAlignment = VerticalAlignment.Top;
-
-            Content = SingleFileBorder;
+            Content = RootBorder;
         }
     }
 }

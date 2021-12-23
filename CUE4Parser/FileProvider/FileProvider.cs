@@ -954,6 +954,6 @@ namespace CUE4Parse.FileProvider
             throw new ParserException("Loaded object but it was of wrong type");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UObject[] LoadObjectExports(string? objectPath) => LoadPackage(objectPath).GetExports().ToArray();
+        public static UObject[] LoadObjectExports(string objectPath) => LoadPackage(objectPath).GetExports().ToArray();
     }
 }

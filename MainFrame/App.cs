@@ -7,6 +7,7 @@ using TModel.Modules;
 using System.IO;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Versions;
+using System.Windows.Threading;
 
 namespace TModel
 {
@@ -18,7 +19,7 @@ namespace TModel
         /// <param name="action">Action to run.</param>
         public static void Refresh(Action action)
         {
-            Current.Dispatcher.Invoke(action);
+            Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
         }
 
         [STAThread]

@@ -125,6 +125,13 @@ namespace CUE4Parse.Utils
             return index == -1 ? s : s.Substring(index + delimiter.Length, s.Length - index - delimiter.Length);
         }
 
+        public static string SubstringReverse(this string s, int length, bool dots = false)
+        {
+            if (s == null) return string.Empty;
+            if (length > s.Length) return s;
+            return (dots ? "..." : "") + s.Substring(s.Length - length);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Contains(this string orig, string value, StringComparison comparisonType) =>
             orig.IndexOf(value, comparisonType) >= 0;
