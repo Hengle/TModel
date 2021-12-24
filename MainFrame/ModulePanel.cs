@@ -39,10 +39,8 @@ namespace TModel
             Direction = direction;
         }
 
-        /// <summary>
-        /// Replaces the <c>ContainerToReplace</c> with a new <see cref="ModulePanel"/> of the <c>OppositeDirection</c><br/>
-        /// containing the module that was there before and the NewModule.
-        /// </summary>
+        // Replaces the ContainerToReplace with a new ModulePanel of the OppositeDirection
+        // containing the module that was there before and the NewModule.
         public void MakeSeperator(ModuleContainer ContainerToReplace, ModuleContainer NewModule)
         {
             // Module exists in this panel.

@@ -3,12 +3,15 @@ using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Vfs;
 using CUE4Parse.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using TModel.MainFrame.Widgets;
 using TModel.Sorters;
 using static TModel.ColorConverters;
 
@@ -49,23 +52,13 @@ namespace TModel.Modules
 
             grid.Background = HexBrush("#2e3d54");
 
-            Button LoadButton = new Button() { Style = CoreStyle.SButton.Default };
-
-            TextBlock LoadButtonText = new TextBlock() { Style = CoreStyle.STextBlock.DefaultLarge };
-            LoadButtonText.Text = "Load";
-            LoadButton.Content = LoadButtonText;
-            LoadButton.Click += (sender, args) =>
+            CButton LoadButton = new CButton("Load");
+            LoadButton.Click += () =>
             {
                 var Before = App.FileProvider.MountedVfs;
-                LoadButtonText.Text = "Unpacking";
-                Task.Run(() =>
-                {
-                    App.FileProvider.SubmitKey(new FGuid(), new FAesKey("DAE1418B289573D4148C72F3C76ABC7E2DB9CAA618A3EAF2D8580EB3A1BB7A63"));
-                    App.FileProvider.LoadMappings();
-                }).GetAwaiter().OnCompleted(() =>
+                Task.Run(() => LoadGame()).GetAwaiter().OnCompleted(() =>
                 {
                     ContextChanged();
-                    LoadButtonText.Text = "Finished";
                     var After = App.FileProvider.MountedVfs;
                     List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
                     AllVFS.AddRange(App.FileProvider.MountedVfs);
@@ -81,11 +74,11 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(LoadButton);
 
-            Button SelectAllButton = new Button() { Style = CoreStyle.SButton.Default };
-            Button DeselectAllButton = new Button() { Style = CoreStyle.SButton.Default };
+            CButton SelectAllButton = new CButton("Select All");
+            CButton DeselectAllButton = new CButton("Deselect All");
 
 
-            SelectAllButton.Click += (sender, args) =>
+            SelectAllButton.Click += () =>
             {
                 foreach (var item in FilesPanel.Children)
                 {
@@ -93,7 +86,7 @@ namespace TModel.Modules
                 }
             };
 
-            DeselectAllButton.Click += (sender, args) =>
+            DeselectAllButton.Click += () =>
             {
                 foreach (var item in FilesPanel.Children)
                 {
@@ -101,26 +94,7 @@ namespace TModel.Modules
                 }
             };
 
-
-
-            TextBlock SelectButtonText = new TextBlock() { Style = CoreStyle.STextBlock.DefaultMedium };
-            SelectButtonText.Text = "Select All";
-            SelectButtonText.TextWrapping = TextWrapping.NoWrap;
-            SelectButtonText.VerticalAlignment = VerticalAlignment.Center;
-            SelectButtonText.HorizontalAlignment = HorizontalAlignment.Center;
-
-            SelectAllButton.Content = SelectButtonText;
-
             Grid.SetRow(SelectAllButton, 0);
-
-            TextBlock DeselectAllButtonText = new TextBlock() { Style = CoreStyle.STextBlock.DefaultMedium };
-            DeselectAllButtonText.Text = "Deselect All";
-            DeselectAllButtonText.TextWrapping = TextWrapping.NoWrap;
-            DeselectAllButtonText.VerticalAlignment = VerticalAlignment.Center;
-            DeselectAllButtonText.HorizontalAlignment = HorizontalAlignment.Center;
-
-            DeselectAllButton.Content = DeselectAllButtonText;
-
             Grid.SetRow(DeselectAllButton, 1);
 
             Grid SelectionGrid = new Grid() { Height = 90, Width = 130 };
@@ -134,6 +108,38 @@ namespace TModel.Modules
 
             // App.FileProvider.UnloadedVfs.Sort(new NameSort());
             LoadFiles(App.FileProvider.UnloadedVfs);
+        }
+
+        void LoadGame()
+        {
+            AesKeys AesKeys;
+            WebClient Client = new WebClient();
+            // Doenloads json string of keys from Fortnite-Api
+            AesKeys = JsonConvert.DeserializeObject<MainAesKeys>(Client.DownloadString(@"https://fortnite-api.com/v2/aes")).data;
+            // Main key
+            App.FileProvider.SubmitKey(new FGuid(), new FAesKey(AesKeys.mainkey));
+            // Dynamic keys
+            foreach (DynamicAesKey key in AesKeys.dynamicKeys)
+                App.FileProvider.SubmitKey(new FGuid(key.pakGuid), new FAesKey(key.key));
+
+            App.FileProvider.LoadMappings();
+        }
+
+        struct MainAesKeys
+        {
+            public AesKeys data;
+        }
+
+        struct AesKeys
+        {
+            public string mainkey;
+            public DynamicAesKey[] dynamicKeys;
+        }
+
+        struct DynamicAesKey
+        {
+            public string pakGuid;
+            public string key;
         }
 
         private void LoadFiles(ICollection<IAesVfsReader> files, bool tryload = false)
@@ -208,7 +214,7 @@ namespace TModel.Modules
 
             TextBlock FilesCountText = new TextBlock()
             {
-                Style = CoreStyle.STextBlock.DefaultSmall,
+                Style = new DefaultText(),
                 Text = reader.FileCount.ToString(),
                 TextAlignment = TextAlignment.Right,
                 Width = 60,
@@ -216,7 +222,7 @@ namespace TModel.Modules
 
             TextBlock MountPointText = new TextBlock()
             {
-                Style = CoreStyle.STextBlock.DefaultSmall,
+                Style = new DefaultText(),
                 Text = reader.MountPoint,
                 ToolTip = reader.MountPoint,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -233,7 +239,7 @@ namespace TModel.Modules
 
             TextBlock FileNameText = new TextBlock()
             {
-                Style = CoreStyle.STextBlock.DefaultSmall,
+                Style = new DefaultText(),
                 Text = reader.Name,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left,

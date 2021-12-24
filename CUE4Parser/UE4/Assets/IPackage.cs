@@ -26,10 +26,10 @@ namespace CUE4Parse.UE4.Assets
         public UObject? GetExportOrNull(string name, StringComparison comparisonType = StringComparison.Ordinal);
         public T? GetExportOrNull<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) where T : UObject;
         public UObject GetExport(string name, StringComparison comparisonType = StringComparison.Ordinal);
+        public UObject GetExport(int index);
         public T GetExport<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) where T : UObject;
         public Lazy<UObject>? FindObject(FPackageIndex? index);
         public ResolvedObject? ResolvePackageIndex(FPackageIndex? index);
-        public UObject? GetExport(int index);
         public IEnumerable<UObject> GetExports();
     }
 }

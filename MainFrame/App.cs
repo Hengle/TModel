@@ -13,15 +13,14 @@ using CUE4Parse.Encryption.Aes;
 using Newtonsoft.Json;
 using System.Net;
 using CUE4Parse.UE4.Assets.Exports;
+using System.Collections.Generic;
+using System.Windows.Controls.Primitives;
 
 namespace TModel
 {
     public class App : Application
     {
-        /// <summary>
-        /// Runs given action on the UI thread.
-        /// </summary>
-        /// <param name="action">Action to run.</param>
+        // Runs the given action on the UI thread.
         public static void Refresh(Action action)
         {
             Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
@@ -32,20 +31,7 @@ namespace TModel
         [STAThread]
         public static void Main()
         {
-            FileProvider.Initialize();
-
-            AesKeys AesKeys;
-            WebClient Client = new WebClient();
-            AesKeys = JsonConvert.DeserializeObject<MainAesKeys>(Client.DownloadString(@"https://fortnite-api.com/v2/aes")).data;
-
-            FileProvider.SubmitKey(new FGuid(), new FAesKey(AesKeys.mainkey));
-
-            foreach (DynamicAesKey key in AesKeys.dynamicKeys)
-                FileProvider.SubmitKey(new FGuid(key.pakGuid), new FAesKey(key.key));
-
-            // UObject FoundExport = FileProvider.LoadObject(@"FortniteGame/Content/PlayerClearPersistenceIslandDataPromptWidget.uasset", 0);
-
-
+            App.FileProvider.Initialize();
 
             Window Window = new Window();
 
@@ -60,6 +46,7 @@ namespace TModel
             app.MainWindow = Window;
             ModulePanel ModulePanel = new ModulePanel();
 
+            // Generates default window layout
             ModuleContainer Module_One = new ModuleContainer(new DirectoryModule(), ModulePanel);
             ModuleContainer Module_Two = new ModuleContainer(new FileManagerModule(), ModulePanel);
 
@@ -72,23 +59,6 @@ namespace TModel
 
             Window.Content = ModulePanel;
             app.Run();
-        }
-
-        struct MainAesKeys
-        {
-            public AesKeys data;
-        }
-
-        struct AesKeys
-        {
-            public string mainkey;
-            public DynamicAesKey[] dynamicKeys;
-        }
-
-        struct DynamicAesKey
-        {
-            public string pakGuid;
-            public string key;
         }
     }
 }

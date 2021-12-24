@@ -15,8 +15,9 @@ namespace TModel
 
         public static Brush HexBrush(string hex)
         {
+            // Makes sure hex starts with '#'
             hex = hex.StartsWith("#") ? hex : '#' + hex;
-            return (Brush)(brushConverter.ConvertFrom(hex));
+            return (Brush)(brushConverter.ConvertFromString(hex));
         }
 
         public static Brush Solid(this Color color) => new SolidColorBrush(color);
