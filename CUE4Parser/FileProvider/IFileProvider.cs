@@ -198,14 +198,14 @@ namespace CUE4Parse.FileProvider
         /// </summary>
         /// <param name="path">The package file path</param>
         /// <returns>The parsed package content</returns>
-        public IPackage LoadPackageAsync(string path);
+        public Task<IPackage> LoadPackageAsync(string path);
         /// <summary>
         /// Asynchronously loads and parses a Package from the passed file. 
         /// Can throw various exceptions
         /// </summary>
         /// <param name="file">The package file</param>
         /// <returns>The parsed package content</returns>
-        public IPackage LoadPackageAsync(GameFile file);
+        public Task<IPackage> LoadPackageAsync(GameFile file);
         /// <summary>
         /// Asynchronously attempts to loads and parse a Package at the passed path. 
         /// </summary>
@@ -329,6 +329,6 @@ namespace CUE4Parse.FileProvider
         /// </summary>
         /// <param name="objectPath">The object path</param>
         /// <returns>All exports of the object</returns>
-        public UObject[] LoadObjectExports(string? objectPath);
+        public IEnumerable<UObject> LoadObjectExports(string? objectPath);
     }
 }

@@ -61,8 +61,6 @@ namespace CUE4Parse.UE4.Objects.UObject
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        public static implicit operator string(FName value) => value.Text;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(FName a, FName b) => !(a == b);
 

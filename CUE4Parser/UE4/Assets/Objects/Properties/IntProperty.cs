@@ -7,11 +7,6 @@ namespace CUE4Parse.UE4.Assets.Objects
     [JsonConverter(typeof(IntPropertyConverter))]
     public class IntProperty : FPropertyTagType<int>
     {
-        public IntProperty(int value)
-        {
-            Value = value;
-        }
-
         public IntProperty(FArchive Ar, ReadType type)
         {
             Value = type switch

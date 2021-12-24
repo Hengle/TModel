@@ -45,5 +45,14 @@ namespace CUE4Parse.UE4.Objects.Engine
             //     DeserializePropertiesTagged(DefaultProperties = new List<FPropertyTag>(), Ar);
             // }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (DefaultProperties is not { Count: > 0 }) return;
+            writer.WritePropertyName("DefaultProperties");
+            serializer.Serialize(writer, DefaultProperties);
+        }
     }
 }

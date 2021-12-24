@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -17,9 +17,6 @@ using CUE4Parse.Utils;
 
 namespace CUE4Parse.UE4.IO
 {
-    /// <summary>
-    /// Reads .utoc and .ucas files
-    /// </summary>
     public class IoStoreReader : AbstractAesVfsReader
     {
         public readonly IReadOnlyList<FArchive> ContainerStreams;
@@ -213,7 +210,7 @@ namespace CUE4Parse.UE4.IO
             var compressedBuffer = Array.Empty<byte>();
             var uncompressedBuffer = Array.Empty<byte>();
 
-            var clonedReaders = new FArchive[ContainerStreams.Count];
+            var clonedReaders = new FArchive?[ContainerStreams.Count];
 
             for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
             {
@@ -266,6 +263,8 @@ namespace CUE4Parse.UE4.IO
                 offsetInBlock = 0;
                 remainingSize -= sizeInBlock;
                 dstOffset += sizeInBlock;
+
+                reader.Position = 0;
             }
 
             return dst;
@@ -277,7 +276,7 @@ namespace CUE4Parse.UE4.IO
             watch.Start();
 
             ProcessIndex(caseInsensitive);
-            if (GameVersion >= EGame.GAME_UE5_0) // We can safely skip reading container header on UE4
+            if (Game >= EGame.GAME_UE5_0) // We can safely skip reading container header on UE4
             {
                 ContainerHeader = ReadContainerHeader();
             }
@@ -297,29 +296,29 @@ namespace CUE4Parse.UE4.IO
             return Files;
         }
 
-        /// <summary>
-        /// Loads all files in .utoc (file paths are stored in .utoc)
-        /// </summary>
-        /// <param name="caseInsensitive">Ingore this parameter</param>
-        /// <returns>All files in game</returns>
-        /// <exception cref="ParserException"></exception>
-        /// <exception cref="InvalidAesKeyException"></exception>
         public IReadOnlyDictionary<string, GameFile> ProcessIndex(bool caseInsensitive)
         {
             if (!HasDirectoryIndex || TocResource.DirectoryIndexBuffer == null) throw new ParserException("No directory index");
             var directoryIndex = new FByteArchive(Path, DecryptIfEncrypted(TocResource.DirectoryIndexBuffer));
 
             string mountPoint;
-            mountPoint = directoryIndex.ReadFString();
-            FIoDirectoryIndexEntry[] directoryEntries = directoryIndex.ReadArray<FIoDirectoryIndexEntry>();
-            FIoFileIndexEntry[] fileEntries = directoryIndex.ReadArray<FIoFileIndexEntry>();
-            string[] stringTable = directoryIndex.ReadArray(directoryIndex.ReadFString); // File names
+            try
+            {
+                mountPoint = directoryIndex.ReadFString();
+            }
+            catch (Exception e)
+            {
+                throw new InvalidAesKeyException($"Given aes key '{AesKey?.KeyString}'is not working with '{Path}'", e);
+            }
 
-            // Removes '../../../' from beginning
             ValidateMountPoint(ref mountPoint);
             MountPoint = mountPoint;
 
-            Dictionary<string, GameFile> files = new Dictionary<string, GameFile>(fileEntries.Length);
+            var directoryEntries = directoryIndex.ReadArray<FIoDirectoryIndexEntry>();
+            var fileEntries = directoryIndex.ReadArray<FIoFileIndexEntry>();
+            var stringTable = directoryIndex.ReadArray(directoryIndex.ReadFString);
+
+            var files = new Dictionary<string, GameFile>(fileEntries.Length);
             ReadIndex(MountPoint, 0U);
 
             void ReadIndex(string directoryName, uint dir)
@@ -328,26 +327,28 @@ namespace CUE4Parse.UE4.IO
 
                 while (dir != invalidHandle)
                 {
-                    ref FIoDirectoryIndexEntry DirEntry = ref directoryEntries[dir];
-                    string BasePath = DirEntry.Name == invalidHandle ? directoryName : $"{directoryName}{stringTable[DirEntry.Name]}/";
+                    ref var dirEntry = ref directoryEntries[dir];
+                    var subDirectoryName = dirEntry.Name == invalidHandle ? directoryName : $"{directoryName}{stringTable[dirEntry.Name]}/";
 
-                    uint FileEntry = DirEntry.FirstFileEntry;
-                    // Creates all paths that are in BasePath
-                    while (FileEntry != invalidHandle)
+                    var file = dirEntry.FirstFileEntry;
+                    while (file != invalidHandle)
                     {
-                        ref FIoFileIndexEntry fileEntry = ref fileEntries[FileEntry];
-                        string FileName = stringTable[fileEntry.Name];
-                        string path = string.Concat(BasePath, FileName);
-                        FIoStoreEntry IoStoreEntry = new FIoStoreEntry(this, path, fileEntry.UserData);
-                        if (IoStoreEntry.IsEncrypted)
-                            EncryptedFileCount++;
-                        files[path] = IoStoreEntry;
+                        ref var fileEntry = ref fileEntries[file];
 
-                        FileEntry = fileEntry.NextFileEntry;
+                        var path = string.Concat(subDirectoryName, stringTable[fileEntry.Name]);
+                        var entry = new FIoStoreEntry(this, path, fileEntry.UserData);
+                        if (entry.IsEncrypted)
+                            EncryptedFileCount++;
+                        if (caseInsensitive)
+                            files[path.ToLowerInvariant()] = entry;
+                        else
+                            files[path] = entry;
+
+                        file = fileEntry.NextFileEntry;
                     }
 
-                    ReadIndex(BasePath, DirEntry.FirstChildEntry);
-                    dir = DirEntry.NextSiblingEntry;
+                    ReadIndex(subDirectoryName, dirEntry.FirstChildEntry);
+                    dir = dirEntry.NextSiblingEntry;
                 }
             }
 
@@ -356,7 +357,7 @@ namespace CUE4Parse.UE4.IO
 
         public FIoContainerHeader ReadContainerHeader()
         {
-            var headerChunkId = new FIoChunkId(TocResource.Header.ContainerId.Id, 0, GameVersion >= EGame.GAME_UE5_0 ? (byte) EIoChunkType5.ContainerHeader : (byte) EIoChunkType.ContainerHeader);
+            var headerChunkId = new FIoChunkId(TocResource.Header.ContainerId.Id, 0, Game >= EGame.GAME_UE5_0 ? (byte) EIoChunkType5.ContainerHeader : (byte) EIoChunkType.ContainerHeader);
             var Ar = new FByteArchive("ContainerHeader", Read(headerChunkId), Versions);
             return new FIoContainerHeader(Ar);
         }

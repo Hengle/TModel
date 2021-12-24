@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using CUE4Parse.FileProvider;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Readers;
@@ -14,34 +15,21 @@ using Serilog;
 
 namespace CUE4Parse.UE4.Assets
 {
-    /// <summary>
-    /// Container of <see cref="Lazy{UObject}"/> for type <see cref="UObject"/>
-    /// </summary>
-    public abstract class AbstractUePackage : UObject
+    public abstract class AbstractUePackage : UObject, IPackage
     {
+        public IFileProvider? Provider { get; }
         public TypeMappings? Mappings { get; }
-
         public abstract FPackageFileSummary Summary { get; }
-
         public abstract FNameEntrySerialized[] NameMap { get; }
-
-        /// <summary>
-        /// Lazily initilized UObjects
-        /// </summary>
-        /// <code>
-        /// IsNameStableForNetworking() => true; 
-        /// </code>
-        /// <remarks>
-        /// We may not need all of them loaded so we use <see cref="Lazy{UObject}"/>.
-        /// </remarks>
         public abstract Lazy<UObject>[] ExportsLazy { get; }
         public abstract bool IsFullyLoaded { get; }
 
         public override bool IsNameStableForNetworking() => true;   // For now, assume all packages have stable net names
 
-        public AbstractUePackage(string name, TypeMappings? mappings)
+        public AbstractUePackage(string name, IFileProvider? provider, TypeMappings? mappings)
         {
             Name = name;
+            Provider = provider;
             Mappings = mappings;
             Flags |= EObjectFlags.RF_WasLoaded;
         }
@@ -122,9 +110,6 @@ namespace CUE4Parse.UE4.Assets
         public abstract UObject? GetExportOrNull(string name, StringComparison comparisonType = StringComparison.Ordinal);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public abstract UObject? GetExportOrNull(int index, StringComparison comparisonType = StringComparison.Ordinal);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T? GetExportOrNull<T>(string name, StringComparison comparisonType = StringComparison.Ordinal)
             where T : UObject => GetExportOrNull(name, comparisonType) as T;
 
@@ -135,28 +120,13 @@ namespace CUE4Parse.UE4.Assets
                 $"Package '{Name}' does not have an export with the name '{name}'");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UObject GetExport(int index, StringComparison comparisonType = StringComparison.Ordinal) =>
-            GetExportOrNull(index, comparisonType) ??
-            throw new NullReferenceException(
-                $"Package '{Name}' does not have an export at index '{index}'");
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetExport<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) where T : UObject =>
             GetExportOrNull<T>(name, comparisonType) ??
             throw new NullReferenceException(
                 $"Package '{Name}' does not have an export with the name '{name} and type {typeof(T).Name}'");
 
-        /// <summary>
-        /// Loads the <see cref="UObject"/> at the given index.
-        /// </summary>
-        /// <param name="index">The index at which <see cref="UObject"/> to load.</param>
-        /// <exception cref="ArgumentOutOfRangeException">
-        /// The <see cref="AbstractUePackage"/> does not have an <see cref="UObject"/> at the given index.
-        /// </exception>
-        /// <returns>The loaded <see cref="UObject"/></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UObject? GetExport(int index) => index < ExportsLazy.Length ? ExportsLazy[index].Value : 
-            throw new ArgumentOutOfRangeException("index", index, "UObject does not have export at that index");
+        public UObject? GetExport(int index) => index < ExportsLazy.Length ? ExportsLazy[index].Value : null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumerable<UObject> GetExports() => ExportsLazy.Select(x => x.Value);
@@ -174,11 +144,11 @@ namespace CUE4Parse.UE4.Assets
     }
 
     [JsonConverter(typeof(ResolvedObjectConverter))]
-    public abstract class ResolvedObject
+    public abstract class ResolvedObject : IObject
     {
-        public readonly AbstractUePackage Package;
+        public readonly IPackage Package;
 
-        public ResolvedObject(AbstractUePackage package, int exportIndex = -1)
+        public ResolvedObject(IPackage package, int exportIndex = -1)
         {
             Package = package;
             ExportIndex = exportIndex;
@@ -187,11 +157,8 @@ namespace CUE4Parse.UE4.Assets
         public int ExportIndex { get; }
         public abstract FName Name { get; }
         public virtual ResolvedObject? Outer => null;
-
         public virtual ResolvedObject? Class => null;
-
         public virtual ResolvedObject? Super => null;
-
         public virtual Lazy<UObject>? Object => null;
 
         public string GetFullName(bool includeOuterMostName = true, bool includeClassPackage = false)

@@ -39,5 +39,22 @@ namespace CUE4Parse.UE4.Assets.Exports.Component.StaticMesh
                 }
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (PerInstanceSMData is { Length: > 0 })
+            {
+                writer.WritePropertyName("PerInstanceSMData");
+                serializer.Serialize(writer, PerInstanceSMData);
+            }
+
+            if (PerInstanceSMCustomData is { Length: > 0 })
+            {
+                writer.WritePropertyName("PerInstanceSMCustomData");
+                serializer.Serialize(writer, PerInstanceSMCustomData);
+            }
+        }
     }
 }

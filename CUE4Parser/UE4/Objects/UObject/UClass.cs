@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Objects.UObject
@@ -82,16 +83,74 @@ namespace CUE4Parse.UE4.Objects.UObject
                 {
                     var instance = Activator.CreateInstance(type);
                     if (instance is Assets.Exports.UObject obj)
+                    {
                         return obj;
+                    }
                     else
+                    {
                         Log.Warning("Class {Type} did have a valid constructor but does not inherit UObject", type);
+                    }
                 }
                 catch (Exception e)
                 {
                     Log.Warning(e, "Class {Type} could not be constructed", type);
                 }
             }
+
             return null;
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (FuncMap is { Count: > 0 })
+            {
+                writer.WritePropertyName("FuncMap");
+                serializer.Serialize(writer, FuncMap);
+            }
+
+            if (ClassFlags != 0)
+            {
+                writer.WritePropertyName("ClassFlags");
+                serializer.Serialize(writer, ClassFlags);
+            }
+
+            if (ClassWithin is { IsNull: false })
+            {
+                writer.WritePropertyName("ClassWithin");
+                serializer.Serialize(writer, ClassWithin);
+            }
+
+            if (!ClassConfigName.IsNone)
+            {
+                writer.WritePropertyName("ClassConfigName");
+                serializer.Serialize(writer, ClassConfigName);
+            }
+
+            if (ClassGeneratedBy is { IsNull: false })
+            {
+                writer.WritePropertyName("ClassGeneratedBy");
+                serializer.Serialize(writer, ClassGeneratedBy);
+            }
+
+            if (Interfaces is { Length: > 0 })
+            {
+                writer.WritePropertyName("Interfaces");
+                serializer.Serialize(writer, Interfaces);
+            }
+
+            if (bCooked)
+            {
+                writer.WritePropertyName("bCooked");
+                serializer.Serialize(writer, bCooked);
+            }
+
+            if (ClassDefaultObject is { IsNull: false })
+            {
+                writer.WritePropertyName("ClassDefaultObject");
+                serializer.Serialize(writer, ClassDefaultObject);
+            }
         }
 
         public class FImplementedInterface

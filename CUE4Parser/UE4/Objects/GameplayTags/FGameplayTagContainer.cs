@@ -25,7 +25,7 @@ namespace CUE4Parse.UE4.Objects.GameplayTags
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         IEnumerator IEnumerable.GetEnumerator() => GameplayTags.GetEnumerator();
 
-        public override string ToString() => string.Join(",\n", GameplayTags);
+        public override string ToString() => string.Join(", ", GameplayTags);
     }
     
     public static class FGameplayTagContainerUtility

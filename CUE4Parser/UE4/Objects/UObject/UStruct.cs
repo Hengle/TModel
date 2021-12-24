@@ -1,5 +1,4 @@
 ﻿using System;
-using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
@@ -15,8 +14,6 @@ namespace CUE4Parse.UE4.Objects.UObject
         public FField[] ChildProperties;
 
         public byte[]? Script;
-
-        public override string ToString() => Name;
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -39,7 +36,14 @@ namespace CUE4Parse.UE4.Objects.UObject
 
             var bytecodeBufferSize = Ar.Read<int>();
             var serializedScriptSize = Ar.Read<int>();
-            Script = Ar.ReadBytes(serializedScriptSize);
+            if (Ar.Owner.Provider?.ReadScriptData == true)
+            {
+                Script = Ar.ReadBytes(serializedScriptSize);
+            }
+            else
+            {
+                Ar.Position += serializedScriptSize;
+            }
         }
 
         protected void DeserializeProperties(FAssetArchive Ar)
@@ -51,6 +55,29 @@ namespace CUE4Parse.UE4.Objects.UObject
                 prop.Deserialize(Ar);
                 return prop;
             });
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (SuperStruct is { IsNull: false })
+            {
+                writer.WritePropertyName("SuperStruct");
+                serializer.Serialize(writer, SuperStruct);
+            }
+
+            if (Children is { Length: > 0 })
+            {
+                writer.WritePropertyName("Children");
+                serializer.Serialize(writer, Children);
+            }
+
+            if (ChildProperties is { Length: > 0 })
+            {
+                writer.WritePropertyName("ChildProperties");
+                serializer.Serialize(writer, ChildProperties);
+            }
         }
     }
 }

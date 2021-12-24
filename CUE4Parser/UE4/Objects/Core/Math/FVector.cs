@@ -8,8 +8,6 @@ using CUE4Parse.Utils;
 namespace CUE4Parse.UE4.Objects.Core.Math
 {
     [StructLayout(LayoutKind.Sequential)]
-
-    // X, Y, Z - Unrael Engine uses Z or up/down
     public struct FVector : IUStruct
     {
         /// <summary>

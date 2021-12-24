@@ -19,17 +19,11 @@ using static CUE4Parse.UE4.Pak.Objects.EPakFileVersion;
 
 namespace CUE4Parse.UE4.Pak
 {
-    /// <summary>
-    /// Reads .pak files
-    /// </summary>
     public class PakFileReader : AbstractAesVfsReader
     {
-        /// <summary>
-        /// The <see cref="FArchive"/> being read.
-        /// </summary>
         public readonly FArchive Ar;
 
-        public readonly PakHeader Info;
+        public readonly FPakInfo Info;
 
         public override string MountPoint { get; protected set; }
         public sealed override long Length { get; set; }
@@ -39,19 +33,11 @@ namespace CUE4Parse.UE4.Pak
 
         public override bool IsEncrypted => Info.EncryptedIndex;
 
-        /// <summary>
-        /// Creates new instance of <see cref="PakFileReader"/> and starts reading file
-        /// </summary>
-        /// <param name="Ar">
-        /// The <see cref="FArchive"/> of the .pak file to read.
-        /// <br/>
-        /// Prefers the <see cref="FStreamArchive"/>.
-        /// </param>
         public PakFileReader(FArchive Ar) : base(Ar.Name, Ar.Versions)
         {
             this.Ar = Ar;
             Length = Ar.Length;
-            Info = PakHeader.ReadFPakInfo(Ar);
+            Info = FPakInfo.ReadFPakInfo(Ar);
             if (Info.Version > PakFile_Version_Latest)
             {
                 log.Warning($"Pak file \"{Name}\" has unsupported version {(int) Info.Version}");
@@ -231,7 +217,7 @@ namespace CUE4Parse.UE4.Pak
                             if (entry.IsEncrypted)
                                 EncryptedFileCount++;
                             if (caseInsensitive)
-                                files[path] = entry;
+                                files[path.ToLowerInvariant()] = entry;
                             else
                                 files[path] = entry;
                         }

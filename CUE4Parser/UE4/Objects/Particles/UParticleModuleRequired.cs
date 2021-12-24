@@ -22,5 +22,14 @@ namespace CUE4Parse.UE4.Objects.Particles
                 BoundingGeometry = Ar.ReadArray<FVector2D>();
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (BoundingGeometry is not { Length: > 0 }) return;
+            writer.WritePropertyName("BoundingGeometry");
+            serializer.Serialize(writer, BoundingGeometry);
+        }
     }
 }

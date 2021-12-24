@@ -22,5 +22,13 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
                 SkeletonGuid = Ar.Read<FGuid>();
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName(nameof(SkeletonGuid));
+            serializer.Serialize(writer, SkeletonGuid);
+        }
     }
 }

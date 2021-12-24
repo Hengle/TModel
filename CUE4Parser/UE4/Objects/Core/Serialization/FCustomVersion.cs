@@ -4,12 +4,12 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 namespace CUE4Parse.UE4.Objects.Core.Serialization
 {
     /// <summary>
-    /// Holds a unique custom key with its version.
+    /// Structure to hold unique custom key with its version.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct FCustomVersion
     {
-        /** Unique custom key. */ 
+        /** Unique custom key. */
         public FGuid Key;
         /** Custom version */
         public int Version;

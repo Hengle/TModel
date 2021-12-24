@@ -105,7 +105,7 @@ namespace TModel.Modules
 
             Task.Run(() =>
             {
-                Names = FileProvider.GetFilesInPath(path);
+                Names = App.FileProvider.GetFilesInPath(path);
 
 
             }).GetAwaiter().OnCompleted(() => 

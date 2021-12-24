@@ -17,5 +17,19 @@ namespace CUE4Parse.UE4.Objects.Engine
             ExtraReferencedObjects = Ar.ReadArray(() => new FPackageIndex(Ar));
             StreamingLevels = Ar.ReadArray(() => new FPackageIndex(Ar));
         }
+        
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("PersistentLevel");
+            serializer.Serialize(writer, PersistentLevel);
+            
+            writer.WritePropertyName("ExtraReferencedObjects");
+            serializer.Serialize(writer, ExtraReferencedObjects);
+            
+            writer.WritePropertyName("StreamingLevels");
+            serializer.Serialize(writer, StreamingLevels);
+        }
     }
 }

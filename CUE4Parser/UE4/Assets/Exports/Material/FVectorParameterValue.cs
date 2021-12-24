@@ -9,16 +9,18 @@ using Newtonsoft.Json;
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
     [StructFallback]
-    public class FVectorParameterValue : BaseParameterValue
+    public class FVectorParameterValue : IUStruct
     {
         [JsonIgnore]
         public string Name => (!ParameterName.IsNone ? ParameterName : ParameterInfo.Name).Text;
+        public readonly FName ParameterName;
         public readonly FMaterialParameterInfo ParameterInfo;
         public readonly FLinearColor? ParameterValue;
         public readonly FGuid ExpressionGUID;
 
-        public FVectorParameterValue(FStructFallback fallback) : base(fallback)
+        public FVectorParameterValue(FStructFallback fallback)
         {
+            ParameterName = fallback.GetOrDefault<FName>(nameof(ParameterName));
             ParameterInfo = fallback.GetOrDefault<FMaterialParameterInfo>(nameof(ParameterInfo));
             ParameterValue = fallback.GetOrDefault<FLinearColor>(nameof(ParameterValue));
             ExpressionGUID = fallback.GetOrDefault<FGuid>(nameof(ExpressionGUID));

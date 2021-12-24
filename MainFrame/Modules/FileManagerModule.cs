@@ -56,21 +56,20 @@ namespace TModel.Modules
             LoadButton.Content = LoadButtonText;
             LoadButton.Click += (sender, args) =>
             {
-                var Before = FileProvider.MountedVfs;
+                var Before = App.FileProvider.MountedVfs;
                 LoadButtonText.Text = "Unpacking";
                 Task.Run(() =>
                 {
-                    FileProvider.SubmitKey(new FGuid(), new FAesKey("DAE1418B289573D4148C72F3C76ABC7E2DB9CAA618A3EAF2D8580EB3A1BB7A63"));
-                    FileProvider.LoadMappings();
+                    App.FileProvider.SubmitKey(new FGuid(), new FAesKey("DAE1418B289573D4148C72F3C76ABC7E2DB9CAA618A3EAF2D8580EB3A1BB7A63"));
+                    App.FileProvider.LoadMappings();
                 }).GetAwaiter().OnCompleted(() =>
                 {
                     ContextChanged();
                     LoadButtonText.Text = "Finished";
-                    var Results = FileProvider.AesKeys;
-                    var After = FileProvider.MountedVfs;
+                    var After = App.FileProvider.MountedVfs;
                     List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
-                    AllVFS.AddRange(FileProvider.MountedVfs);
-                    AllVFS.AddRange(FileProvider.UnloadedVfs);
+                    AllVFS.AddRange(App.FileProvider.MountedVfs);
+                    AllVFS.AddRange(App.FileProvider.UnloadedVfs);
                     AllVFS.Sort(new NameSort());
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);
@@ -133,11 +132,11 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(SelectionGrid);
 
-            FileProvider.UnloadedVfs.Sort(new NameSort());
-            LoadFiles(FileProvider.UnloadedVfs);
+            // App.FileProvider.UnloadedVfs.Sort(new NameSort());
+            LoadFiles(App.FileProvider.UnloadedVfs);
         }
 
-        private void LoadFiles(List<IAesVfsReader> files, bool tryload = false)
+        private void LoadFiles(ICollection<IAesVfsReader> files, bool tryload = false)
         {
             foreach (var item in files)
             {
@@ -218,7 +217,7 @@ namespace TModel.Modules
             TextBlock MountPointText = new TextBlock()
             {
                 Style = CoreStyle.STextBlock.DefaultSmall,
-                Text = reader.MountPoint.SubstringReverse(25, true),
+                Text = reader.MountPoint,
                 ToolTip = reader.MountPoint,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left,

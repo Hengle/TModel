@@ -32,7 +32,6 @@ namespace CUE4Parse.UE4.Assets.Objects
     [JsonConverter(typeof(FPropertyTagTypeConverter))]
     public abstract class FPropertyTagType
     {
-        public string PropertyTypeName = "None"; // Fot structs and enums
         public abstract object? GenericValue { get; }
         public object? GetValue(Type type)
         {

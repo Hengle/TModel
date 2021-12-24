@@ -8,6 +8,11 @@ using System.IO;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Versions;
 using System.Windows.Threading;
+using CUE4Parse.UE4.Objects.Core.Misc;
+using CUE4Parse.Encryption.Aes;
+using Newtonsoft.Json;
+using System.Net;
+using CUE4Parse.UE4.Assets.Exports;
 
 namespace TModel
 {
@@ -22,10 +27,25 @@ namespace TModel
             Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
         }
 
+        public static DefaultFileProvider FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
+
         [STAThread]
         public static void Main()
         {
-            FileProvider.Initialize(new VersionContainer(EGame.GAME_UE5_1));
+            FileProvider.Initialize();
+
+            AesKeys AesKeys;
+            WebClient Client = new WebClient();
+            AesKeys = JsonConvert.DeserializeObject<MainAesKeys>(Client.DownloadString(@"https://fortnite-api.com/v2/aes")).data;
+
+            FileProvider.SubmitKey(new FGuid(), new FAesKey(AesKeys.mainkey));
+
+            foreach (DynamicAesKey key in AesKeys.dynamicKeys)
+                FileProvider.SubmitKey(new FGuid(key.pakGuid), new FAesKey(key.key));
+
+            // UObject FoundExport = FileProvider.LoadObject(@"FortniteGame/Content/PlayerClearPersistenceIslandDataPromptWidget.uasset", 0);
+
+
 
             Window Window = new Window();
 
@@ -52,6 +72,23 @@ namespace TModel
 
             Window.Content = ModulePanel;
             app.Run();
+        }
+
+        struct MainAesKeys
+        {
+            public AesKeys data;
+        }
+
+        struct AesKeys
+        {
+            public string mainkey;
+            public DynamicAesKey[] dynamicKeys;
+        }
+
+        struct DynamicAesKey
+        {
+            public string pakGuid;
+            public string key;
         }
     }
 }

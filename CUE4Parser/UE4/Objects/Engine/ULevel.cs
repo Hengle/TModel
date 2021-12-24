@@ -128,5 +128,37 @@ namespace CUE4Parse.UE4.Objects.Engine
             PrecomputedVisibilityHandler = new FPrecomputedVisibilityHandler(Ar);
             PrecomputedVolumeDistanceField = new FPrecomputedVolumeDistanceField(Ar);
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("Actors");
+            serializer.Serialize(writer, Actors);
+
+            writer.WritePropertyName("URL");
+            serializer.Serialize(writer, URL);
+
+            writer.WritePropertyName("Model");
+            serializer.Serialize(writer, Model);
+
+            writer.WritePropertyName("ModelComponents");
+            serializer.Serialize(writer, ModelComponents);
+
+            writer.WritePropertyName("LevelScriptActor");
+            serializer.Serialize(writer, LevelScriptActor);
+
+            writer.WritePropertyName("NavListStart");
+            serializer.Serialize(writer, NavListStart);
+
+            writer.WritePropertyName("NavListEnd");
+            serializer.Serialize(writer, NavListEnd);
+
+            writer.WritePropertyName("PrecomputedVisibilityHandler");
+            serializer.Serialize(writer, PrecomputedVisibilityHandler);
+
+            writer.WritePropertyName("PrecomputedVolumeDistanceField");
+            serializer.Serialize(writer, PrecomputedVolumeDistanceField);
+        }
     }
 }

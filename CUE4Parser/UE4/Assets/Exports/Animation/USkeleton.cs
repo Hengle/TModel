@@ -69,5 +69,25 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
                 }
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("ReferenceSkeleton");
+            serializer.Serialize(writer, ReferenceSkeleton);
+
+            writer.WritePropertyName("Guid");
+            serializer.Serialize(writer, Guid);
+
+            writer.WritePropertyName("AnimRetargetSources");
+            serializer.Serialize(writer, AnimRetargetSources);
+
+            writer.WritePropertyName("NameMappings");
+            serializer.Serialize(writer, NameMappings);
+
+            writer.WritePropertyName("ExistingMarkerNames");
+            serializer.Serialize(writer, ExistingMarkerNames);
+        }
     }
 }

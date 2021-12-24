@@ -18,5 +18,20 @@ namespace CUE4Parse.UE4.Assets.Exports.Wwise
 
             DataChunks = Ar.ReadArray(() => new FAkMediaDataChunk(Ar));
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("DataChunks");
+            writer.WriteStartArray();
+            {
+                foreach (var dataChunk in DataChunks)
+                {
+                    serializer.Serialize(writer, dataChunk);
+                }
+            }
+            writer.WriteEndArray();
+        }
     }
 }

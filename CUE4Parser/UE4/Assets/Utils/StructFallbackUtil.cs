@@ -5,8 +5,6 @@ using CUE4Parse.UE4.Assets.Objects;
 namespace CUE4Parse.UE4.Assets.Utils
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-
-    // For deserialization
     public class StructFallback : Attribute { }
 
     public static class StructFallbackUtil

@@ -14,5 +14,13 @@ namespace CUE4Parse.UE4.Assets.Exports.Component.Atmosphere
 
             bStaticLightingBuiltGUID = Ar.Read<FGuid>();
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("bStaticLightingBuiltGUID");
+            writer.WriteValue(bStaticLightingBuiltGUID.ToString(EGuidFormats.UniqueObjectGuid));
+        }
     }
 }

@@ -23,5 +23,13 @@ namespace CUE4Parse.UE4.Objects.Engine
                 GeneratedClass = new FPackageIndex(Ar);
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("SkeletonGeneratedClass");
+            serializer.Serialize(writer, SkeletonGeneratedClass);
+        }
     }
 }

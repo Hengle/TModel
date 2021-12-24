@@ -51,5 +51,22 @@ namespace CUE4Parse.UE4.Assets.Exports.Sound
                 RunningPlatformData = new FStreamedAudioPlatformData(Ar);
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("CompressedFormatData");
+            serializer.Serialize(writer, CompressedFormatData);
+
+            writer.WritePropertyName("RawData");
+            serializer.Serialize(writer, RawData);
+
+            writer.WritePropertyName("CompressedDataGuid");
+            serializer.Serialize(writer, CompressedDataGuid);
+
+            writer.WritePropertyName("RunningPlatformData");
+            serializer.Serialize(writer, RunningPlatformData);
+        }
     }
 }

@@ -29,7 +29,7 @@ namespace CUE4Parse.UE4.Pak.Objects
         PakFile_Version_Latest = PakFile_Version_Last - 1
     }
 
-    public class PakHeader
+    public class FPakInfo
     {
         public const uint PAK_FILE_MAGIC = 0x5A6F12E1;
         public const int COMPRESSION_METHOD_NAME_LEN = 32;
@@ -47,7 +47,7 @@ namespace CUE4Parse.UE4.Pak.Objects
         public readonly FGuid EncryptionKeyGuid;
         public readonly List<CompressionMethod> CompressionMethods;
 
-        private PakHeader(FArchive Ar, OffsetsToTry offsetToTry)
+        private FPakInfo(FArchive Ar, OffsetsToTry offsetToTry)
         {
             // New FPakInfo fields.
             EncryptionKeyGuid = Ar.Read<FGuid>();          // PakFile_Version_EncryptionKeyGuid
@@ -160,7 +160,7 @@ namespace CUE4Parse.UE4.Pak.Objects
             OffsetsToTry.Size8_3
         };
 
-        public static PakHeader ReadFPakInfo(FArchive Ar)
+        public static FPakInfo ReadFPakInfo(FArchive Ar)
         {
             unsafe
             {
@@ -179,7 +179,7 @@ namespace CUE4Parse.UE4.Pak.Objects
                 foreach (var offset in _offsetsToTry)
                 {
                     reader.Seek(-(long)offset, SeekOrigin.End);
-                    var info = new PakHeader(reader, offset);
+                    var info = new FPakInfo(reader, offset);
                     if (info.Magic == PAK_FILE_MAGIC)
                     {
                         return info;

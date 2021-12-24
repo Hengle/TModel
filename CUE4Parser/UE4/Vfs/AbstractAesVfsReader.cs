@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using CUE4Parse.Encryption.Aes;
-using CUE4Parse.FileProvider.Vfs;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Readers;
@@ -8,13 +7,11 @@ using CUE4Parse.UE4.Versions;
 
 namespace CUE4Parse.UE4.Vfs
 {
-    /// <summary>
-    /// Base for file readers
-    /// </summary>
     public abstract partial class AbstractAesVfsReader : AbstractVfsReader, IAesVfsReader
     {
         public abstract FGuid EncryptionKeyGuid { get; }
         public abstract long Length { get; set; }
+        public IAesVfsReader.CustomEncryptionDelegate? CustomEncryption { get; set; }
         public FAesKey? AesKey { get; set; }
 
         public abstract bool IsEncrypted { get; }
@@ -41,7 +38,11 @@ namespace CUE4Parse.UE4.Vfs
         protected byte[] DecryptIfEncrypted(byte[] bytes, bool isEncrypted)
         {
             if (!isEncrypted) return bytes;
-            if (AesKey != null && TestAesKey(AesKey))
+            else if (CustomEncryption != null)
+            {
+                return CustomEncryption(bytes, 0, bytes.Length, this);
+            }
+            else if (AesKey != null && TestAesKey(AesKey))
             {
                 return bytes.Decrypt(AesKey);
             }
@@ -50,6 +51,10 @@ namespace CUE4Parse.UE4.Vfs
         protected byte[] DecryptIfEncrypted(byte[] bytes, int beginOffset, int count, bool isEncrypted)
         {
             if (!isEncrypted) return bytes;
+            else if (CustomEncryption != null)
+            {
+                return CustomEncryption(bytes, beginOffset, count, this);
+            }
             if (AesKey != null)
             {
                 return bytes.Decrypt(beginOffset, count, AesKey);
@@ -63,10 +68,5 @@ namespace CUE4Parse.UE4.Vfs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected byte[] ReadAndDecrypt(int length, FArchive reader, bool isEncrypted) =>
             DecryptIfEncrypted(reader.ReadBytes(length), isEncrypted);
-
-        public void MountTo(FileProviderDictionary files, FAesKey? key)
-        {
-            files.AddFiles(Mount(false));
-        }
     }
 }

@@ -8,29 +8,11 @@ using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
 {
-    /// <summary>
-    /// A skeletal mesh is basicly a static mesh and skeleton combined together
-    /// with weights to connect them together.
-    /// </summary>
     public class USkeletalMesh : UObject
     {
         public FBoxSphereBounds ImportedBounds { get; private set; }
-
-        /// <summary>
-        /// How the skeletal mesh looks.
-        /// </summary>
         public FSkeletalMaterial[] Materials { get; private set; }
-
-        /// <summary>
-        /// The skeleton that controls this mesh.
-        /// </summary>
         public FReferenceSkeleton ReferenceSkeleton { get; private set; }
-
-        /// <summary>
-        /// Skeletal meshes can have many different resolutions, LOD models defines those.
-        /// <br/>
-        /// There are usually 4 and the first one is the highest res.
-        /// </summary>
         public FStaticLODModel[]? LODModels { get; private set; }
         public bool bHasVertexColors { get; private set; }
         public byte NumVertexColorChannels { get; private set; }
@@ -95,6 +77,20 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
             }
 
             var dummyObjs = Ar.ReadArray(() => new FPackageIndex(Ar));
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("ImportedBounds");
+            serializer.Serialize(writer, ImportedBounds);
+
+            writer.WritePropertyName("Materials");
+            serializer.Serialize(writer, Materials);
+
+            writer.WritePropertyName("LODModels");
+            serializer.Serialize(writer, LODModels);
         }
     }
 }

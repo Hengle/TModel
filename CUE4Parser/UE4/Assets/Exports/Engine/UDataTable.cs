@@ -28,6 +28,14 @@ namespace CUE4Parse.UE4.Assets.Exports.Engine
                 RowMap[rowName] = rowStruct != null ? new FStructFallback(Ar, rowStruct) : new FStructFallback(Ar, RowStructName);
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("Rows");
+            serializer.Serialize(writer, RowMap);
+        }
     }
 
     public static class UDataTableUtility

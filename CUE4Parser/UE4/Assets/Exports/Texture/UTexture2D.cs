@@ -119,5 +119,48 @@ namespace CUE4Parse.UE4.Assets.Exports.Texture
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FTexture2DMipMap? GetFirstMip() => Mips.FirstOrDefault(x => x.Data.Data != null);
+
+        public override void GetParams(CMaterialParams parameters)
+        {
+            // ???
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("SizeX");
+            writer.WriteValue(SizeX);
+
+            writer.WritePropertyName("SizeY");
+            writer.WriteValue(SizeY);
+
+            writer.WritePropertyName("PackedData");
+            writer.WriteValue(PackedData);
+
+            writer.WritePropertyName("PixelFormat");
+            writer.WriteValue(Format.ToString());
+
+            if (OptData.ExtData != 0 && OptData.NumMipsInTail != 0)
+            {
+                writer.WritePropertyName("OptData");
+                serializer.Serialize(writer, OptData);
+            }
+
+            writer.WritePropertyName("FirstMipToSerialize");
+            writer.WriteValue(FirstMipToSerialize);
+
+            if (Mips is { Length: > 0 })
+            {
+                writer.WritePropertyName("Mips");
+                serializer.Serialize(writer, Mips);
+            }
+
+            if (VTData != null)
+            {
+                writer.WritePropertyName("VTData");
+                writer.WriteValue(VTData);
+            }
+        }
     }
 }

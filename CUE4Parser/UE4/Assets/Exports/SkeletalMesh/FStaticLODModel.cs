@@ -17,9 +17,6 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
         CDSF_MinLodData = 2,
     };
 
-    /// <summary>
-    /// Stores a single LOD model for a skeletal mesh
-    /// </summary>
     [JsonConverter(typeof(FStaticLODModelConverter))]
     public class FStaticLODModel
     {
@@ -97,23 +94,31 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
                     {
                         var skinWeights = new FSkinWeightVertexBuffer(Ar, VertexBufferGPUSkin.bExtraBoneInfluences);
                         if (skinWeights.Weights.Length > 0)
+                        {
                             // Copy data to VertexBufferGPUSkin
                             if (VertexBufferGPUSkin.bUseFullPrecisionUVs)
+                            {
                                 for (var i = 0; i < NumVertices; i++)
                                 {
                                     VertexBufferGPUSkin.VertsFloat[i].Infs = skinWeights.Weights[i];
                                 }
+                            }
                             else
+                            {
                                 for (var i = 0; i < NumVertices; i++)
                                 {
                                     VertexBufferGPUSkin.VertsHalf[i].Infs = skinWeights.Weights[i];
                                 }
+                            }
+                        }
                     }
 
                     if (bHasVertexColors)
                     {
                         if (skelMeshVer < FSkeletalMeshCustomVersion.Type.UseSharedColorBufferFormat)
+                        {
                             ColorVertexBuffer = new FSkeletalMeshVertexColorBuffer(Ar);
+                        }
                         else
                         {
                             var newColorVertexBuffer = new FColorVertexBuffer(Ar);

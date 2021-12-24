@@ -59,7 +59,7 @@ namespace CUE4Parse.UE4.Pak.Objects
                 }
                 else if (legacyCompressionMethod.HasFlag(COMPRESS_Custom))
                 {
-                    if (reader.GameVersion == GAME_SeaOfThieves)
+                    if (reader.Game == GAME_SeaOfThieves)
                     {
                         compressionMethodIndex = 4; // LZ4
                     }

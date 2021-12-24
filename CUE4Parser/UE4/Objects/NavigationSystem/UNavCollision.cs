@@ -39,6 +39,23 @@ namespace CUE4Parse.UE4.Objects.NavigationSystem
                 AreaClass = new FPackageIndex(Ar);
         }
 
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (CookedFormatData != null)
+            {
+                writer.WritePropertyName("CookedFormatData");
+                serializer.Serialize(writer, CookedFormatData);
+            }
+
+            if (!AreaClass.IsNull)
+            {
+                writer.WritePropertyName("AreaClass");
+                serializer.Serialize(writer, AreaClass);
+            }
+        }
+
         public class Consts
         {
             public const int Initial = 1;

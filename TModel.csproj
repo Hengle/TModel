@@ -1,13 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 	  <OutputType>WinExe</OutputType>
-	  <TargetFramework>net5.0-windows</TargetFramework>
+	  <TargetFramework>net5.0-windows7.0</TargetFramework>
 	  <Nullable>enable</Nullable>
 	  <UseWPF>true</UseWPF>
 	  <StartupObject>TModel.App</StartupObject>
 	  <ApplicationIcon>NewTModelIcon.ico</ApplicationIcon>
 	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	  <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <Optimize>True</Optimize>
+	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -27,5 +36,4 @@
 		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0023" />
 		<PackageReference Include="SkiaSharp" Version="2.80.3" />
 	</ItemGroup>
-
 </Project>

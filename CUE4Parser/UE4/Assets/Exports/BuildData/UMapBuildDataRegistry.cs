@@ -81,6 +81,47 @@ namespace CUE4Parse.UE4.Assets.Exports.BuildData
                 }
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (MeshBuildData?.Count > 0)
+            {
+                writer.WritePropertyName("MeshBuildData");
+                serializer.Serialize(writer, MeshBuildData);
+            }
+
+            if (LevelPrecomputedLightVolumeBuildData?.Count > 0)
+            {
+                writer.WritePropertyName("LevelPrecomputedLightVolumeBuildData");
+                serializer.Serialize(writer, LevelPrecomputedLightVolumeBuildData);
+            }
+
+            if (LevelPrecomputedVolumetricLightmapBuildData?.Count > 0)
+            {
+                writer.WritePropertyName("LevelPrecomputedVolumetricLightmapBuildData");
+                serializer.Serialize(writer, LevelPrecomputedVolumetricLightmapBuildData);
+            }
+
+            if (LightBuildData?.Count > 0)
+            {
+                writer.WritePropertyName("LightBuildData");
+                serializer.Serialize(writer, LightBuildData);
+            }
+
+            if (ReflectionCaptureBuildData?.Count > 0)
+            {
+                writer.WritePropertyName("ReflectionCaptureBuildData");
+                serializer.Serialize(writer, ReflectionCaptureBuildData);
+            }
+
+            if (SkyAtmosphereBuildData?.Count > 0)
+            {
+                writer.WritePropertyName("SkyAtmosphereBuildData");
+                serializer.Serialize(writer, SkyAtmosphereBuildData);
+            }
+        }
     }
 
     public class FSkyAtmosphereMapBuildData

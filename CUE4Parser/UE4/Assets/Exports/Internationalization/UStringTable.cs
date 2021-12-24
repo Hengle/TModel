@@ -15,5 +15,16 @@ namespace CUE4Parse.UE4.Assets.Exports.Internationalization
             StringTable = new FStringTable(Ar);
             StringTableId = Ar.Read<int>();
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("StringTable");
+            serializer.Serialize(writer, StringTable);
+
+            writer.WritePropertyName("StringTableId");
+            writer.WriteValue(StringTableId);
+        }
     }
 }

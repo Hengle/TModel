@@ -14,12 +14,10 @@ using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
 using Serilog;
 
-// TODO: Remove is not used
-#if false
 namespace CUE4Parse.UE4.Assets
 {
-
-    public sealed class BadPackage : AbstractUePackage
+    [SkipObjectRegistration]
+    public sealed class Package : AbstractUePackage
     {
         public override FPackageFileSummary Summary { get; }
         public override FNameEntrySerialized[] NameMap { get; }
@@ -31,8 +29,8 @@ namespace CUE4Parse.UE4.Assets
         public override bool IsFullyLoaded { get; } = false;
         private ExportLoader[] _exportLoaders; // Nonnull if useLazySerialization is false
 
-        public BadPackage(FArchive uasset, FArchive? uexp, FArchive? ubulk = null, FArchive? uptnl = null, TypeMappings? mappings = null, bool useLazySerialization = true)
-            : base(uasset.Name.SubstringBeforeLast("."), mappings)
+        public Package(FArchive uasset, FArchive? uexp, Lazy<FArchive?>? ubulk = null, Lazy<FArchive?>? uptnl = null, IFileProvider? provider = null, TypeMappings? mappings = null, bool useLazySerialization = true)
+            : base(uasset.Name.SubstringBeforeLast("."), provider, mappings)
         {
             // We clone the version container because it can be modified with package specific versions when reading the summary
             uasset.Versions = (VersionContainer) uasset.Versions.Clone();
@@ -90,7 +88,7 @@ namespace CUE4Parse.UE4.Assets
                         obj.Outer = (ResolvePackageIndex(export.OuterIndex) as ResolvedExportObject)?.Object.Value ?? this;
                         obj.Super = ResolvePackageIndex(export.SuperIndex) as ResolvedExportObject;
                         obj.Template = ResolvePackageIndex(export.TemplateIndex) as ResolvedExportObject;
-                        obj.Flags |= (EObjectFlags) export.ObjectFlags; // We give loaded objects the RF_WasLoaded flag in ConstructObject, so don't remove it again in here 
+                        obj.Flags |= (EObjectFlags) export.ObjectFlags; // We give loaded objects the RF_WasLoaded flag in ConstructObject, so don't remove it again in here
 
                         // Serialize
                         var Ar = (FAssetArchive) uexpAr.Clone();
@@ -115,10 +113,15 @@ namespace CUE4Parse.UE4.Assets
             IsFullyLoaded = true;
         }
 
-        public BadPackage(string name, byte[] uasset, byte[]? uexp, byte[]? ubulk = null, byte[]? uptnl = null, bool useLazySerialization = true)
+        public Package(FArchive uasset, FArchive? uexp, FArchive? ubulk = null, FArchive? uptnl = null,
+            IFileProvider? provider = null, TypeMappings? mappings = null, bool useLazySerialization = true)
+            : this(uasset, uexp, ubulk != null ? new Lazy<FArchive?>(() => ubulk) : null,
+                uptnl != null ? new Lazy<FArchive?>(() => uptnl) : null, provider, mappings, useLazySerialization) { }
+
+        public Package(string name, byte[] uasset, byte[]? uexp, byte[]? ubulk = null, byte[]? uptnl = null, IFileProvider? provider = null, bool useLazySerialization = true)
             : this(new FByteArchive($"{name}.uasset", uasset), uexp != null ? new FByteArchive($"{name}.uexp", uexp) : null,
                 ubulk != null ? new FByteArchive($"{name}.ubulk", ubulk) : null,
-                uptnl != null ? new FByteArchive($"{name}.uptnl", uptnl) : null, null, useLazySerialization) { }
+                uptnl != null ? new FByteArchive($"{name}.uptnl", uptnl) : null, provider, null, useLazySerialization) { }
 
         public override UObject? GetExportOrNull(string name, StringComparison comparisonType = StringComparison.Ordinal)
         {
@@ -134,8 +137,6 @@ namespace CUE4Parse.UE4.Assets
                 return null;
             }
         }
-
-        public override UObject? GetExportOrNull(int index, StringComparison comparisonType = StringComparison.Ordinal) => ExportMap[index].ExportObject.Value;
 
         public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
         {
@@ -168,9 +169,11 @@ namespace CUE4Parse.UE4.Assets
                 return new ResolvedImportObject(import, this);
             }
 
-            BadPackage? importPackage = null;
-            if (FileProvider.FileProvider.TryLoadPackage(outerMostImport.ObjectName.Text, out var package))
-                importPackage = package as BadPackage;
+            if (Provider == null)
+                return null;
+            Package? importPackage = null;
+            if (Provider.TryLoadPackage(outerMostImport.ObjectName.Text, out var package))
+                importPackage = package as Package;
             if (importPackage == null)
             {
                 Log.Error("Missing native package ({0}) for import of {1} in {2}.", outerMostImport.ObjectName, import.ObjectName, Name);
@@ -207,7 +210,7 @@ namespace CUE4Parse.UE4.Assets
         {
             private readonly FObjectExport _export;
 
-            public ResolvedExportObject(int exportIndex, BadPackage package) : base(package, exportIndex)
+            public ResolvedExportObject(int exportIndex, Package package) : base(package, exportIndex)
             {
                 _export = package.ExportMap[exportIndex];
             }
@@ -224,7 +227,7 @@ namespace CUE4Parse.UE4.Assets
         {
             private readonly FObjectImport _import;
 
-            public ResolvedImportObject(FObjectImport import, BadPackage package) : base(package)
+            public ResolvedImportObject(FObjectImport import, Package package) : base(package)
             {
                 _import = import;
             }
@@ -237,7 +240,7 @@ namespace CUE4Parse.UE4.Assets
 
         private class ExportLoader
         {
-            private BadPackage _package;
+            private Package _package;
             private FObjectExport _export;
             private FAssetArchive _archive;
             private UObject _object;
@@ -245,7 +248,7 @@ namespace CUE4Parse.UE4.Assets
             private LoadPhase _phase = LoadPhase.Create;
             public Lazy<UObject> Lazy;
 
-            public ExportLoader(BadPackage package, FObjectExport export, FAssetArchive archive)
+            public ExportLoader(Package package, FObjectExport export, FAssetArchive archive)
             {
                 _package = package;
                 _export = export;
@@ -388,4 +391,3 @@ namespace CUE4Parse.UE4.Assets
         }
     }
 }
-#endif

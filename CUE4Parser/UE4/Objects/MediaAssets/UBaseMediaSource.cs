@@ -14,5 +14,14 @@ namespace CUE4Parse.UE4.Objects.MediaAssets
 
             PlayerName = Ar.ReadFName();
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (PlayerName.IsNone) return;
+            writer.WritePropertyName("PlayerName");
+            serializer.Serialize(writer, PlayerName);
+        }
     }
 }

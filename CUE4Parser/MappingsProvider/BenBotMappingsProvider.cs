@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -33,65 +32,52 @@ namespace CUE4Parse.MappingsProvider
 
         public sealed override async Task<bool> ReloadAsync()
         {
-            byte[] usmapBytes = null;
-            string? usmapUrl = null;
-            string? usmapName = null;
-
-
             try
             {
-                if (!File.Exists(@"C:\Users\bigho\Desktop\Fort Mappings\FortMappings.usmap"))
+                var jsonText = _specificVersion != null
+                    ? await LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
+                    : await LoadEndpoint(BenMappingsEndpoint);
+                if (jsonText == null)
                 {
-                    var jsonText = _specificVersion != null
-    ? await LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
-    : await LoadEndpoint(BenMappingsEndpoint);
-                    if (jsonText == null)
-                    {
-                        Log.Warning("Failed to get BenBot Mappings Endpoint");
-                        return false;
-                    }
-                    var json = JArray.Parse(jsonText);
-                    var preferredCompression = _isWindows64Bit ? "Oodle" : "Brotli";
-
-                    if (!json.HasValues)
-                    {
-                        Log.Warning("Couldn't reload mappings, json array was empty");
-                        return false;
-                    }
-
-
-                    foreach (var arrayEntry in json)
-                    {
-                        var method = arrayEntry["meta"]?["compressionMethod"]?.ToString();
-                        if (method != null && method == preferredCompression)
-                        {
-                            usmapUrl = arrayEntry["url"]?.ToString();
-                            usmapName = arrayEntry["fileName"]?.ToString();
-                            break;
-                        }
-                    }
-
-                    if (usmapUrl == null)
-                    {
-                        usmapUrl = json[0]["url"]?.ToString()!;
-                        usmapName = json[0]["fileName"]?.ToString()!;
-                    }
-
-                    usmapBytes = await LoadEndpointBytes(usmapUrl);
-                    if (usmapBytes == null)
-                    {
-                        Log.Warning("Failed to download usmap");
-                        return false;
-                    }
-
-                    File.WriteAllBytes(@"C:\Users\bigho\Desktop\Fort Mappings\FortMappings.usmap", usmapBytes);
-
-                    AddUsmap(usmapBytes, _gameName, usmapName!);
+                    Log.Warning("Failed to get BenBot Mappings Endpoint");
+                    return false;
                 }
-                else
+                var json =  JArray.Parse(jsonText);
+                var preferredCompression = _isWindows64Bit ? "Oodle" : "Brotli";
+
+                if (!json.HasValues)
                 {
-                    AddUsmap(File.ReadAllBytes(@"C:\Users\bigho\Desktop\Fort Mappings\FortMappings.usmap"), _gameName, usmapName!);
+                    Log.Warning("Couldn't reload mappings, json array was empty");
+                    return false;
                 }
+
+                string? usmapUrl = null;
+                string? usmapName = null;
+                foreach (var arrayEntry in json)
+                {
+                    var method = arrayEntry["meta"]?["compressionMethod"]?.ToString();
+                    if (method != null && method == preferredCompression)
+                    {
+                        usmapUrl = arrayEntry["url"]?.ToString();
+                        usmapName = arrayEntry["fileName"]?.ToString();
+                        break;
+                    }
+                }
+
+                if (usmapUrl == null)
+                {
+                    usmapUrl = json[0]["url"]?.ToString()!;
+                    usmapName = json[0]["fileName"]?.ToString()!;
+                }
+
+                var usmapBytes = await LoadEndpointBytes(usmapUrl);
+                if (usmapBytes == null)
+                {
+                    Log.Warning("Failed to download usmap");
+                    return false;
+                }
+
+                AddUsmap(usmapBytes, _gameName, usmapName!);
                 return true;
             }
             catch (Exception e)

@@ -6,13 +6,11 @@ using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-using CUE4Parse.Utils;
 using Newtonsoft.Json;
 using UExport = CUE4Parse.UE4.Assets.Exports.UObject;
 
 namespace CUE4Parse.UE4.Objects.UObject
 {
-
     /// <summary>
     /// Wrapper for index into a ULinker's ImportMap or ExportMap.
     /// Values greater than zero indicate that this is an index into the ExportMap.  The
@@ -25,23 +23,21 @@ namespace CUE4Parse.UE4.Objects.UObject
     public class FPackageIndex
     {
         /// <summary>
-        /// Values greater than zero indicate that this is an index into the ExportMap.
-        /// The actual array index will be (FPackageIndex - 1).
+        /// Values greater than zero indicate that this is an index into the ExportMap.  The
+        /// actual array index will be (FPackageIndex - 1).
         ///
-        /// Values less than zero indicate that this is an index into the ImportMap.
-        /// The actual array index will be (-FPackageIndex - 1).
+        /// Values less than zero indicate that this is an index into the ImportMap. The actual
+        /// array index will be (-FPackageIndex - 1)
         /// </summary>
         public readonly int Index;
 
-        public readonly AbstractUePackage? Owner;
+        public readonly IPackage? Owner;
 
         public ResolvedObject? ResolvedObject => Owner?.ResolvePackageIndex(this);
 
         public bool IsNull => Index == 0;
         public bool IsExport => Index > 0;
         public bool IsImport => Index < 0;
-
-        public string FullPath => StringUtils.NormalizePath(Owner?.Name);
 
         public string Name => ResolvedObject?.Name.Text ?? "None";
 
@@ -65,7 +61,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         public override string ToString()
         {
-            return (ResolvedObject?.ToString() ?? Index.ToString()).SubstringBeforeLast('.') ?? "FPackageIndex is null";
+            return ResolvedObject?.ToString() ?? Index.ToString();
         }
 
         #region Loading Methods
@@ -136,7 +132,7 @@ namespace CUE4Parse.UE4.Objects.UObject
             #region V3
             serializer.Serialize(writer, value.ResolvedObject);
             #endregion
-            
+
             #region V2
             // var resolved = value.Owner?.ResolvePackageIndex(value);
             // if (resolved != null)
@@ -198,7 +194,7 @@ namespace CUE4Parse.UE4.Objects.UObject
     /// contained within the same package)
     /// </summary>
     [JsonConverter(typeof(FObjectResourceConverter))]
-    public abstract class FObjectResource
+    public abstract class FObjectResource : IObject
     {
         public FName ObjectName;
         public FPackageIndex OuterIndex;

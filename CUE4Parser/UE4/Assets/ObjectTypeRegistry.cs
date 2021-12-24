@@ -5,9 +5,6 @@ using CUE4Parse.UE4.Assets.Exports;
 
 namespace CUE4Parse.UE4.Assets
 {
-    /// <summary>
-    /// Object is an Unreal Engine object
-    /// </summary>
     public sealed class SkipObjectRegistrationAttribute : Attribute { }
 
     public static class ObjectTypeRegistry

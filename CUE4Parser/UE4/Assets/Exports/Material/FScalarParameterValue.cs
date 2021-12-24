@@ -8,16 +8,18 @@ using Newtonsoft.Json;
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
     [StructFallback]
-    public class FScalarParameterValue : BaseParameterValue
+    public class FScalarParameterValue : IUStruct
     {
         [JsonIgnore]
         public string Name => (!ParameterName.IsNone ? ParameterName : ParameterInfo.Name).Text;
+        public readonly FName ParameterName;
         public readonly float ParameterValue;
         public readonly FMaterialParameterInfo ParameterInfo;
         public readonly FGuid ExpressionGUID;
 
-        public FScalarParameterValue(FStructFallback fallback) : base(fallback)
+        public FScalarParameterValue(FStructFallback fallback)
         {
+            ParameterName = fallback.GetOrDefault<FName>(nameof(ParameterName));
             ParameterInfo = fallback.GetOrDefault<FMaterialParameterInfo>(nameof(ParameterInfo));
             ParameterValue = fallback.GetOrDefault<float>(nameof(ParameterValue));
             ExpressionGUID = fallback.GetOrDefault<FGuid>(nameof(ExpressionGUID));

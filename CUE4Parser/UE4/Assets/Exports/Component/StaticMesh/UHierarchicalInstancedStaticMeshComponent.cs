@@ -16,6 +16,15 @@ namespace CUE4Parse.UE4.Assets.Exports.Component.StaticMesh
 
             ClusterTree = FReleaseObjectVersion.Get(Ar) < FReleaseObjectVersion.Type.HISMCClusterTreeMigration ? Ar.ReadBulkArray(() => new FClusterNode_DEPRECATED(Ar)) : Ar.ReadBulkArray(() => new FClusterNode(Ar));
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (ClusterTree is not { Length: > 0 }) return;
+            writer.WritePropertyName("ClusterTree");
+            serializer.Serialize(writer, ClusterTree);
+        }
     }
 
     public class FClusterNode : FClusterNode_DEPRECATED

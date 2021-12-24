@@ -51,6 +51,25 @@ namespace CUE4Parse.UE4.Objects.UObject
             }
         }
 
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("Names");
+            writer.WriteStartObject();
+            {
+                foreach (var (name, enumValue) in Names)
+                {
+                    writer.WritePropertyName(name.Text);
+                    writer.WriteValue(enumValue);
+                }
+            }
+            writer.WriteEndObject();
+
+            writer.WritePropertyName("CppForm");
+            writer.WriteValue(CppForm.ToString());
+        }
+
         public enum ECppForm : byte
         {
             Regular,

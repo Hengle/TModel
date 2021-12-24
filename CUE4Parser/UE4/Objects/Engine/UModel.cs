@@ -301,5 +301,37 @@ namespace CUE4Parse.UE4.Objects.Engine
             LightingGuid = Ar.Read<FGuid>();
             LightmassSettings = Ar.ReadArray(() => new FLightmassPrimitiveSettings(Ar));
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("Bounds");
+            serializer.Serialize(writer, Bounds);
+
+            writer.WritePropertyName("Vectors");
+            serializer.Serialize(writer, Vectors);
+
+            writer.WritePropertyName("Points");
+            serializer.Serialize(writer, Points);
+
+            writer.WritePropertyName("Nodes");
+            serializer.Serialize(writer, Nodes);
+
+            writer.WritePropertyName("Surfs");
+            serializer.Serialize(writer, Surfs);
+
+            writer.WritePropertyName("NumSharedSides");
+            serializer.Serialize(writer, NumSharedSides);
+
+            writer.WritePropertyName("VertexBuffer");
+            serializer.Serialize(writer, VertexBuffer);
+
+            writer.WritePropertyName("LightingGuid");
+            serializer.Serialize(writer, LightingGuid);
+
+            writer.WritePropertyName("LightmassSettings");
+            serializer.Serialize(writer, LightmassSettings);
+        }
     }
 }

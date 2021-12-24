@@ -10,7 +10,8 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 {
     public class UMaterialInstance : UMaterialInterface
     {
-        public ResolvedObject? Parent;
+        private ResolvedObject? _parent;
+        public UUnrealMaterial? Parent => _parent?.Load<UUnrealMaterial>();
         public bool bHasStaticPermutationResource;
         public FMaterialInstanceBasePropertyOverrides BasePropertyOverrides;
         public FStaticParameterSet? StaticParameters;
@@ -19,7 +20,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-            Parent = GetOrDefault<ResolvedObject>(nameof(Parent));
+            _parent = GetOrDefault<ResolvedObject>(nameof(Parent));
             bHasStaticPermutationResource = GetOrDefault<bool>("bHasStaticPermutationResource");
             BasePropertyOverrides = GetOrDefault<FMaterialInstanceBasePropertyOverrides>(nameof(BasePropertyOverrides));
             StaticParameters = GetOrDefault<FStaticParameterSet>(nameof(StaticParameters));
@@ -39,10 +40,28 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
                         StaticParameters = new FStaticParameterSet(Ar);
                     }
 
+#if READ_SHADER_MAPS
+                    DeserializeInlineShaderMaps(Ar, LoadedMaterialResources);
+#else
                     Ar.Position = validPos; // TODO This skips every data after the inline shader map data, find a way to properly skip it
+#endif
                 }
             }
+
+#if !READ_SHADER_MAPS
             Ar.Position = validPos;
+#endif
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (CachedData != null)
+            {
+                writer.WritePropertyName("CachedData");
+                serializer.Serialize(writer, CachedData);
+            }
         }
     }
 
@@ -56,15 +75,19 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 
         public FStaticParameterSet(FArchive Ar)
         {
-            // static switch parameters
             StaticSwitchParameters = Ar.ReadArray(() => new FStaticSwitchParameter(Ar));
-            // static component mask parameters
             StaticComponentMaskParameters = Ar.ReadArray(() => new FStaticComponentMaskParameter(Ar));
-            // terrain layer weight parameters
             TerrainLayerWeightParameters = Ar.ReadArray(() => new FStaticTerrainLayerWeightParameter(Ar));
 
             if (FReleaseObjectVersion.Get(Ar) >= FReleaseObjectVersion.Type.MaterialLayersParameterSerializationRefactor)
+            {
                 MaterialLayersParameters = Ar.ReadArray(() => new FStaticMaterialLayersParameter(Ar));
+            }
+        }
+
+        public FStaticParameterSet(FStructFallback fallback)
+        {
+            StaticSwitchParameters = fallback.GetOrDefault<FStaticSwitchParameter[]>(nameof(StaticSwitchParameters));
         }
     }
 }

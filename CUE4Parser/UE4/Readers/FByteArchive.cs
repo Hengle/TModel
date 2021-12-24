@@ -11,15 +11,9 @@ namespace CUE4Parse.UE4.Readers
 
         public FByteArchive(string name, byte[] data, VersionContainer? versions = null) : base(versions)
         {
-            if (data != null)
-            {
-                _data = data;
-                Name = name;
-                Length = _data.Length;
-            }
-            else
-                throw new ArgumentException("Data can not be null", "data");
-
+            _data = data;
+            Name = name;
+            Length = _data.Length;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

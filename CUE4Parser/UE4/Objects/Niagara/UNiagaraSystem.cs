@@ -25,5 +25,16 @@ namespace CUE4Parse.UE4.Objects.Niagara
                 }
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (NiagaraEmitterCompiledDataStructs is { Count: > 0 })
+            {
+                writer.WritePropertyName("EmitterCompiledStructs");
+                serializer.Serialize(writer, NiagaraEmitterCompiledDataStructs);
+            }
+        }
     }
 }

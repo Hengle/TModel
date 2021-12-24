@@ -18,14 +18,14 @@ namespace CUE4Parse.UE4.Objects.UObject
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct FGenerationInfo
     {
-        /// <summary>
-        /// Number of exports in the linker's ExportMap for this generation.
-        /// </summary>
+        /**
+         * Number of exports in the linker's ExportMap for this generation.
+         */
         public readonly int ExportCount;
 
-        /// <summary>
-        /// Number of names in the linker's NameMap for this generation.
-        /// </summary>
+        /**
+         * Number of names in the linker's NameMap for this generation.
+         */
         public readonly int NameCount;
     }
 

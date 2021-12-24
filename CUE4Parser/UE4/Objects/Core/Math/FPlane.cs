@@ -42,7 +42,5 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         public bool Equals(FPlane v, float tolerance = UnrealMath.KindaSmallNumber) => Abs(X - v.X) <= tolerance && Abs(Y - v.Y) <= tolerance && Abs(Z - v.Z) <= tolerance && Abs(W - v.W) <= tolerance;
 
         public override bool Equals(object? obj) => obj is FPlane other && Equals(other, 0f);
-
-        public override int GetHashCode() => (X, Y, Z, W).GetHashCode();
     }
 }

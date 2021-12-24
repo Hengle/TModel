@@ -34,7 +34,7 @@ namespace TModel.Modules
                 {
                     try
                     {
-                        UObject[] Exports = FileProvider.LoadObjectExports(name);
+                        IEnumerable<UObject> Exports = App.FileProvider.LoadObjectExports(name);
                         Final = JsonConvert.SerializeObject(Exports, Formatting.Indented);
                     }
                     catch

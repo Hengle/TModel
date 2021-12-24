@@ -26,5 +26,17 @@ namespace CUE4Parse.UE4.Objects.PhysicsEngine
 
             CookedFormatData = new FFormatContainer(Ar);
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("BodySetupGuid");
+            writer.WriteValue(BodySetupGuid.ToString());
+
+            if (CookedFormatData?.Formats.Count <= 0) return;
+            writer.WritePropertyName("CookedFormatData");
+            serializer.Serialize(writer, CookedFormatData);
+        }
     }
 }

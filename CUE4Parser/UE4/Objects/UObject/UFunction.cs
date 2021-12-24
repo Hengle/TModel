@@ -28,5 +28,25 @@ namespace CUE4Parse.UE4.Objects.UObject
                 EventGraphCallOffset = Ar.Read<int>();
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("FunctionFlags");
+            writer.WriteValue(FunctionFlags);
+
+            if (EventGraphFunction is { IsNull: false })
+            {
+                writer.WritePropertyName("EventGraphFunction");
+                serializer.Serialize(writer, EventGraphFunction);
+            }
+
+            if (EventGraphCallOffset != 0)
+            {
+                writer.WritePropertyName("EventGraphCallOffset");
+                writer.WriteValue(EventGraphCallOffset);
+            }
+        }
     }
 }

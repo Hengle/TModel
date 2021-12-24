@@ -17,5 +17,16 @@ namespace CUE4Parse.UE4.Objects.UObject
                 Next = new FPackageIndex(Ar);
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (Next != null)
+            {
+                writer.WritePropertyName("Next");
+                serializer.Serialize(writer, Next);
+            }
+        }
     }
 }

@@ -11,7 +11,6 @@ namespace CUE4Parse.UE4.Assets.Objects
         public StructProperty(FAssetArchive Ar, FPropertyTagData? tagData, ReadType type)
         {
             Value = new UScriptStruct(Ar, tagData?.StructType, tagData?.Struct, type);
-            PropertyTypeName = Value.StructName;
         }
 
         public override string ToString() => Value.ToString().SubstringBeforeLast(')') + ", StructProperty)";

@@ -27,5 +27,14 @@ namespace CUE4Parse.UE4.Objects.Engine
                 }
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (EditorTags is not { Count: > 0 }) return;
+            writer.WritePropertyName("EditorTags");
+            serializer.Serialize(writer, EditorTags);
+        }
     }
 }

@@ -9,8 +9,6 @@ using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
 {
-    // NOTE: Static mesh has a property called StaticMaterials which has a MaterialInterface property inside of it.
-    // Consider using that to get the material for the mesh.
     public class UStaticMesh : UObject
     {
         public bool bCooked { get; private set; }
@@ -20,7 +18,7 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
         public FPackageIndex[] Sockets { get; private set; } // UStaticMeshSocket[]
         public FStaticMeshRenderData? RenderData { get; private set; }
         public FStaticMaterial[]? StaticMaterials { get; private set; }
-        public FPackageIndex[]? Materials { get; private set; } // UMaterialInterface[]
+        public ResolvedObject[]? Materials { get; private set; } // UMaterialInterface[]
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -76,14 +74,31 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
                 }
             }
 
-            if (StaticMaterials != null && StaticMaterials.Length > 0)
+            if (StaticMaterials is { Length: > 0 })
             {
-                Materials = new FPackageIndex[StaticMaterials.Length];
+                Materials = new ResolvedObject[StaticMaterials.Length];
                 for (var i = 0; i < Materials.Length; i++)
                 {
                     Materials[i] = StaticMaterials[i].MaterialInterface;
                 }
             }
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("BodySetup");
+            serializer.Serialize(writer, BodySetup);
+
+            writer.WritePropertyName("NavCollision");
+            serializer.Serialize(writer, NavCollision);
+
+            writer.WritePropertyName("LightingGuid");
+            serializer.Serialize(writer, LightingGuid);
+
+            writer.WritePropertyName("RenderData");
+            serializer.Serialize(writer, RenderData);
         }
     }
 }

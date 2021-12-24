@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets.Exports.Internationalization;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
@@ -145,8 +144,6 @@ namespace CUE4Parse.UE4.Objects.Core.i18N
             TextHistory = textHistory;
         }
 
-        public static implicit operator string(FText value) => value.Text;
-
         public override string ToString() => Text;
     }
     
@@ -201,7 +198,7 @@ namespace CUE4Parse.UE4.Objects.Core.i18N
             {
                 Namespace = Ar.ReadFString() ?? string.Empty;
                 Key = Ar.ReadFString() ?? string.Empty;
-                SourceString = FileProvider.FileProvider.GetLocalizedString(Namespace, Key, Ar.ReadFString()) ?? string.Empty;
+                SourceString = Ar.Owner.Provider?.GetLocalizedString(Namespace, Key, Ar.ReadFString()) ?? string.Empty;
             }
 
             public Base(string namespacee, string key, string sourceString)
@@ -365,8 +362,8 @@ namespace CUE4Parse.UE4.Objects.Core.i18N
                 TableId = Ar.ReadFName();
                 Key = Ar.ReadFString();
 
-                if (FileProvider.FileProvider.TryLoadObject(TableId.Text, out CUE4Parse.UE4.Assets.Exports.UObject table) &&
-                    ((UStringTable)table).StringTable.KeysToMetaData.TryGetValue(Key, out var t))
+                if (Ar.Owner.Provider!.TryLoadObject(TableId.Text, out UStringTable table) &&
+                    table.StringTable.KeysToMetaData.TryGetValue(Key, out var t))
                 {
                     Text = t;
                 }

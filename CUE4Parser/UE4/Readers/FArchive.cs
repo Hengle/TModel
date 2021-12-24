@@ -107,21 +107,21 @@ namespace CUE4Parse.UE4.Readers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ReadArray<T>(Func<T> getter)
         {
-            int length = Read<int>();
+            var length = Read<int>();
             return ReadArray(length, getter);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ReadArray<T>() where T : struct
         {
-            int length = Read<int>();
+            var length = Read<int>();
             return length > 0 ? ReadArray<T>(length) : Array.Empty<T>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ReadBulkArray<T>(int elementSize, int elementCount, Func<T> getter)
         {
-            long pos = Position;
+            var pos = Position;
             T[] array = ReadArray(elementCount, getter);
             if (Position != pos + array.Length * elementSize)
                 throw new ParserException($"RawArray item size mismatch: expected {elementSize}, serialized {(Position - pos) / array.Length}");
@@ -130,12 +130,12 @@ namespace CUE4Parse.UE4.Readers
 
         public T[] ReadBulkArray<T>() where T : struct
         {
-            int elementSize = Read<int>();
-            int elementCount = Read<int>();
+            var elementSize = Read<int>();
+            var elementCount = Read<int>();
             if (elementCount == 0)
                 return Array.Empty<T>();
 
-            long pos = Position;
+            var pos = Position;
             T[] array = ReadArray<T>(elementCount);
             if (Position != pos + array.Length * elementSize)
                 throw new ParserException($"RawArray item size mismatch: expected {elementSize}, serialized {(Position - pos) / array.Length}");
@@ -145,33 +145,33 @@ namespace CUE4Parse.UE4.Readers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ReadBulkArray<T>(Func<T> getter)
         {
-            int elementSize = Read<int>();
-            int elementCount = Read<int>();
+            var elementSize = Read<int>();
+            var elementCount = Read<int>();
             return ReadBulkArray(elementSize, elementCount, getter);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SkipBulkArrayData()
         {
-            int elementSize = Read<int>();
-            int elementCount = Read<int>();
+            var elementSize = Read<int>();
+            var elementCount = Read<int>();
             Position += elementSize * elementCount;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SkipFixedArray(int size = -1)
         {
-            int num = Read<int>();
+            var num = Read<int>();
             Position += num * size;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Dictionary<TKey, TValue> ReadMap<TKey, TValue>(int length, Func<(TKey, TValue)> getter) where TKey : notnull
         {
-            Dictionary<TKey, TValue> res = new Dictionary<TKey, TValue>(length);
-            for (int i = 0; i < length; i++)
+            var res = new Dictionary<TKey, TValue>(length);
+            for (var i = 0; i < length; i++)
             {
-                (TKey key, TValue value) = getter();
+                var (key, value) = getter();
                 res[key] = value;
             }
 
@@ -181,14 +181,14 @@ namespace CUE4Parse.UE4.Readers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Dictionary<TKey, TValue> ReadMap<TKey, TValue>(Func<(TKey, TValue)> getter) where TKey : notnull
         {
-            int length = Read<int>();
+            var length = Read<int>();
             return ReadMap(length, getter);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ReadBoolean()
         {
-            int i = Read<int>();
+            var i = Read<int>();
             return i switch
             {
                 0 => false,
@@ -200,7 +200,7 @@ namespace CUE4Parse.UE4.Readers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ReadFlag()
         {
-            byte i = Read<byte>();
+            var i = Read<byte>();
             return i switch
             {
                 0 => false,
@@ -216,7 +216,7 @@ namespace CUE4Parse.UE4.Readers
             bool more = true;
             while (more)
             {
-                byte nextByte = Read<byte>();               // Read next byte
+                var nextByte = Read<byte>();               // Read next byte
                 more = (nextByte & 1) != 0;                // Check 1 bit to see if there's more after this
                 nextByte = (byte) (nextByte >> 1);         // Shift to get actual 7 bit value
                 value += (uint) (nextByte << (7 * cnt++)); // Add to total value
@@ -255,7 +255,7 @@ namespace CUE4Parse.UE4.Readers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string ReadString()
         {
-            int length = Read7BitEncodedInt();
+            var length = Read7BitEncodedInt();
             if (length <= 0)
                 return string.Empty;
 
@@ -270,43 +270,58 @@ namespace CUE4Parse.UE4.Readers
         public string ReadFString()
         {
             // > 0 for ANSICHAR, < 0 for UCS2CHAR serialization
-            // Int32 saying how long the string is (to not have strings at fixed sizes)
-            int length = Read<int>();
+            var length = Read<int>();
 
-            // Makes sure index is in range
             if (length == int.MinValue)
                 throw new ArgumentOutOfRangeException(nameof(length), "Archive is corrupted");
+
             if (length is < -131072 or > 131072)
                 throw new ParserException($"Invalid FString length '{length}'");
 
-            // String could be empty
             if (length == 0)
+            {
                 return string.Empty;
+            }
 
             // 1 byte/char is removed because of null terminator ('\0')
             if (length < 0) // LoadUCS2Char, Unicode, 16-bit, fixed-width
+            {
                 unsafe
                 {
                     length = -length;
                     var ucs2Length = length * sizeof(ushort);
                     var ucs2Bytes = stackalloc byte[ucs2Length];
                     Serialize(ucs2Bytes, ucs2Length);
+#if !NO_STRING_NULL_TERMINATION_VALIDATION
                     if (ucs2Bytes[ucs2Length - 1] != 0 || ucs2Bytes[ucs2Length - 2] != 0)
-                        return string.Empty; // Failed
-                    return new string((char*)ucs2Bytes, 0, length - 1);
+                    {
+                        throw new ParserException(this, "Serialized FString is not null terminated");
+                    }
+#endif
+                    return new string((char*) ucs2Bytes, 0 , length - 1);
                 }
-            else
-                unsafe
+            }
+
+            unsafe
+            {
+                var ansiBytes = stackalloc byte[length];
+                Serialize(ansiBytes, length);
+#if !NO_STRING_NULL_TERMINATION_VALIDATION
+                if (ansiBytes[length - 1] != 0)
                 {
-                    var ansiBytes = stackalloc byte[length];
-                    Serialize(ansiBytes, length);
-                    if (ansiBytes[length - 1] != 0)
-                        return string.Empty; // Failed
-                    return new string((sbyte*) ansiBytes, 0, length - 1);
+                    throw new ParserException(this, "Serialized FString is not null terminated");
                 }
+#endif
+                return new string((sbyte*) ansiBytes, 0, length - 1);
+            }
         }
 
         public virtual FName ReadFName() => new(ReadFString());
+
+        public virtual UObject? ReadUObject()
+        {
+            throw new InvalidOperationException("Generic FArchive can't read UObject's");
+        }
 
         public void SerializeCompressedNew(byte[] dest, int length, string compressionFormatToDecodeOldV1Files, ECompressionFlags flags, bool bTreatBufferAsFileReader, out long outPartialReadLength)
         {

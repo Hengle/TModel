@@ -6,16 +6,10 @@ using static CUE4Parse.UE4.Versions.EGame;
 
 namespace CUE4Parse.UE4.Versions
 {
-    /// <summary>
-    /// Stores verison of game and different <see cref="Options"/> depending on that verison
-    /// </summary>
     public class VersionContainer : ICloneable
     {
-        public static readonly VersionContainer Default = new();
+        public static readonly VersionContainer DEFAULT_VERSION_CONTAINER = new();
 
-        /// <summary>
-        /// Unreal Engine Version
-        /// </summary>
         public EGame Game
         {
             get => _game;
@@ -38,7 +32,7 @@ namespace CUE4Parse.UE4.Versions
         private FPackageFileVersion _ver;
         public bool bExplicitVer { get; private set; } 
         public List<FCustomVersion>? CustomVersions;
-        public Dictionary<string, bool> Options { get; } = new();
+        public readonly Dictionary<string, bool> Options = new();
         private readonly Dictionary<string, bool>? _optionOverrides;
 
         public VersionContainer(EGame game = GAME_UE4_LATEST, FPackageFileVersion ver = default, List<FCustomVersion>? customVersions = null, Dictionary<string, bool>? optionOverrides = null)
@@ -64,8 +58,12 @@ namespace CUE4Parse.UE4.Versions
             Options["VirtualTextures"] = Game >= GAME_UE4_23;
 
             if (_optionOverrides != null)
+            {
                 foreach (var (key, value) in _optionOverrides)
+                {
                     Options[key] = value;
+                }
+            }
         }
 
         public bool this[string optionKey]

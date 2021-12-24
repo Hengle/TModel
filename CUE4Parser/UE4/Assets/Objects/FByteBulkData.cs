@@ -52,11 +52,9 @@ namespace CUE4Parse.UE4.Assets.Objects
 #if DEBUG
                 Log.Debug($"bulk data in .ubulk file (Payload In Separate File) (flags={BulkDataFlags}, pos={Header.OffsetInFile}, size={Header.SizeOnDisk}))");
 #endif
-
-                Data = new byte[Header.ElementCount];
-
                 if (!Ar.TryGetPayload(PayloadType.UBULK, out var ubulkAr) || ubulkAr == null) return;
 
+                Data = new byte[Header.ElementCount];
                 ubulkAr.Position = Header.OffsetInFile;
                 ubulkAr.Read(Data, 0, Header.ElementCount);
             }

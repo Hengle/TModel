@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -55,7 +54,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
 
             if (BoneCompressionSettings == null && Ar.Game == EGame.GAME_RogueCompany)
             {
-                BoneCompressionSettings = new ResolvedLoadedObject(FileProvider.FileProvider.LoadObject("/Game/Animation/KSAnimBoneCompressionSettings.KSAnimBoneCompressionSettings"));
+                BoneCompressionSettings = new ResolvedLoadedObject(Owner!.Provider!.LoadObject("/Game/Animation/KSAnimBoneCompressionSettings.KSAnimBoneCompressionSettings"));
             }
 
             var stripFlags = new FStripDataFlags(Ar);
@@ -112,6 +111,72 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
 
                     bUseRawDataOnly = Ar.ReadBoolean();
                 }
+            }
+        }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            // Follow field order of FCompressedAnimSequence CompressedData
+
+            if (CompressedTrackToSkeletonMapTable is { Length: > 0 })
+            {
+                writer.WritePropertyName("CompressedTrackToSkeletonMapTable");
+                writer.WriteStartArray();
+                foreach (var trackToSkeletonMap in CompressedTrackToSkeletonMapTable)
+                {
+                    writer.WriteValue(trackToSkeletonMap.BoneTreeIndex);
+                }
+                writer.WriteEndArray();
+            }
+
+            if (CompressedCurveNames is { Length: > 0 })
+            {
+                writer.WritePropertyName("CompressedCurveNames");
+                serializer.Serialize(writer, CompressedCurveNames);
+            }
+
+            /*if (CompressedByteStream is { Length: > 0 })
+            {
+                writer.WritePropertyName("CompressedByteStream");
+                writer.WriteValue(CompressedByteStream);
+            }*/
+
+            /*if (CompressedCurveByteStream is { Length: > 0 })
+            {
+                writer.WritePropertyName("CompressedCurveByteStream");
+                writer.WriteValue(CompressedCurveByteStream);
+            }*/
+
+            EnsureCurveData();
+            writer.WritePropertyName("CompressedCurveData");
+            serializer.Serialize(writer, CompressedCurveData);
+
+            if (CompressedDataStructure != null)
+            {
+                writer.WritePropertyName("CompressedDataStructure");
+                serializer.Serialize(writer, CompressedDataStructure);
+            }
+
+            if (BoneCompressionCodec != null)
+            {
+                var asReference = new ResolvedLoadedObject(BoneCompressionCodec);
+                writer.WritePropertyName("BoneCompressionCodec");
+                serializer.Serialize(writer, asReference);
+            }
+
+            if (CurveCompressionCodec != null)
+            {
+                var asReference = new ResolvedLoadedObject(CurveCompressionCodec);
+                writer.WritePropertyName("CurveCompressionCodec");
+                serializer.Serialize(writer, asReference);
+            }
+
+            if (CompressedRawDataSize > 0)
+            {
+                writer.WritePropertyName("CompressedRawDataSize");
+                writer.WriteValue(CompressedRawDataSize);
             }
         }
 
@@ -192,6 +257,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
 
             var serializedByteStream = ReadSerializedByteStream(Ar);
             compressedData.Bind(serializedByteStream);
+            NumFrames = CompressedDataStructure.CompressedNumberOfFrames;
 
             var curveCodecPath = Ar.ReadFString();
             CurveCompressionCodec = CurveCompressionSettings?.Load<UAnimCurveCompressionSettings>()?.GetCodec(curveCodecPath);
@@ -223,6 +289,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
                 CompressedDataStructure = BoneCompressionCodec.AllocateAnimData();
                 CompressedDataStructure.SerializeCompressedData(Ar);
                 CompressedDataStructure.Bind(serializedByteStream);
+                NumFrames = CompressedDataStructure.CompressedNumberOfFrames;
             }
             else
             {

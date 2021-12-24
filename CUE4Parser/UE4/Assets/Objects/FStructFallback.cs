@@ -11,7 +11,6 @@ namespace CUE4Parse.UE4.Assets.Objects
     [SkipObjectRegistration]
     public class FStructFallback : IUStruct, IPropertyHolder
     {
-        public readonly string StructName;
         public List<FPropertyTag> Properties { get; }
 
         public FStructFallback()
@@ -23,7 +22,6 @@ namespace CUE4Parse.UE4.Assets.Objects
 
         public FStructFallback(FAssetArchive Ar, UStruct? structType = null)
         {
-            StructName = structType.Name;
             if (Ar.HasUnversionedProperties)
             {
                 if (structType == null) throw new ArgumentException("For unversioned struct fallback the struct type cannot be null", nameof(structType));
@@ -34,7 +32,7 @@ namespace CUE4Parse.UE4.Assets.Objects
                 UObject.DeserializePropertiesTagged(Properties = new List<FPropertyTag>(), Ar);
             }
         }
-
+        
         public T GetOrDefault<T>(string name, T defaultValue = default, StringComparison comparisonType = StringComparison.Ordinal) =>
             PropertyUtil.GetOrDefault<T>(this, name, defaultValue, comparisonType);
         public T Get<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) =>

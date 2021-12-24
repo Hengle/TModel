@@ -10,7 +10,6 @@ using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
-using CUE4Parse.Utils;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -23,29 +22,19 @@ namespace CUE4Parse.UE4.Assets.Exports
 
     [JsonConverter(typeof(UObjectConverter))]
     [SkipObjectRegistration]
-
-    // NOTE: Add static a static function for getting an UObject by name from an UObject[]
-    // References to other objects will always start in the base Uobject
-    // The base object is the one that has the same name as the file that it is inside of
     public class UObject : IPropertyHolder
     {
         public string Name { get; set; }
-
         public UObject? Outer;
-
         public UStruct? Class;
-
         public ResolvedObject? Super;
-
         public ResolvedObject? Template;
-
-        public List<FPropertyTag> Properties { get; } = new List<FPropertyTag>();
-
+        public List<FPropertyTag> Properties { get; private set; }
         public FGuid? ObjectGuid { get; private set; }
-
         public EObjectFlags Flags;
 
-        public AbstractUePackage? Owner
+        // public FObjectExport Export;
+        public IPackage? Owner
         {
             get
             {
@@ -61,15 +50,20 @@ namespace CUE4Parse.UE4.Assets.Exports
                     top = outer;
                 }
 
-                return top as AbstractUePackage;
+                return top as IPackage;
             }
         }
-
-        public string FullPath => StringUtils.NormalizePath(Owner.Name);
-
         public virtual string ExportType => Class?.Name ?? GetType().Name;
 
-        public UObject() { }
+        public UObject()
+        {
+            Properties = new List<FPropertyTag>();
+        }
+
+        public UObject(List<FPropertyTag> properties)
+        {
+            Properties = properties;
+        }
 
         public virtual void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -77,11 +71,11 @@ namespace CUE4Parse.UE4.Assets.Exports
             {
                 if (Class == null)
                     throw new ParserException(Ar, "Found unversioned properties but object does not have a class");
-                DeserializePropertiesUnversioned(Properties, Ar, Class);
+                DeserializePropertiesUnversioned(Properties = new List<FPropertyTag>(), Ar, Class);
             }
             else
             {
-                DeserializePropertiesTagged(Properties, Ar);
+                DeserializePropertiesTagged(Properties = new List<FPropertyTag>(), Ar);
             }
 
             if (!Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject) && Ar.ReadBoolean() && Ar.Position + 16 <= validPos)
@@ -254,7 +248,7 @@ namespace CUE4Parse.UE4.Assets.Exports
             }
         }
 
-        protected internal void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal virtual void WriteJson(JsonWriter writer, JsonSerializer serializer)
         {
             var package = Owner;
 
@@ -387,7 +381,7 @@ namespace CUE4Parse.UE4.Assets.Exports
             return IsFullNameStableForNetworking();
         }
 
-        // public override string ToString() => GetFullName();
+        public override string ToString() => GetFullName();
     }
 
     public static class PropertyUtil

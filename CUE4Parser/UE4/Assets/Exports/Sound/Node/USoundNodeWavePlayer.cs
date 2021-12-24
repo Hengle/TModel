@@ -18,5 +18,14 @@ namespace CUE4Parse.UE4.Assets.Exports.Sound.Node
                 SoundWave = new FPackageIndex(Ar);
             }
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            if (SoundWave == null) return;
+            writer.WritePropertyName("SoundWave");
+            serializer.Serialize(writer, SoundWave);
+        }
     }
 }

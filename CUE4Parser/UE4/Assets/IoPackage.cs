@@ -18,7 +18,7 @@ using Serilog;
 
 namespace CUE4Parse.UE4.Assets
 {
-    [SkipObjectRegistrationAttribute]
+    [SkipObjectRegistration]
     public sealed class IoPackage : AbstractUePackage
     {
         public readonly IoGlobalData GlobalData;
@@ -29,12 +29,14 @@ namespace CUE4Parse.UE4.Assets
         public readonly FPackageObjectIndex[] ImportMap;
         public readonly FExportMapEntry[] ExportMap;
 
-        public readonly IoPackage?[] ImportedPackages;
+        public readonly Lazy<IoPackage?[]> ImportedPackages;
         public override Lazy<UObject>[] ExportsLazy { get; }
         public override bool IsFullyLoaded { get; }
 
         public IoPackage(
-            FArchive uasset, IoGlobalData globalData, FIoContainerHeader? containerHeader = null, TypeMappings? mappings = null) : base(uasset.Name.SubstringBeforeLast('.'), mappings)
+            FArchive uasset, IoGlobalData globalData, FIoContainerHeader? containerHeader = null,
+            Lazy<FArchive?>? ubulk = null, Lazy<FArchive?>? uptnl = null,
+            IFileProvider? provider = null, TypeMappings? mappings = null) : base(uasset.Name.SubstringBeforeLast('.'), provider, mappings)
         {
             GlobalData = globalData;
             var uassetAr = new FAssetArchive(uasset, this);
@@ -161,19 +163,19 @@ namespace CUE4Parse.UE4.Assets
             }
 
             // Preload dependencies
-            var packages = new IoPackage?[importedPackageIds.Length];
-            for (int i = 0; i < importedPackageIds.Length; i++)
+            ImportedPackages = new Lazy<IoPackage?[]>(provider != null ? () =>
             {
-                try
+                var packages = new IoPackage?[importedPackageIds.Length];
+                for (int i = 0; i < importedPackageIds.Length; i++)
                 {
-                    FileProvider.FileProvider.TryLoadPackage(importedPackageIds[i], out packages[i]);
+                    provider.TryLoadPackage(importedPackageIds[i], out packages[i]);
                 }
-                catch (Exception)
-                {
-                }
+                return packages;
+            } : Array.Empty<IoPackage?>);
 
-            }
-            ImportedPackages = packages;
+            // Attach ubulk and uptnl
+            if (ubulk != null) uassetAr.AddPayload(PayloadType.UBULK, Summary.BulkDataStartOffset, ubulk);
+            if (uptnl != null) uassetAr.AddPayload(PayloadType.UPTNL, Summary.BulkDataStartOffset, uptnl);
 
             // Populate lazy exports
             var currentExportDataOffset = allExportDataOffset;
@@ -216,6 +218,10 @@ namespace CUE4Parse.UE4.Assets
 
             IsFullyLoaded = true;
         }
+
+        public IoPackage(FArchive uasset, IoGlobalData globalData, FIoContainerHeader? containerHeader = null, FArchive? ubulk = null, FArchive? uptnl = null, IFileProvider? provider = null, TypeMappings? mappings = null)
+            : this(uasset, globalData, containerHeader, ubulk != null ? new Lazy<FArchive?>(() => ubulk) : null, uptnl != null ? new Lazy<FArchive?>(() => uptnl) : null, provider, mappings)
+        { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private FName CreateFNameFromMappedName(FMappedName mappedName) =>
@@ -274,9 +280,6 @@ namespace CUE4Parse.UE4.Assets
             return null;
         }
 
-        public override UObject? GetExportOrNull(int index, StringComparison comparisonType = StringComparison.Ordinal) => ExportsLazy.Length >= index ? ExportsLazy[index].Value : 
-            throw new ArgumentException($"{Name.SubstringAfterLast('/')} object does not have an export at index {index}");
-
         public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
         {
             if (index == null || index.IsNull)
@@ -308,12 +311,12 @@ namespace CUE4Parse.UE4.Assets
                 }
             }
 
-            if (index.IsPackageImport)
+            if (index.IsPackageImport && Provider != null)
             {
                 if (ImportedPublicExportHashes != null)
                 {
                     var packageImportRef = index.AsPackageImportRef;
-                    var importedPackages = ImportedPackages;
+                    var importedPackages = ImportedPackages.Value;
                     if (packageImportRef.ImportedPackageIndex < importedPackages.Length)
                     {
                         var pkg = importedPackages[packageImportRef.ImportedPackageIndex];
@@ -331,7 +334,7 @@ namespace CUE4Parse.UE4.Assets
                 }
                 else
                 {
-                    foreach (var pkg in ImportedPackages)
+                    foreach (var pkg in ImportedPackages.Value)
                     {
                         if (pkg != null)
                         {
@@ -374,7 +377,10 @@ namespace CUE4Parse.UE4.Assets
         {
             public FScriptObjectEntry ScriptImport;
 
-            public ResolvedScriptObject(FScriptObjectEntry scriptImport, IoPackage package) : base(package) => ScriptImport = scriptImport;
+            public ResolvedScriptObject(FScriptObjectEntry scriptImport, IoPackage package) : base(package)
+            {
+                ScriptImport = scriptImport;
+            }
 
             public override FName Name => ((IoPackage) Package).CreateFNameFromMappedName(ScriptImport.ObjectName);
             public override ResolvedObject? Outer => ((IoPackage) Package).ResolveObjectIndex(ScriptImport.OuterIndex);

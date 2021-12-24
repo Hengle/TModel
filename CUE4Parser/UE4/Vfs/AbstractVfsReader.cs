@@ -20,14 +20,11 @@ namespace CUE4Parse.UE4.Vfs
 
         public abstract bool HasDirectoryIndex { get; }
         public abstract string MountPoint { get; protected set; }
-
-        /// <summary>
-        /// If the <see cref="FArchive"/> should be cloned.
-        /// </summary>
         public bool IsConcurrent { get; set; } = false;
+        public bool IsMounted { get; } = false;
 
         public VersionContainer Versions { get; set; }
-        public EGame GameVersion
+        public EGame Game
         {
             get => Versions.Game;
             set => Versions.Game = value;

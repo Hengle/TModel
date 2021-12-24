@@ -15,6 +15,14 @@ namespace CUE4Parse.UE4.Assets.Exports.Texture
 
             LightmapFlags = Ar.Read<ELightMapFlags>();
         }
+
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("LightmapFlags");
+            writer.WriteValue(LightmapFlags.ToStringBitfield());
+        }
     }
 
     [Flags]

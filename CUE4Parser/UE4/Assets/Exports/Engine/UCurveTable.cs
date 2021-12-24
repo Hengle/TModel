@@ -39,6 +39,14 @@ namespace CUE4Parse.UE4.Assets.Exports.Engine
             }
         }
 
+        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        {
+            base.WriteJson(writer, serializer);
+
+            writer.WritePropertyName("Rows");
+            serializer.Serialize(writer, RowMap);
+        }
+
         public FRealCurve? FindCurve(FName rowName, bool bWarnIfNotFound = true)
         {
             if (rowName.IsNone)
