@@ -2,21 +2,23 @@
 	<PropertyGroup>
 	  <OutputType>WinExe</OutputType>
 	  <TargetFramework>net5.0-windows7.0</TargetFramework>
-	  <Nullable>enable</Nullable>
+	  <Nullable>annotations</Nullable>
 	  <UseWPF>true</UseWPF>
 	  <StartupObject>TModel.App</StartupObject>
 	  <ApplicationIcon>NewTModelIcon.ico</ApplicationIcon>
 	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	  <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+	  <DebugType>full</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <Optimize>True</Optimize>
+	  <Optimize>False</Optimize>
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -33,6 +33,10 @@ namespace TModel
         {
             App.FileProvider.Initialize();
 
+#if false // Preload data
+            FileManagerModule.LoadGame();
+#endif
+            // FileProvider.GetFilesInPath(@"FortniteGame/Content/Athena/Items");
             Window Window = new Window();
 
             var app = new App();

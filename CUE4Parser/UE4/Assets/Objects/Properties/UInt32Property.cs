@@ -1,11 +1,12 @@
 ﻿using System;
 using CUE4Parse.UE4.Readers;
 using Newtonsoft.Json;
+using TModel;
 
 namespace CUE4Parse.UE4.Assets.Objects
 {
     [JsonConverter(typeof(UInt32PropertyConverter))]
-    public class UInt32Property : FPropertyTagType<uint>
+    public class UInt32Property : FPropertyTagType<uint>, IPreviewOverride
     {
         public UInt32Property(FArchive Ar, ReadType type)
         {
@@ -14,6 +15,11 @@ namespace CUE4Parse.UE4.Assets.Objects
                 ReadType.ZERO => 0,
                 _ => Ar.Read<uint>()
             };
+        }
+
+        public PreviewOverrideData GetCustomData()
+        {
+            return new PreviewOverrideData() { OverrideTypeName = "UInt32" };
         }
     }
     

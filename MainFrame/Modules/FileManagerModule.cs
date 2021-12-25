@@ -33,6 +33,7 @@ namespace TModel.Modules
 
         public override void StartupModule()
         {
+
             Grid grid = new Grid();
             Content = grid;
             grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(120) });
@@ -55,17 +56,15 @@ namespace TModel.Modules
             CButton LoadButton = new CButton("Load");
             LoadButton.Click += () =>
             {
-                var Before = App.FileProvider.MountedVfs;
                 Task.Run(() => LoadGame()).GetAwaiter().OnCompleted(() =>
                 {
-                    ContextChanged();
-                    var After = App.FileProvider.MountedVfs;
                     List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
                     AllVFS.AddRange(App.FileProvider.MountedVfs);
                     AllVFS.AddRange(App.FileProvider.UnloadedVfs);
                     AllVFS.Sort(new NameSort());
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);
+                    ContextChanged();
                 });
             };
 
@@ -110,7 +109,7 @@ namespace TModel.Modules
             LoadFiles(App.FileProvider.UnloadedVfs);
         }
 
-        void LoadGame()
+        public static void LoadGame()
         {
             AesKeys AesKeys;
             WebClient Client = new WebClient();

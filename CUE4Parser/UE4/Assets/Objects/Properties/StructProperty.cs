@@ -1,19 +1,33 @@
 ﻿using System;
+using System.Windows;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.Utils;
 using Newtonsoft.Json;
+using TModel;
+using TModel.Modules;
 
 namespace CUE4Parse.UE4.Assets.Objects
 {
     [JsonConverter(typeof(StructPropertyConverter))]
-    public class StructProperty : FPropertyTagType<UScriptStruct>
+    public class StructProperty : FPropertyTagType<UScriptStruct>, IPreviewOverride
     {
         public StructProperty(FAssetArchive Ar, FPropertyTagData? tagData, ReadType type)
         {
             Value = new UScriptStruct(Ar, tagData?.StructType, tagData?.Struct, type);
         }
 
-        public override string ToString() => Value.ToString().SubstringBeforeLast(')') + ", StructProperty)";
+        public PreviewOverrideData GetCustomData()
+        {
+            FrameworkElement? OverrideUI = null;
+            if (Value.StructType is FStructFallback fallback)
+            {
+                OverrideUI = ObjectViewerModule.GeneratePropertiesUI(fallback.Properties.ToArray());
+            }
+
+            return new PreviewOverrideData() { OverrideElement = OverrideUI, OverrideTypeName = $"{Value.StructName} (Struct)" };
+        }
+
+        public override string ToString() => Value.ToString().SubstringBeforeLast(')');
     }
 
     public class StructPropertyConverter : JsonConverter<StructProperty>

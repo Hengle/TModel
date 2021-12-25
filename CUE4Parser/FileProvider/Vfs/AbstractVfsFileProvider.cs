@@ -58,22 +58,38 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             // Makes sure the path ends with '/'
             string Path = GivenPath.EndsWith('/') ? GivenPath : GivenPath + '/';
-            // Gets the number of slashes in path
-            int BaseNum = Path.NumOccurrences('/');
             List<string> Result = new List<string>();
-            foreach (var TestPath in Files.Keys)
-                // If the TestPath is a subpath or asset of the of the GivenPath.
-                if (TestPath.StartsWith(Path))
+
+            foreach (string path in Files.Keys)
+            {
+                if (path.StartsWith(GivenPath))
                 {
-                    int ItemNum = TestPath.NumOccurrences('/') - 1;
-                    // Makes sure it isn't folder in folder in folder
-                    if (ItemNum <= BaseNum)
-                    {
-                        string FinalName = (ItemNum == BaseNum ? TestPath.SubstringBeforeLast('/') : TestPath).SubstringAfterLast('/');
-                        if (Result.IndexOf(FinalName) == -1)
-                            Result.Add(FinalName);
-                    }
+                    string Base = path.Substring(GivenPath.Length + 1);
+                    string Final = "";
+                    if (Base.Contains('/'))
+                        Final = Base.SubstringBefore('/');
+                    else
+                        Final = Base;
+
+                    if (Result.IndexOf(Final) == -1)
+                        Result.Add(Final);
                 }
+            }
+
+            return Result;
+        }
+
+        public List<string> GetSubPaths(string GivenPath)
+        {
+            List<string> Result = new List<string>();
+            foreach (string path in Files.Keys)
+            {
+                if (path.StartsWith(GivenPath))
+                {
+                    Result.Add(path);
+                }
+            }
+
             return Result;
         }
 

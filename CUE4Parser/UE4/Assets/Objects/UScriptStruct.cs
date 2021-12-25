@@ -26,9 +26,11 @@ namespace CUE4Parse.UE4.Assets.Objects
     public class UScriptStruct
     {
         public readonly IUStruct StructType;
+        public readonly string StructName;
 
         public UScriptStruct(FAssetArchive Ar, string? structName, UStruct? struc, ReadType? type)
         {
+            StructName = structName;
             StructType = structName switch
             {
                 "Box" => type == ReadType.ZERO ? new FBox() : Ar.Read<FBox>(),

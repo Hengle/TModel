@@ -26,7 +26,7 @@ namespace CUE4Parse.UE4.Assets.Objects
 
         public override object? GenericValue => Value;
 
-        public override string ToString() => Value != null ? $"{Value.ToString()} ({GetType().Name})" : string.Empty;
+        public override string ToString() => Value != null ? Value.ToString() : string.Empty;
     }
 
     [JsonConverter(typeof(FPropertyTagTypeConverter))]
@@ -80,8 +80,8 @@ namespace CUE4Parse.UE4.Assets.Objects
                         return softExport;
                     return null;
                 case EnumProperty enumProp when type.IsEnum:
-                    var storedEnum = enumProp.Value.Text;
-                    var search = storedEnum.SubstringAfter("::"); // Strip enum name on namespaced and enum class enums
+                    var storedEnum = enumProp.Value.ToString();
+                    var search = storedEnum.ToString(); // Strip enum name on namespaced and enum class enums
                     var values = type.GetEnumNames();
                     var idx = Array.FindIndex(values, it => it == search);
                     return idx == -1 ? null : type.GetEnumValues().GetValue(idx);
