@@ -12,12 +12,17 @@ using static CUE4Parse.Utils.StringUtils;
 using System.IO;
 using System.Threading;
 using TModel.MainFrame.Widgets;
+using CUE4Parse.UE4.Assets.Exports;
+using System.Windows.Input;
+using TModel.MainFrame.Modules;
 
 namespace TModel.Modules
 {
     internal class DirectoryModule : ModuleBase
     {
-        public static Action<string> SelectedItemChanged;
+        public static Action<IEnumerable<UObject>?> SelectedItemChanged;
+
+        public static Action<string> GoToPath;
 
         public DirectoryModule() : base()
         {
@@ -45,6 +50,21 @@ namespace TModel.Modules
 
         public override void StartupModule()
         {
+            GoToPath += (path) => 
+            {
+                CurrentPath = path.SubstringBeforeLast('/');
+                LoadPath(path.SubstringBeforeLast('/'));
+                foreach (var asset in AssetsPanel.Children)
+                {
+                    DirectoryItem Item = (DirectoryItem)asset;
+                    if (Item.FullPath == path)
+                    {
+                        Item.Select();
+                        break;
+                    }
+                }
+            };
+
             FileManagerModule.ContextChanged += RefreshStuff;
 
             void RefreshStuff() => LoadPath(CurrentPath);
@@ -62,9 +82,6 @@ namespace TModel.Modules
             
             AssetScrollViewer.Content = AssetsPanel;
             FolderScrollViewer.Content = FoldersPanel;
-
-
-
 
             Grid.SetColumn(AssetScrollViewer, 1);
             Grid.SetColumn(FolderScrollViewer, 0);
@@ -112,9 +129,19 @@ namespace TModel.Modules
             Root.Children.Add(ButtonPanel);
 
             Content = Root;
+
+            KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.F && Keyboard.IsKeyDown(Key.LeftCtrl))
+                {
+                    App.ShowModule<SearchModule>();
+                }
+            };
         }
+
         void LoadPath(string path)
         {
+
             List<DirectoryItem> Folders = new List<DirectoryItem>();
             List<DirectoryItem> Assets = new List<DirectoryItem>();
 
@@ -156,7 +183,7 @@ namespace TModel.Modules
         {
             bool IsSelected;
 
-            string FullPath = "";
+            public readonly string FullPath = "";
 
             string FileName => Path.GetFileName(FullPath);
 
@@ -176,20 +203,47 @@ namespace TModel.Modules
                 Padding = new Thickness(5)
             };
 
-            public DirectoryItem(string path, DirectoryModule Owner, bool IsAsset = false)
-            {
+            DirectoryModule Owner;
 
+            public DirectoryItem(string path, DirectoryModule owner, bool IsAsset = false)
+            {
+                Owner = owner;
                 FullPath = path;
-                MinWidth = 120;
+                MinWidth = 140;
                 Content = border;
 
+                Grid grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition());
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
+
                 // Shows the name of item
-                TextBlock textBlock = new TextBlock() 
+                TextBlock NameText = new TextBlock() 
                 { 
                     Style = new DefaultText(),
                     Text = FileName
                 };
-                border.Child = textBlock;
+
+                if (!path.Contains('.'))
+                {
+                    string CountString = "";
+
+                    Task.Run(() => CountString = App.FileProvider.GetSubPaths(path).Count.ToString()).GetAwaiter().OnCompleted(() => 
+                    {
+                        TextBlock CountText = new TextBlock()
+                        {
+                            Style = new DefaultText(),
+                            Text = CountString,
+                            Margin = new Thickness(30,0,0,0)
+                        };
+
+                        Grid.SetColumn(CountText, 1);
+                        grid.Children.Add(CountText);
+                    });
+
+                }
+                border.Child = grid;
+
+                grid.Children.Add(NameText);
 
                 // Hover effects
                 MouseEnter += (s, a) =>
@@ -204,26 +258,15 @@ namespace TModel.Modules
                 // Clicking on item
                 MouseLeftButtonDown += (s, a) =>
                 {
-
                     if (!IsAsset) // Folder
                     {
                         // Sets the CurrentPath making sure that is ends with a '/'
-                        Owner.CurrentPath = Owner.CurrentPath.EndsWith('/') ? Owner.CurrentPath : Owner.CurrentPath += '/';
-                        Owner.LoadPath(Owner.CurrentPath = FullPath);
+                        owner.CurrentPath = owner.CurrentPath.EndsWith('/') ? owner.CurrentPath : owner.CurrentPath += '/';
+                        owner.LoadPath(owner.CurrentPath = FullPath);
                     }
                     else // Asset
                     {
-                        // Deselects the current selected asset
-                        if (Owner.SelectedAsset is DirectoryItem item)
-                            item.Deselect();
-                        // Selects this asset
-                        IsSelected = true;
-                        border.Background = Selected;
-                        Owner.SelectedAsset = this;
-
-                        // Calls a Action to let the ObjectViewer know to update its contents.
-                        if (SelectedItemChanged != null)
-                            SelectedItemChanged(Owner.CurrentPath + '/' + FileName);
+                        Select();
                     }
                 };
             }
@@ -240,6 +283,23 @@ namespace TModel.Modules
             {
                 IsSelected = false;
                 border.Background = Normal;
+            }
+
+            public void Select()
+            {
+                // Deselects the current selected asset
+                if (Owner.SelectedAsset is DirectoryItem item)
+                    item.Deselect();
+                // Selects this asset
+                IsSelected = true;
+                border.Background = Selected;
+                Owner.SelectedAsset = this;
+
+                // Calls a Action to let the ObjectViewer know to update its contents.
+                IEnumerable<UObject>? Exports = null;
+                Task.Run(() => Exports = App.FileProvider.LoadObjectExports(FullPath))
+                .GetAwaiter()
+                .OnCompleted(() => SelectedItemChanged(Exports));
             }
         }
     }

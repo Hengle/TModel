@@ -90,7 +90,7 @@ namespace CUE4Parse.UE4.Assets.Objects
             };
         }
 
-        public PreviewOverrideData GetCustomData()
+        public PreviewOverrideData GetCustomData(object data)
         {
             StackPanel stackPanel = new StackPanel();
             int Counter = 0;

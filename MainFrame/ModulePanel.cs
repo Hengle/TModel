@@ -65,6 +65,14 @@ namespace TModel
             Children.Add(NewModulePanel);
         }
 
+        public bool TryShowModule<T>()
+        {
+            foreach (var item in Modules)
+                if (item.TryShowModule<T>())
+                    return true;
+            return false;
+        }
+
         private void AddSplitter()
         {
             if (ModuleCount > 0)

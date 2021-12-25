@@ -430,7 +430,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FRotator Rotation() => ToOrientationRotator();
 
-        public override string ToString() => $"X={X,3:F3} Y={Y,3:F3} Z={Z,3:F3}";
+        public override string ToString() => $"X = {X}\nY = {Y}\nZ = {Z}";
 
         /// <summary>
         /// Calculate the cross product of two vectors.

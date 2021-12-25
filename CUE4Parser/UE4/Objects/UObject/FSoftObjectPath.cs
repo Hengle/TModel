@@ -21,8 +21,12 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         public readonly IPackage? Owner;
 
-        public FSoftObjectPath(FAssetArchive Ar)
+        private readonly string? ObjectType;
+
+        public FSoftObjectPath(FAssetArchive Ar, string? type = null)
         {
+            ObjectType = type;
+
             if (Ar.Ver < EUnrealEngineObjectUE4Version.ADDED_SOFT_OBJECT_PATH)
             {
                 var path = Ar.ReadFString();
@@ -36,6 +40,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         public FSoftObjectPath(FName assetPathName, string subPathString, IPackage? owner = null)
         {
+            ObjectType = null;  
             AssetPathName = assetPathName;
             SubPathString = subPathString;
             Owner = owner;
@@ -137,9 +142,7 @@ namespace CUE4Parse.UE4.Objects.UObject
         
         #endregion
 
-        public override string ToString() => string.IsNullOrEmpty(SubPathString)
-            ? (AssetPathName.IsNone ? "" : AssetPathName.Text)
-            : $"{AssetPathName.Text}:{SubPathString}";
+        public override string ToString() => $"Name: {AssetPathName}\nSubPath: {SubPathString}\nType: {ObjectType ?? "NONE"}\nOwner: {Owner?.Name ?? "NONE"}";
     }
     
     public class FSoftObjectPathConverter : JsonConverter<FSoftObjectPath>

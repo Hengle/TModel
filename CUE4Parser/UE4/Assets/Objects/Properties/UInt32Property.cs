@@ -17,7 +17,7 @@ namespace CUE4Parse.UE4.Assets.Objects
             };
         }
 
-        public PreviewOverrideData GetCustomData()
+        public PreviewOverrideData GetCustomData(object data)
         {
             return new PreviewOverrideData() { OverrideTypeName = "UInt32" };
         }

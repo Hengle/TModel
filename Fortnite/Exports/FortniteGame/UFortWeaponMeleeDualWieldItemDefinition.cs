@@ -46,7 +46,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             var offImpPhysSounds = GetOrDefault(nameof(OffhandImpactPhysicalSurfaceSoundsMap), new UScriptMap());
             foreach (var (key, value) in offImpPhysSounds.Properties)
             {
-                if (key is EnumProperty k && Enum.TryParse(k.Value.Text, true, out EPhysicalSurface surface) &&
+                if (key is EnumProperty k && Enum.TryParse(k.Value.SelectedName, true, out EPhysicalSurface surface) &&
                     value?.GenericValue is FSoftObjectPath path)
                 {
                     OffhandImpactPhysicalSurfaceSoundsMap.Add(surface, path);
@@ -56,7 +56,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             var offImpPhysEffects = GetOrDefault(nameof(OffhandImpactPhysicalSurfaceEffects), new UScriptMap());
             foreach (var (key, value) in offImpPhysEffects.Properties)
             {
-                if (key is EnumProperty k && Enum.TryParse(k.Value.Text, true, out EPhysicalSurface surface) &&
+                if (key is EnumProperty k && Enum.TryParse(k.Value.SelectedName, true, out EPhysicalSurface surface) &&
                     value?.GenericValue is FSoftObjectPath path)
                 {
                     OffhandImpactPhysicalSurfaceEffects.Add(surface, path);
@@ -66,7 +66,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             var offImpNiagaraPhysEffects = GetOrDefault(nameof(OffhandImpactNiagaraPhysicalSurfaceEffects), new UScriptMap());
             foreach (var (key, value) in offImpNiagaraPhysEffects.Properties)
             {
-                if (key is EnumProperty k && Enum.TryParse(k.Value.Text, true, out EPhysicalSurface surface) &&
+                if (key is EnumProperty k && Enum.TryParse(k.Value.SelectedName, true, out EPhysicalSurface surface) &&
                     value?.GenericValue is FSoftObjectPath path)
                 {
                     OffhandImpactNiagaraPhysicalSurfaceEffects.Add(surface, path);
@@ -76,7 +76,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             var offPrimaryFire = GetOrDefault(nameof(OffhandPrimaryFireSoundMap), new UScriptMap());
             foreach (var (key, value) in offPrimaryFire.Properties)
             {
-                if (key is EnumProperty k && Enum.TryParse(k.Value.Text, true, out EFortWeaponSoundState state) &&
+                if (key is EnumProperty k && Enum.TryParse(k.Value.SelectedName, true, out EFortWeaponSoundState state) &&
                     value?.GenericValue is FSoftObjectPath path)
                 {
                     OffhandPrimaryFireSoundMap.Add(state, path);

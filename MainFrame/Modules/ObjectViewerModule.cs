@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +11,7 @@ using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using Newtonsoft.Json;
+using TModel.MainFrame.Widgets;
 using static CUE4Parse.Utils.StringUtils;
 using static TModel.ColorConverters;
 
@@ -22,13 +24,14 @@ namespace TModel.Modules
             ModuleName = "Object Viewer";
         }
 
-        public static FrameworkElement GeneratePropertiesUI(FPropertyTag[] Properties)
+        public static Border GeneratePropertiesUI(FPropertyTag[] Properties, ObjectViewerModule owner)
         {
-            Border Root = new Border() 
+            Border Root = new Border()
             {
                 Background = HexBrush("#333333"),
                 BorderBrush = HexBrush("#686868"),
-                BorderThickness = new Thickness(3,0,0,0),
+                BorderThickness = new Thickness(3, 0, 0, 0),
+                HorizontalAlignment = HorizontalAlignment.Left,
             };
 
             StackPanel stackPanel = new StackPanel() 
@@ -44,13 +47,17 @@ namespace TModel.Modules
                 Counter++;
 
                 StackPanel StackRoot = new StackPanel();
-                StackPanel PropertyPanel = new StackPanel() { Orientation = Orientation.Horizontal };
+                WrapPanel PropertyPanel = new WrapPanel() 
+                { 
+                    Orientation = Orientation.Horizontal, 
+                    Margin = new Thickness(3),
+                };
                 StackRoot.Children.Add(PropertyPanel);
                 PreviewOverrideData? CustomData = null;
 
                 if (property.Tag is IPreviewOverride DataPreview)
                 {
-                    CustomData = DataPreview.GetCustomData();
+                    CustomData = DataPreview.GetCustomData(owner);
                 }
 
                 // Property Type
@@ -71,10 +78,34 @@ namespace TModel.Modules
                 });
 
                 // Property Value
-                var ValueElement = GenerateValueIU(property.Tag, out bool IsCustom);
+                FrameworkElement ValueElement = GenerateValueUI(property.Tag, out bool IsCustom, owner);
                 if (IsCustom) // Vertically
                 {
-                    StackRoot.Children.Add(ValueElement);
+                    Grid DropdownGrid = new Grid() { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0) };
+                    DropdownGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(20) });
+                    DropdownGrid.ColumnDefinitions.Add(new ColumnDefinition());
+
+                    // Dropdown button
+                    CButton cButton = new CButton()
+                    {
+                        VerticalAlignment = VerticalAlignment.Top,
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        Width = 20,
+                        Height = 20,
+                    };
+                    cButton.Click += () =>
+                    {
+                        ValueElement.Visibility = ValueElement.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
+                    };
+
+                    ValueElement.Margin = new Thickness(5);
+
+                    DropdownGrid.Children.Add(cButton);
+
+                    Grid.SetColumn(ValueElement, 1);
+                    DropdownGrid.Children.Add(ValueElement);
+
+                    StackRoot.Children.Add(DropdownGrid);
                 }
                 else // Horizontally
                     PropertyPanel.Children.Add(ValueElement);
@@ -84,15 +115,16 @@ namespace TModel.Modules
             return Root;
         }
 
-        public static UIElement GenerateValueIU(FPropertyTagType? value, out bool IsCustom)
+        public static FrameworkElement GenerateValueUI(FPropertyTagType? value, out bool IsCustom, ObjectViewerModule owner)
         {
-            PreviewOverrideData? CustomData = null;
 
+            PreviewOverrideData? CustomData = null;
             FrameworkElement Result = new FrameworkElement();
+
 
             if (value is IPreviewOverride DataPreview)
             {
-                CustomData = DataPreview.GetCustomData();
+                CustomData = DataPreview.GetCustomData(owner);
             }
 
             if (CustomData?.OverrideElement is FrameworkElement ValidElement)
@@ -104,37 +136,33 @@ namespace TModel.Modules
             {
                 Result = new ReadonlyText(15)
                 {
-                    Text = value?.ToString() ?? "NO VALUE",
+                    Text = value?.ToString() ?? "NULL",
                     Style = new DefaultText(),
                     Foreground = HexBrush("#d59eff"),
-                    Margin = new Thickness(5),
+                    Margin = new Thickness(0),
+                    TextWrapping = TextWrapping.Wrap,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Left,
                 };
             }
 
-            IsCustom = CustomData?.OverrideElement is FrameworkElement;
+            IsCustom = CustomData?.OverrideElement is not null;
+
             return Result;
         }
 
+        public ScrollViewer scrollViewer { get; } = new ScrollViewer() { Background = HexBrush("#1b1b1b"), VerticalScrollBarVisibility = ScrollBarVisibility.Visible, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+
         public override void StartupModule()
         {
-            ScrollViewer scrollViewer = new ScrollViewer() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-            StackPanel ObjectsPanel = new StackPanel() { Background = HexBrush("#1b1b1b") };
+            StackPanel ObjectsPanel = new StackPanel() { HorizontalAlignment = HorizontalAlignment.Left };
             scrollViewer.Content = ObjectsPanel;
             Content = scrollViewer;
-            DirectoryModule.SelectedItemChanged += (name) =>
+            DirectoryModule.SelectedItemChanged += (Exports) =>
             {
                 ObjectsPanel.Children.Clear();
                 Task.Run(() =>
                 {
-                    IEnumerable<UObject>? Exports = null;
-                    try
-                    {
-                        Exports = App.FileProvider.LoadObjectExports(name);
-                    }
-                    catch
-                    {
-                        App.Refresh(() => ObjectsPanel.Children.Add(new TextBlock() { Style = new DefaultText(60), Foreground = HexBrush("#ff1f1f"), Text = "Failed to load package" }));
-                    }
                     if (Exports is IEnumerable<UObject> UObjects)
                     {
                         // Runs this code on the UI thread
@@ -142,17 +170,24 @@ namespace TModel.Modules
                         {
                             foreach (var uObject in UObjects)
                             {
-                                ObjectsPanel.Children.Add(new ReadonlyText(25) 
-                                {
-                                    Text = uObject.Name
-                                });
+                                ObjectsPanel.Children.Add(new ReadonlyText($"Name: {uObject.Name}", 35));
 
+                                if (uObject.Class != null)
+                                    ObjectsPanel.Children.Add(new ReadonlyText($"Class: {uObject.Class.Name}", 22));
+                                if (uObject.Outer != null)
+                                    ObjectsPanel.Children.Add(new ReadonlyText($"Outer: {uObject.Outer.Name}", 22));
+                                if (uObject.Outer != null && uObject.Outer.Outer != null)
+                                    ObjectsPanel.Children.Add(new ReadonlyText($"Outer-Outer: {uObject.Outer.Outer.Name}", 22));
+                                if (uObject.Super != null)
+                                    ObjectsPanel.Children.Add(new ReadonlyText($"Super: {uObject.Super.Name}", 22));
+                                if (uObject.Template != null)
+                                    ObjectsPanel.Children.Add(new ReadonlyText($"Template: {uObject.Template.Name}", 22));
 
                                 if (uObject.Properties.Count > 0)
                                 {
-                                    FrameworkElement uIElement = GeneratePropertiesUI(uObject.Properties.ToArray());
-                                    uIElement.Margin = new Thickness(30);
-                                    ObjectsPanel.Children.Add(uIElement);
+                                    Border PropertiesUI = GeneratePropertiesUI(uObject.Properties.ToArray(), this);
+                                    PropertiesUI.Margin = new Thickness(30);
+                                    ObjectsPanel.Children.Add(PropertiesUI);
                                 }
                                 else
                                 {
@@ -166,6 +201,15 @@ namespace TModel.Modules
                                 }
                             }
                         });
+                    }
+                    else
+                    {
+                        App.Refresh(() => ObjectsPanel.Children.Add(new TextBlock()
+                        {
+                            Style = new DefaultText(60),
+                            Foreground = HexBrush("#ff1f1f"),
+                            Text = "Failed to load package"
+                        }));
                     }
                 });
             };

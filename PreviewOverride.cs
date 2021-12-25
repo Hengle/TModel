@@ -11,7 +11,7 @@ namespace TModel
     // Should only be applied to derived classes of FPropertyTagType
     public interface IPreviewOverride
     {
-        public PreviewOverrideData GetCustomData();
+        public PreviewOverrideData GetCustomData(object data);
     }
 
     // Data about overriding the way values are shown in the ObjectViewer

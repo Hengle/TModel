@@ -355,7 +355,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FBox TransformBy(FTransform m) => TransformBy(m.ToMatrixWithScale());
 
-        public override string ToString() => $"IsValid={IsValid != 0}, Min={Min}, Max={Max}";
+        public override string ToString() => $"IsValid: {IsValid != 0}\nMin: {Min}\nMax: {Max}";
 
         /// <summary>
         /// Utility function to build an AABB from Origin and Extent

@@ -167,6 +167,8 @@ namespace CUE4Parse.UE4.Objects.Core.Math
 
         public override bool Equals(object? obj) => obj is FRotator other && Equals(other, 0f);
 
-        public override string ToString() => $"P={Pitch} Y={Yaw} R={Roll}";
+        public override string ToString() => $"Pitch: {Pitch}\n" +
+            $"                                 Yaw:   {Yaw}\n" +
+            $"                                 Roll:  {Roll}";
     }
 }

@@ -11,7 +11,8 @@ namespace TModel
 {
     public static class Preferences
     {
-        private static string StorageFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TModel");
+        // Folder for storing user settings, Fortnite mappings and other data for the software.
+        public static string StorageFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TModel");
 
         public static string GameDirectory { get; set; } = @"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks";
 

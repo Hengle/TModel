@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows;
 using System.Windows.Input;
 using TModel.Modules;
+using TModel.MainFrame.Modules;
 
 namespace TModel
 {
@@ -45,23 +46,34 @@ namespace TModel
 #endif
         }
 
-        /// <summary>
-        /// Creates a new tab with the <see cref="ModuleBase"/> widget.
-        /// </summary>
-        /// <param name="module"></param>
         public void AddModule(ModuleBase module)
         {
             module.StartupModule();
+            Modules.Add(module);
             TabBar.Items.Add(new TabItem() { Header = new TextBlock() { FontSize = 18, FontFamily = new FontFamily("Microsoft Sans Serif"), Foreground = Brushes.Black, Text = module.ModuleName },  Content = module  } );
         }
 
-        /// <summary>
-        /// Removes tab.
-        /// </summary>
-        /// <param name="module">Module to remove.</param>
+
+
         public void RemoveModule(ModuleBase module)
         {
 
+        }
+
+        public bool TryShowModule<T>()
+        {
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                Type SearchType = typeof(T);
+                Type GivenType = Modules[i].GetType();
+                if (SearchType == GivenType)
+                {
+                    TabBar.SelectedIndex = i;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

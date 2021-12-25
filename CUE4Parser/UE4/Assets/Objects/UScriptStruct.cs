@@ -33,6 +33,7 @@ namespace CUE4Parse.UE4.Assets.Objects
             StructName = structName;
             StructType = structName switch
             {
+#if true
                 "Box" => type == ReadType.ZERO ? new FBox() : Ar.Read<FBox>(),
                 "Box2D" => type == ReadType.ZERO ? new FBox2D() : Ar.Read<FBox2D>(),
                 "Color" => type == ReadType.ZERO ? new FColor() : Ar.Read<FColor>(),
@@ -82,10 +83,10 @@ namespace CUE4Parse.UE4.Assets.Objects
                 "Quat" => type == ReadType.ZERO ? new FQuat() : Ar.Read<FQuat>(),
                 "Rotator" => type == ReadType.ZERO ? new FRotator() : Ar.Read<FRotator>(),
                 "SectionEvaluationDataTree" => type == ReadType.ZERO ? new FSectionEvaluationDataTree() : new FSectionEvaluationDataTree(Ar), // Deprecated in UE4.26? can't find it anymore. Replaced by FMovieSceneEvaluationTrack
-                "StringClassReference" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar),
-                "SoftClassPath" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar),
-                "StringAssetReference" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar),
-                "SoftObjectPath" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar),
+                "StringClassReference" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar, "StringClassReference"),
+                "SoftClassPath" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar, "SoftClassPath"),
+                "StringAssetReference" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar, "StringAssetReference"),
+                "SoftObjectPath" => type == ReadType.ZERO ? new FSoftObjectPath() : new FSoftObjectPath(Ar, "SoftObjectPath"),
                 "Timespan" => type == ReadType.ZERO ? new FDateTime() : Ar.Read<FDateTime>(),
                 "UniqueNetIdRepl" => new FUniqueNetIdRepl(Ar),
                 "Vector" => type == ReadType.ZERO ? new FVector() : Ar.Read<FVector>(),
@@ -110,12 +111,12 @@ namespace CUE4Parse.UE4.Assets.Objects
                 "VectorParameterValue" when Ar.Game == EGame.GAME_GTATheTrilogyDefinitiveEdition => new FVectorParameterValue(Ar),
                 "TextureParameterValue" when Ar.Game == EGame.GAME_GTATheTrilogyDefinitiveEdition => new FTextureParameterValue(Ar),
                 "MaterialTextureInfo" when Ar.Game == EGame.GAME_GTATheTrilogyDefinitiveEdition => new FMaterialTextureInfo(Ar),
-
+#endif
                 _ => type == ReadType.ZERO ? new FStructFallback() : struc != null ? new FStructFallback(Ar, struc) : new FStructFallback(Ar, structName)
             };
         }
 
-        public override string ToString() => $"{StructType} ({StructType.GetType().Name})";
+        public override string ToString() => StructType.ToString();
     }
 
     public class UScriptStructConverter : JsonConverter<UScriptStruct>

@@ -12,6 +12,6 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         /** Holds a flag indicating whether this box is valid. */
         public readonly byte bIsValid;
 
-        public override string ToString() => $"bIsValid={bIsValid}, Min=({Min}), Max=({Max})";
+        public override string ToString() => $"bIsValid: {bIsValid}\nMin: {Min}\nMax: {Max}";
     }
 }

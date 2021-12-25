@@ -60,7 +60,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             A = a;
         }
 
-        public override string ToString() => Hex;
+        public override string ToString() => $"R: {R}\nG: {G}\nB: {B}\nA: {A}\n\nHex: {Hex}";
 
         public FLinearColor LinearRGBToHsv()
         {

@@ -28,7 +28,7 @@ namespace CUE4Parse.UE4.Assets.Objects
             }
         }
 
-        public PreviewOverrideData GetCustomData() => new PreviewOverrideData() { OverrideTypeName = "Bool" };
+        public PreviewOverrideData GetCustomData(object data) => new PreviewOverrideData() { OverrideTypeName = "Bool" };
     }
 
     public class BoolPropertyConverter : JsonConverter<BoolProperty>

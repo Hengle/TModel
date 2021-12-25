@@ -97,7 +97,7 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             if (GameName.Equals("FortniteGame", StringComparison.OrdinalIgnoreCase))
             {
-                MappingsContainer = new BenBotMappingsProvider("fortnitegame");
+                MappingsContainer = new FortniteMappingsProvider("fortnitegame");
             }
         }
 
