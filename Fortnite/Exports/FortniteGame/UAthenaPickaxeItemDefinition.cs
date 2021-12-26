@@ -2,6 +2,7 @@ using CUE4Parse.FN.Structs.FortniteGame;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
@@ -19,6 +20,13 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public FSoftObjectPath PreviewSwingMontage; // UAnimMontage
         public FFortUICameraFrameTargetBounds? CameraFramingBounds;
         public FVector CameraFramingBoundsCenterOffset;
+
+        public override ItemPreviewInfo? GetPreviewInfo()
+        {
+            if (WeaponDefinition != null)
+                return WeaponDefinition.GetPreviewInfo();
+            return null;
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

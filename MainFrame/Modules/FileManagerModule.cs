@@ -4,6 +4,7 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Vfs;
 using CUE4Parse.Utils;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,13 +22,15 @@ namespace TModel.Modules
     // Manages loading of VFS
     public class FileManagerModule : ModuleBase
     {
+        public override string ModuleName => "File Manager";
+
         StackPanel FilesPanel = new StackPanel();
 
         public static Action ContextChanged;
 
         public FileManagerModule() : base()
         {
-            ModuleName = "File Manager";
+
         }
 
         public override void StartupModule()
@@ -54,6 +57,7 @@ namespace TModel.Modules
             CButton LoadButton = new CButton("Load");
             LoadButton.Click += () =>
             {
+                Log.Information("Loading files");
                 Task.Run(() => 
                     {
                         LoadGame(); 

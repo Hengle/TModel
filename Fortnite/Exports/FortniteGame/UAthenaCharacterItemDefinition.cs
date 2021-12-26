@@ -4,9 +4,11 @@ using CUE4Parse.FN.Enums.FortniteGame;
 using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
 using CUE4Parse.FN.Structs.FortniteGame;
 using CUE4Parse.FN.Structs.GT;
+using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
@@ -21,6 +23,17 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public Lazy<EFortCustomGender>                  Gender;
         public Lazy<FSoftObjectPath>                    FeedbackBank; // UFortFeedbackBank
         public Lazy<Dictionary<FGameplayTag, FAthenaCharacterTaggedPartsList>> TaggedPartsOverride = new();
+
+        public override ItemPreviewInfo? GetPreviewInfo()
+        {
+            if (HeroDefinition.Value is null)
+                return null;
+            var SmallImagePath = HeroDefinition.Value.SmallPreviewImage.Value;
+            UTexture2D SmallImage = SmallImagePath?.Load<UTexture2D>() ?? null;
+            TextureRef SmallImageRef = new TextureRef(SmallImage);
+
+            return new ItemPreviewCosmeticInfo() { PreviewIcon = SmallImageRef };
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

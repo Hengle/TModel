@@ -11,6 +11,7 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
+using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
@@ -47,8 +48,8 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public Lazy<UFortTooltipDisplayStatsList?> StatList;
         public Lazy<FCurveTableRowHandle?> RatingLookup;
         public Lazy<object?> WidePreviewImage;
-        public Lazy<FSoftObjectPath> SmallPreviewImage;
-        public Lazy<FSoftObjectPath> LargePreviewImage;
+        public Lazy<FSoftObjectPath?> SmallPreviewImage;
+        public Lazy<FSoftObjectPath?> LargePreviewImage;
         public Lazy<FSoftObjectPath> DisplayAssetPath;
         public Lazy<FDataTableRowHandle?> PopupDetailsTag;
         public Lazy<UFortItemSeriesDefinition?> Series;
@@ -56,6 +57,13 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public Lazy<FRotator> FrontendPreviewInitialRotation;
         public Lazy<UStaticMesh?> FrontendPreviewMeshOverride;
         public Lazy<USkeletalMesh?> FrontendPreviewSkeletalMeshOverride;
+
+        public virtual ItemPreviewInfo? GetPreviewInfo()
+        {
+            UTexture2D SmallImage = SmallPreviewImage.Value?.Load<UTexture2D>();
+
+            return new ItemPreviewInfo() { PreviewIcon = new TextureRef(SmallImage) };
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -92,8 +100,8 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             StatList =                              new Lazy<UFortTooltipDisplayStatsList>(() => GetOrDefault<UFortTooltipDisplayStatsList>(nameof(StatList)));
             RatingLookup =                          new Lazy<FCurveTableRowHandle>(() => GetOrDefault<FCurveTableRowHandle>(nameof(RatingLookup)));
             WidePreviewImage =                      new Lazy<object?>(() => GetOrDefault<object>(nameof(WidePreviewImage)));
-            SmallPreviewImage =                     new Lazy<FSoftObjectPath>(() => GetOrDefault<FSoftObjectPath>(nameof(SmallPreviewImage)));
-            LargePreviewImage =                     new Lazy<FSoftObjectPath>(() => GetOrDefault<FSoftObjectPath>(nameof(LargePreviewImage)));
+            SmallPreviewImage =                     new Lazy<FSoftObjectPath?>(() => GetOrDefault<FSoftObjectPath?>(nameof(SmallPreviewImage)));
+            LargePreviewImage =                     new Lazy<FSoftObjectPath?>(() => GetOrDefault<FSoftObjectPath?>(nameof(LargePreviewImage)));
             DisplayAssetPath =                      new Lazy<FSoftObjectPath>(() => GetOrDefault<FSoftObjectPath>(nameof(DisplayAssetPath)));
             PopupDetailsTag =                       new Lazy<FDataTableRowHandle>(() => GetOrDefault<FDataTableRowHandle>(nameof(PopupDetailsTag)));
             Series =                                new Lazy<UFortItemSeriesDefinition>(() => GetOrDefault<UFortItemSeriesDefinition>(nameof(Series)));

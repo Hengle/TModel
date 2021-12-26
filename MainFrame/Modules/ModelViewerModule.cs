@@ -11,9 +11,11 @@ namespace TModel.MainFrame.Modules
     // or UStaticMesh, it will appear here.
     public class ModelViewerModule : ModuleBase
     {
+        public override string ModuleName => "Model Viewer";
+
         public ModelViewerModule()
         {
-            ModuleName = "Model Viewer";
+            
         }
 
         public override void StartupModule()

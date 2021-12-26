@@ -2,9 +2,6 @@
 using CUE4Parse.UE4.Assets;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TModel.Exporters;
 using TModel.Modules;
 
@@ -14,14 +11,20 @@ namespace TModel
     public static class FortUtils
     {
         public static CharacterExporter characterExporter { get; } = new CharacterExporter();
+        public static BackpackExporter backpackExporter { get; } = new BackpackExporter();
+        public static GliderExporter gliderExporter { get; } = new GliderExporter();
+        public static PickaxeExporter pickaxeExporter { get; } = new PickaxeExporter();
 
-        public static Dictionary<FilterType, ExporterBase> Exporters { get; } = new()
+        public static Dictionary<EItemFilterType, ExporterBase> Exporters { get; } = new()
         {
-            [FilterType.Character] = characterExporter,
+            [EItemFilterType.Character] = characterExporter,
+            [EItemFilterType.Backpack] = backpackExporter,
+            [EItemFilterType.Glider] = gliderExporter,
+            [EItemFilterType.Pickaxe] = pickaxeExporter,
         };
 
         // Gets all paths that could be a possible valid export for the given type
-        public static List<GameFile> GetPossibleFiles(FilterType type)
+        public static List<GameFile> GetPossibleFiles(EItemFilterType type)
         {
             List<GameFile> Result = new();
             if (Exporters.TryGetValue(type, out ExporterBase Exporter))
@@ -39,7 +42,7 @@ namespace TModel
             return Result;
         }
 
-        public static bool TryLoadItemPreview(FilterType type, GameFile gameFile, out Lazy<ItemPreviewInfo>? itemPreviewInfo)
+        public static bool TryLoadItemPreview(EItemFilterType type, GameFile gameFile, out ItemPreviewInfo itemPreviewInfo)
         {
             itemPreviewInfo = null;
             if (App.FileProvider.TryLoadPackage(gameFile, out IPackage package))
@@ -55,7 +58,7 @@ namespace TModel
         }
     }
 
-    public enum FilterType
+    public enum EItemFilterType
     {
         Character,
         Backpack,

@@ -108,7 +108,7 @@ namespace TModel
         private void AddElement(UIElement widget, bool IsSeperator)
         {
             GridUnitType GridType = IsSeperator ? GridUnitType.Auto : GridUnitType.Star;
-            double MinSize = IsSeperator ? 0 : 100;
+            double MinSize = IsSeperator ? 0 : 40;
             if (Direction == Orientation.Horizontal)
             {
                 Grid.SetColumn(widget, ModuleCount);

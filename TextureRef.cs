@@ -21,17 +21,17 @@ public class TextureRef
     private TextureRef() { }
 
     // Public Constructors
-    public TextureRef(BitmapImage image)
+    public TextureRef(BitmapImage? image)
     {
         _BitmapImage = image;
     }
 
-    public TextureRef(UTexture2D texture)
+    public TextureRef(UTexture2D? texture)
     {
         _UTexture2D = texture;
     }
 
-    public TextureRef(SKImage image)
+    public TextureRef(SKImage? image)
     {
         _SKImage = image;
     }

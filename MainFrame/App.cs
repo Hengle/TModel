@@ -68,6 +68,7 @@ namespace TModel
             app.MainWindow = Window;
 
             Module_One.AddModule(new GameContentModule());
+            Module_One.AddModule(new LoggerModule());
             Module_One.AddModule(new ModelViewerModule());
             Module_Two.AddModule(new ObjectViewerModule());
             Module_Two.AddModule(new ItemPreviewModule());

@@ -19,10 +19,6 @@ namespace CUE4Parse.UE4.Assets.Objects
         public PreviewOverrideData GetCustomData(object data)
         {
             FrameworkElement? OverrideUI = null;
-            if (Value.StructType is FStructFallback fallback)
-            {
-                OverrideUI = ObjectViewerModule.GeneratePropertiesUI(fallback.Properties.ToArray(), (ObjectViewerModule)data);
-            }
 
             return new PreviewOverrideData() { OverrideElement = OverrideUI, OverrideTypeName = $"{Value.StructName} (Struct)" };
         }

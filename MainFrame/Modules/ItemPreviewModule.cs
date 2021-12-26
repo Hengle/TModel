@@ -11,9 +11,11 @@ namespace TModel.Modules
 {
     class ItemPreviewModule : ModuleBase
     {
+        public override string ModuleName => "Item Preview";
+
         public ItemPreviewModule()
         {
-            ModuleName = "Item Preview";
+
         }
 
         public override void StartupModule()

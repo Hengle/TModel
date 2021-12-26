@@ -30,9 +30,11 @@ namespace TModel.Modules
 
         public static Action<string> GoToPath;
 
+        public override string ModuleName => "Directory";
+
         public DirectoryModule() : base()
         {
-            ModuleName = "Directory";
+
         }
 
         // The path currently being shown.

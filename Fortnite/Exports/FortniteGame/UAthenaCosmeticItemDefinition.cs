@@ -4,12 +4,14 @@ using CUE4Parse.FN.Enums.FortniteGame;
 using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
 using CUE4Parse.FN.Structs.FortniteGame;
 using CUE4Parse.FN.Structs.GT;
+using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
@@ -56,6 +58,14 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public FText? ExclusiveDescription;
         public FSoftObjectPath ExclusiveIcon; // UTexture2D
         public FText[]? ItemSearchTags;
+
+        public override ItemPreviewInfo? GetPreviewInfo()
+        {
+            UTexture2D SmallImage = null;
+            if (SmallPreviewImage.Value != null)
+                SmallImage = SmallPreviewImage.Value?.Load<UTexture2D>();
+            return new ItemPreviewInfo() { PreviewIcon = new TextureRef(SmallImage) };
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

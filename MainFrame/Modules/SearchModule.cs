@@ -16,9 +16,11 @@ namespace TModel.MainFrame.Modules
     {
         private static int MaxSize = 100;
 
+        public override string ModuleName => "Search";
+
         public SearchModule()
         {
-            ModuleName = "Search";
+
         }
 
         public override void StartupModule()

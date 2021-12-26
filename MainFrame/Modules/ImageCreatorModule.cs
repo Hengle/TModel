@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace TModel.MainFrame.Modules
 {
-    public class SettingsModule : ModuleBase
+    public class ImageCreatorModule : ModuleBase
     {
-        public override string ModuleName => "Settings";
+        public override string ModuleName => "Image Creator";
 
         public override void StartupModule()
         {

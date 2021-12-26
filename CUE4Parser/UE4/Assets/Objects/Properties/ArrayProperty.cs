@@ -23,22 +23,6 @@ namespace CUE4Parse.UE4.Assets.Objects
         public PreviewOverrideData GetCustomData(object data)
         {
             StackPanel ArrayValues = new StackPanel();
-            int Counter = 1;
-            foreach (var item in Value.Properties)
-            {
-                WrapPanel PropertyPanel = new WrapPanel() { Orientation = Orientation.Horizontal, Margin = new Thickness(0,20,0,0) };
-
-                PropertyPanel.Children.Add(new ReadonlyText(18)
-                {
-                    Text = Counter.ToString(),
-                    Margin = new Thickness(5),
-                    MinWidth = 5,
-                });
-                PropertyPanel.Children.Add(ObjectViewerModule.GenerateValueUI(item, out _, (ObjectViewerModule)data));
-                Counter++;
-
-                ArrayValues.Children.Add(PropertyPanel);
-            }
 
             return new PreviewOverrideData() { OverrideTypeName = $"{Value.InnerType}[{Value.Properties.Count}]", OverrideElement = ArrayValues };
         }

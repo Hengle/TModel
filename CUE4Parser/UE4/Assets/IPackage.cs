@@ -18,7 +18,10 @@ namespace CUE4Parse.UE4.Assets
         public FNameEntrySerialized[] NameMap { get; }
         public Lazy<UObject>[] ExportsLazy { get; }
 
+        public UObject Base => ExportsLazy[0].Value;
+
         public abstract bool IsFullyLoaded { get; }
+
 
         public bool HasFlags(EPackageFlags flags);
         /*public T? GetExportOfTypeOrNull<T>() where T : UObject;
