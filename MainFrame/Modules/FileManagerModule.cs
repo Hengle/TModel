@@ -6,6 +6,7 @@ using CUE4Parse.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,9 +18,7 @@ using static TModel.ColorConverters;
 
 namespace TModel.Modules
 {
-    /// <summary>
-    /// Module for managing the loading and unloading of pak files.
-    /// </summary>
+    // Manages loading of VFS
     public class FileManagerModule : ModuleBase
     {
         StackPanel FilesPanel = new StackPanel();
@@ -33,7 +32,6 @@ namespace TModel.Modules
 
         public override void StartupModule()
         {
-
             Grid grid = new Grid();
             Content = grid;
             grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(120) });
@@ -56,11 +54,15 @@ namespace TModel.Modules
             CButton LoadButton = new CButton("Load");
             LoadButton.Click += () =>
             {
-                Task.Run(() => LoadGame()).GetAwaiter().OnCompleted(() =>
+                Task.Run(() => 
+                    {
+                        LoadGame(); 
+                    }
+                ).GetAwaiter().OnCompleted(() =>
                 {
                     List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
                     AllVFS.AddRange(App.FileProvider.MountedVfs);
-                    AllVFS.AddRange(App.FileProvider.UnloadedVfs);
+                    AllVFS.AddRange(App.FileProvider.UnloadedVFS.Keys);
                     AllVFS.Sort(new NameSort());
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);
@@ -75,7 +77,6 @@ namespace TModel.Modules
 
             CButton SelectAllButton = new CButton("Select All");
             CButton DeselectAllButton = new CButton("Deselect All");
-
 
             SelectAllButton.Click += () =>
             {
@@ -105,16 +106,30 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(SelectionGrid);
 
-            // App.FileProvider.UnloadedVfs.Sort(new NameSort());
-            LoadFiles(App.FileProvider.UnloadedVfs);
+            // App.FileProvider.UnloadedVfs.Sort(new NameSort()); 
+            LoadFiles(App.FileProvider.UnloadedVFS.Keys);
         }
 
         public static void LoadGame()
         {
+            // Submits AES keys
             AesKeys AesKeys;
-            WebClient Client = new WebClient();
-            // Doenloads json string of keys from Fortnite-Api
-            AesKeys = JsonConvert.DeserializeObject<MainAesKeys>(Client.DownloadString(@"https://fortnite-api.com/v2/aes")).data;
+            string JsonString = "";
+            string AesKeysFile = Path.Combine(Preferences.StorageFolder, "AesKeys.json");
+            if (File.Exists(AesKeysFile))
+            {
+                // Load aes keys from file
+                JsonString = File.ReadAllText(AesKeysFile);
+            }
+            else
+            {
+                // Download aes keys from Fortnite API
+                WebClient Client = new WebClient();
+                JsonString = Client.DownloadString(@"https://fortnite-api.com/v2/aes");
+                // Save the keys on disk
+                File.WriteAllText(AesKeysFile, JsonString);
+            }
+            AesKeys = JsonConvert.DeserializeObject<MainAesKeys>(JsonString).data;
             // Main key
             App.FileProvider.SubmitKey(new FGuid(), new FAesKey(AesKeys.mainkey));
             // Dynamic keys

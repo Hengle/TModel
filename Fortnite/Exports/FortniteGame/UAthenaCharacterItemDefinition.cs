@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CUE4Parse.FN.Enums.FortniteGame;
 using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
@@ -11,20 +12,20 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 {
     public class UAthenaCharacterItemDefinition : UAthenaCosmeticItemDefinition
     {
-        public Dictionary<FName, UClass> RequestedDataStores = new();
-        public FSoftObjectPath[]? BaseCharacterParts;
-        public UFortHeroType? HeroDefinition;
-        public UAthenaBackpackItemDefinition? DefaultBackpack;
-        public UAthenaCosmeticItemDefinition[]? RequiredCosmeticItems;
-        public float PreviewPawnScale;
-        public EFortCustomGender Gender;
-        public FSoftObjectPath FeedbackBank; // UFortFeedbackBank
-        public Dictionary<FGameplayTag, FAthenaCharacterTaggedPartsList> TaggedPartsOverride = new();
+        public Lazy<Dictionary<FName, UClass>>          RequestedDataStores = new();
+        public Lazy<FSoftObjectPath[]?>                 BaseCharacterParts;
+        public Lazy<UFortHeroType?>                     HeroDefinition;
+        public Lazy<UAthenaBackpackItemDefinition?>     DefaultBackpack;
+        public Lazy<UAthenaCosmeticItemDefinition[]?>   RequiredCosmeticItems;
+        public Lazy<float>                              PreviewPawnScale;
+        public Lazy<EFortCustomGender>                  Gender;
+        public Lazy<FSoftObjectPath>                    FeedbackBank; // UFortFeedbackBank
+        public Lazy<Dictionary<FGameplayTag, FAthenaCharacterTaggedPartsList>> TaggedPartsOverride = new();
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             var dataStores = GetOrDefault(nameof(RequestedDataStores), new UScriptMap());
             foreach (var (key, value) in dataStores.Properties)
             {
@@ -33,15 +34,16 @@ namespace CUE4Parse.FN.Exports.FortniteGame
                     RequestedDataStores.Add(name, store);
                 }
             }
+#endif
+            BaseCharacterParts =        new Lazy<FSoftObjectPath[]?>(() => GetOrDefault<FSoftObjectPath[]>(nameof(BaseCharacterParts)));
+            HeroDefinition =            new Lazy<UFortHeroType?>(() => GetOrDefault<UFortHeroType>(nameof(HeroDefinition)));
+            DefaultBackpack =           new Lazy<UAthenaBackpackItemDefinition?>(() => GetOrDefault<UAthenaBackpackItemDefinition>(nameof(DefaultBackpack)));
+            RequiredCosmeticItems =     new Lazy<UAthenaCosmeticItemDefinition[]?>(() => GetOrDefault<UAthenaCosmeticItemDefinition[]>(nameof(RequiredCosmeticItems)));
+            PreviewPawnScale =          new Lazy<float>(() => GetOrDefault<float>(nameof(PreviewPawnScale)));
+            Gender =                    new Lazy<EFortCustomGender>(() => GetOrDefault<EFortCustomGender>(nameof(Gender)));
+            FeedbackBank =              new Lazy<FSoftObjectPath>(() => GetOrDefault<FSoftObjectPath>(nameof(FeedbackBank)));
 
-            BaseCharacterParts = GetOrDefault<FSoftObjectPath[]>(nameof(BaseCharacterParts));
-            HeroDefinition = GetOrDefault<UFortHeroType>(nameof(HeroDefinition));
-            DefaultBackpack = GetOrDefault<UAthenaBackpackItemDefinition>(nameof(DefaultBackpack));
-            RequiredCosmeticItems = GetOrDefault<UAthenaCosmeticItemDefinition[]>(nameof(RequiredCosmeticItems));
-            PreviewPawnScale = GetOrDefault<float>(nameof(PreviewPawnScale));
-            Gender = GetOrDefault<EFortCustomGender>(nameof(Gender));
-            FeedbackBank = GetOrDefault<FSoftObjectPath>(nameof(FeedbackBank));
-
+#if false
             var taggedParts = GetOrDefault(nameof(TaggedPartsOverride), new UScriptMap());
             foreach (var (key, value) in taggedParts.Properties)
             {
@@ -50,6 +52,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
                     TaggedPartsOverride.Add(new FGameplayTag(tag), new FAthenaCharacterTaggedPartsList(parts));
                 }
             }
+#endif
         }
     }
 }

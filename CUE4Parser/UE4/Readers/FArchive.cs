@@ -16,6 +16,7 @@ using static CUE4Parse.UE4.Objects.UObject.FPackageFileSummary;
 
 namespace CUE4Parse.UE4.Readers
 {
+    // Provides reading functionality
     public abstract class FArchive : Stream, ICloneable
     {
         public VersionContainer Versions;

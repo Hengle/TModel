@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TModel.MainFrame.Modules
 {
-    internal class SettingsModule : ModuleBase
+    public class SettingsModule : ModuleBase
     {
     }
 }

@@ -7,6 +7,8 @@ using System.Windows.Media;
 
 namespace TModel.MainFrame.Modules
 {
+    // If the selected item in DirectoryModule is a USkeletalMesh
+    // or UStaticMesh, it will appear here.
     public class ModelViewerModule : ModuleBase
     {
         public ModelViewerModule()

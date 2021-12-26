@@ -32,7 +32,7 @@ namespace CUE4Parse.FileProvider
                     {
                         _requiredKeys[reader.Info.EncryptionKeyGuid] = null;
                     }
-                    _unloadedVfs[reader] = null;
+                    UnloadedVFS[reader] = null;
                 }
                 catch (Exception e)
                 {
@@ -48,7 +48,7 @@ namespace CUE4Parse.FileProvider
                     {
                         _requiredKeys[reader.Info.EncryptionKeyGuid] = null;
                     }
-                    _unloadedVfs[reader] = null; 
+                    UnloadedVFS[reader] = null; 
                 }
                 catch (Exception e)
                 {

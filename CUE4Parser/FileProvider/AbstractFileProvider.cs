@@ -426,18 +426,14 @@ namespace CUE4Parse.FileProvider
             Files.TryGetValue(file.PathWithoutExtension + ".uexp", out var uexpFile);
             Files.TryGetValue(file.PathWithoutExtension + ".ubulk", out var ubulkFile);
             Files.TryGetValue(file.PathWithoutExtension + ".uptnl", out var uptnlFile);
-            var uassetTask = file.CreateReaderAsync();
-            var uexpTask = uexpFile?.CreateReaderAsync();
-            var ubulkTask = ubulkFile?.CreateReaderAsync();
-            var uptnlTask = uptnlFile?.CreateReaderAsync();
-            var uasset = await uassetTask;
-            var uexp = uexpTask != null ? await uexpTask : null;
-            var ubulk = ubulkTask != null ? await ubulkTask : null;
-            var uptnl = uptnlTask != null ? await uptnlTask : null;
+            FArchive uassetTask = file.CreateReader();
+            FArchive uexpTask = uexpFile?.CreateReader() ?? null;
+            FArchive ubulkTask = ubulkFile?.CreateReader() ?? null;
+            FArchive uptnlTask = uptnlFile?.CreateReader() ?? null;
 
             if (file is FPakEntry)
             {
-                return new Package(uasset, uexp, ubulk, uptnl, this, MappingsForThisGame, UseLazySerialization);
+                return new Package(uassetTask, uexpTask, ubulkTask, uptnlTask, this, MappingsForThisGame, UseLazySerialization);
             }
 
             if (this is not IVfsFileProvider vfsFileProvider || vfsFileProvider.GlobalData == null)
@@ -446,7 +442,7 @@ namespace CUE4Parse.FileProvider
             }
 
             var containerHeader = ((FIoStoreEntry)file).IoStoreReader.ContainerHeader;
-            return new IoPackage(uasset, vfsFileProvider.GlobalData, containerHeader, ubulk, uptnl, this, MappingsForThisGame);
+            return new IoPackage(uassetTask, vfsFileProvider.GlobalData, containerHeader, ubulkTask, uptnlTask, this, MappingsForThisGame);
         }
 
         public virtual async Task<IPackage?> TryLoadPackageAsync(string path)

@@ -10,7 +10,6 @@ namespace CUE4Parse.FileProvider.Vfs
 {
     public interface IVfsFileProvider : IFileProvider, IDisposable
     {
-        public ICollection<IAesVfsReader> UnloadedVfs { get; }
         public IReadOnlyCollection<IAesVfsReader> MountedVfs { get; }
         
         /// <summary>
@@ -22,7 +21,6 @@ namespace CUE4Parse.FileProvider.Vfs
         public IAesVfsReader.CustomEncryptionDelegate? CustomEncryption { get; set; }
         
         //Aes-Key Management
-        public IReadOnlyDictionary<FGuid, FAesKey> Keys { get; }
         public IReadOnlyCollection<FGuid> RequiredKeys { get; }
         
         public int Mount();

@@ -18,6 +18,12 @@ using TModel.MainFrame.Modules;
 
 namespace TModel.Modules
 {
+    /** Navigation of the game files.
+        ObjectViewerModule shows the selected asset.
+        If there are multiple DirectoryModules then ObjectViewerModule shows
+        the most recently clicked one.
+        TODO: add tile/grid view for asset panel and add custom previews on those tiles
+    **/
     internal class DirectoryModule : ModuleBase
     {
         public static Action<IEnumerable<UObject>?> SelectedItemChanged;
