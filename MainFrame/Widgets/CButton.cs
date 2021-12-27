@@ -51,10 +51,8 @@ namespace TModel.MainFrame.Widgets
         {
             if (clickEvent != null)
                 Click += clickEvent;
-            Child = new TextBlock()
+            Child = new CoreTextBlock(text, size)
             {
-                Text = text,
-                Style = new DefaultText(size),
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             };

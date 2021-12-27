@@ -16,8 +16,14 @@ namespace TModel
         public CoreTextBlock(string text, double size = 15, Thickness? margin = null)
         {
             Text = text;
+            Foreground = Brushes.White;
             Margin = margin ?? new Thickness(0);
-            Style = new DefaultText(size);
+            FontSize = size;
+        }
+
+        public CoreTextBlock() : this("")
+        {
+
         }
     }
 
@@ -26,7 +32,7 @@ namespace TModel
         public ReadonlyText(double size = 15)
         {
             IsReadOnly = true;
-            Style = new DefaultText(size);
+            Foreground = Brushes.White;
             Background = Brushes.Transparent;
             BorderThickness = new Thickness(0);
         }
@@ -34,18 +40,6 @@ namespace TModel
         public ReadonlyText(string text, double size = 15) : this(size)
         {
             Text = text;
-        }
-    }
-
-    // TODO: make this inherit from TextBlock
-    public class DefaultText : Style
-    {
-        public DefaultText(double size = 15)
-        {
-            Setters.Add(new Setter(TextBlock.FontFamilyProperty, CoreFont));
-            Setters.Add(new Setter(TextBlock.FontSizeProperty, size));
-            Setters.Add(new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap));
-            Setters.Add(new Setter(TextBlock.ForegroundProperty, Brushes.White));
         }
     }
 }

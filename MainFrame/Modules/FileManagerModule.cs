@@ -54,7 +54,7 @@ namespace TModel.Modules
 
             grid.Background = HexBrush("#2e3d54");
 
-            CButton LoadButton = new CButton("Load");
+            CButton LoadButton = new CButton("Load", 40);
             LoadButton.Click += () =>
             {
                 Log.Information("Loading files");
@@ -230,10 +230,8 @@ namespace TModel.Modules
                 RootBorder.Background = HexBrush("#0f00b2");
             };
 
-            TextBlock FilesCountText = new TextBlock()
+            CoreTextBlock FilesCountText = new CoreTextBlock(reader.FileCount.ToString())
             {
-                Style = new DefaultText(),
-                Text = reader.FileCount.ToString(),
                 TextAlignment = TextAlignment.Right,
                 Width = 60,
                 Margin = new Thickness(0, 0, 40, 0)
@@ -244,10 +242,8 @@ namespace TModel.Modules
             MainPanel.ColumnDefinitions.Add(new ColumnDefinition());
             RootBorder.Child = MainPanel;
 
-            TextBlock FileNameText = new TextBlock()
+            CoreTextBlock FileNameText = new CoreTextBlock(reader.Name)
             {
-                Style = new DefaultText(),
-                Text = reader.Name,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left,
             };

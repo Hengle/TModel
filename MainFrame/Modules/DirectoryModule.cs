@@ -50,9 +50,8 @@ namespace TModel.Modules
 
 
         // Very top bar. Shows CurrentPath.
-        TextBlock PathText = new TextBlock() 
+        CoreTextBlock PathText = new CoreTextBlock() 
         { 
-            Style = new DefaultText(), 
             VerticalAlignment = VerticalAlignment.Center 
         };
 
@@ -225,11 +224,7 @@ namespace TModel.Modules
                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto) });
 
                 // Shows the name of item
-                TextBlock NameText = new TextBlock() 
-                { 
-                    Style = new DefaultText(),
-                    Text = FileName
-                };
+                CoreTextBlock NameText = new CoreTextBlock(FileName);
 
                 if (!path.Contains('.'))
                 {
@@ -237,10 +232,8 @@ namespace TModel.Modules
 
                     Task.Run(() => CountString = App.FileProvider.GetSubPaths(path).Count.ToString()).GetAwaiter().OnCompleted(() => 
                     {
-                        TextBlock CountText = new TextBlock()
+                        CoreTextBlock CountText = new CoreTextBlock(CountString)
                         {
-                            Style = new DefaultText(),
-                            Text = CountString,
                             Margin = new Thickness(30,0,0,0)
                         };
 

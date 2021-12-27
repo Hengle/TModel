@@ -120,7 +120,7 @@ namespace TModel.MainFrame.Modules
                     IsReadOnly = true,
                 };
 
-                Children.Add(new TextBlock() { Text = file.Path, Style = new DefaultText(13) });
+                Children.Add(new CoreTextBlock(file.Path));
             }
         }
     }

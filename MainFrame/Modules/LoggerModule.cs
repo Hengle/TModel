@@ -19,7 +19,7 @@ namespace TModel.MainFrame.Modules
 
 
         ScrollViewer scrollViewer = new ScrollViewer();
-        TextBlock textBlock = new TextBlock() { Style = new DefaultText(12), Background = Brushes.Black };
+        CoreTextBlock textBlock = new CoreTextBlock() { Background = Brushes.Black };
 
         public override void StartupModule()
         {

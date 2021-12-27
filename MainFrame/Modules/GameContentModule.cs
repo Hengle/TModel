@@ -43,8 +43,16 @@ namespace TModel.Modules
         CButton LoadButton = new CButton("Load") { Width = 150 };
         CButton RefreshButton = new CButton("Refresh") { Width = 150 };
 
-        TextBlock PageNumberText = new TextBlock() { MinWidth = 80, Style = new DefaultText(15), Text = "Page Number", Margin = new Thickness(6, 0, 6, 0) };
-        TextBlock LoadedCountText = new TextBlock() { MinWidth = 80, Style = new DefaultText(15), Text = "Loaded Count", Margin = new Thickness(6, 0, 6, 0) };
+        CoreTextBlock PageNumberText = new CoreTextBlock("Page Number") 
+        { 
+            MinWidth = 80, 
+            Margin = new Thickness(6, 0, 6, 0) 
+        };
+        CoreTextBlock LoadedCountText = new CoreTextBlock("Loaded Count") 
+        { 
+            MinWidth = 80,
+            Margin = new Thickness(6, 0, 6, 0) 
+        };
 
         CButton LeftButton = new CButton("Previous Page") { Width = 150 };
         CButton RightButton = new CButton("Next Page") { Width = 150 };
