@@ -1,5 +1,6 @@
 ﻿using CUE4Parse.FN.Exports.FortniteGame;
 using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
 using TModel.Modules;
@@ -31,6 +32,20 @@ namespace TModel.Export.Exporters
             if (package.Base is UAthenaGliderItemDefinition Glider)
                 return Glider.GetPreviewInfo();
             return null;
+        }
+
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        {
+            BlenderExportInfo ExportInfo = new BlenderExportInfo();
+
+            if (package.Base is UAthenaGliderItemDefinition Glider)
+            {
+                Glider.DeepDeserialize();
+                USkeletalMesh GliderMesh = Glider.SkeletalMesh.Load<USkeletalMesh>();
+                ExportInfo.Models.Add(new ModelRef(GliderMesh));
+            }
+
+            return ExportInfo;
         }
     }
 }

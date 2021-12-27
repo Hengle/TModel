@@ -33,5 +33,25 @@ namespace TModel.Export.Exporters
                 return Character.GetPreviewInfo();
             return null;
         }
+
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        {
+            BlenderExportInfo ExportInfo = new BlenderExportInfo();
+
+            if (package.Base is UAthenaCharacterItemDefinition Character)
+            {
+                Character.DeepDeserialize();
+                if (Character.BaseCharacterParts is FSoftObjectPath[] CustomParts)
+                {
+                    foreach (var part in CustomParts)
+                    {
+                        UCustomCharacterPart CharacterPart = part.Load<UCustomCharacterPart>();
+                        ExportInfo.Models.Add(CharacterPart.GetModelRef());
+                    }
+                }
+            }
+
+            return ExportInfo;
+        }
     }
 }

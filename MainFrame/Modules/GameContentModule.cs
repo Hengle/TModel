@@ -97,6 +97,24 @@ namespace TModel.Modules
 
             WrapPanel ButtonPanel = new WrapPanel() { Orientation = Orientation.Horizontal};
 
+            CoreTextBox SearchBox = new CoreTextBox() { MinWidth = 600, MinHeight = 40 };
+
+            SearchBox.TextChanged += (sender, args) =>
+            {
+                ItemTileInfo[] ItemTiles = CurrentExporter.LoadedPreviews.ToArray();
+                List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
+                foreach (var item in ItemTiles)
+                {
+                    if (item.Name.Contains(SearchBox.Text, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        MatchingPreviews.Add(item);
+                    }
+                }
+                LoadPage(MatchingPreviews);
+            };
+
+            ButtonPanel.Children.Add(SearchBox);
+
             ButtonPanel.Children.Add(LoadButton);
             ButtonPanel.Children.Add(RefreshButton);
 
@@ -146,7 +164,7 @@ namespace TModel.Modules
                 {
                     PageNum--;
                     UpdatePageCount();
-                    LoadPage();
+                    LoadPage(CurrentExporter.LoadedPreviews.ToArray());
                 }
             };
 
@@ -156,13 +174,13 @@ namespace TModel.Modules
                 {
                     PageNum++;
                     UpdatePageCount();
-                    LoadPage();
+                    LoadPage(CurrentExporter.LoadedPreviews.ToArray());
                 }
             };
 
             LoadButton.Click += () => LoadFilterType();
 
-            RefreshButton.Click += () => LoadPage();
+            RefreshButton.Click += () => LoadPage(CurrentExporter.LoadedPreviews.ToArray());
 
 
             bool CanZoom = false;
@@ -255,12 +273,11 @@ namespace TModel.Modules
             });
         }
 
-        void LoadPage()
+        void LoadPage(IList<ItemTileInfo> Previews)
         {
-            ItemTileInfo[] Previews = CurrentExporter.LoadedPreviews.ToArray();
             ItemPanel.Children.Clear();
 
-            int FinalSize = (PageSize * PageNum) > Previews.Length ? Previews.Length : (PageSize * PageNum);
+            int FinalSize = (PageSize * PageNum) > Previews.Count ? Previews.Count : (PageSize * PageNum);
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
@@ -296,17 +313,8 @@ namespace TModel.Modules
             {
                 Root.Width = ShownSize;
                 Root.Height = ShownSize;
-                if (ShownSize == MinItemSize)
-                {
-                    BackBorder.BorderThickness = new Thickness(0);
-                    Margin = new Thickness(0);
-                }
-                else
-                {
-                    BackBorder.BorderThickness = new Thickness(ShownSize / 30);
-                    Margin = new Thickness(ShownSize / 20);
-                }
-
+                BackBorder.BorderThickness = new Thickness(ShownSize / 30);
+                Margin = new Thickness(ShownSize / 20);
             }
 
             public GameContentItem()
@@ -342,6 +350,8 @@ namespace TModel.Modules
             public GameContentItem(ItemTileInfo info) : this()
             {
                 Info = info;
+
+                Root.ToolTip = new CTooltip(Info?.Name ?? "NULL");
 
                 // Sets preview icon
                 Task.Run(() =>

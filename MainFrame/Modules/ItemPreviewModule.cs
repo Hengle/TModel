@@ -28,21 +28,31 @@ namespace TModel.Modules
 
         public override void StartupModule()
         {
-            Grid Root = new Grid() { Background = HexBrush("#17162e") };
+            Grid Root = new Grid() 
+            { 
+                Background = HexBrush("#17162e"),
+            };
             Root.RowDefinitions.Add(new RowDefinition() { });
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
-            Grid ItemDisplay = new Grid();
+            Grid ItemDisplay = new Grid() { Margin = new Thickness(20) };
+            ItemDisplay.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            ItemDisplay.RowDefinitions.Add(new RowDefinition());
+
             Root.Children.Add(ItemDisplay);
+
             WrapPanel ButtonPanel = new WrapPanel()
             {
                 HorizontalAlignment = HorizontalAlignment.Center
             };
-            ButtonPanel.Children.Add(new CButton("Export", 40, () => 
+            ButtonPanel.Children.Add(new CButton("Export", 60, () =>
             {
                 if (Package != null)
                     GameContentModule.CurrentExporter.GetBlenderExportInfo(Package).Save();
-            }));
+            })
+            {
+                Margin = new Thickness(0,0,0,40)
+            });
             Grid.SetRow(ButtonPanel, 1);
             Root.Children.Add(ButtonPanel);
             GameContentModule.SelectionChanged += (ItemTileInfo Item) =>
@@ -54,8 +64,16 @@ namespace TModel.Modules
                 if (Preview.PreviewIcon is TextureRef ImageRef)
                     if (ImageRef.TryGet_BitmapImage(out BitmapImage? previewIcon))
                     {
-                        ItemDisplay.Children.Add(new Image() { Source = previewIcon });
+                        ItemDisplay.Children.Add(new Image() { Source = previewIcon, MaxHeight = 500 });
                     }
+                ReadonlyText NameText = new ReadonlyText(Item?.Name ?? "NULL", 60) 
+                {
+                    VerticalAlignment = VerticalAlignment.Top,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                };
+                Grid.SetRow(NameText, 1);
+                ItemDisplay.Children.Add(NameText);
             };
 
             Content = Root;

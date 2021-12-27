@@ -1,5 +1,6 @@
 ﻿using CUE4Parse.FN.Exports.FortniteGame;
 using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
@@ -44,6 +45,20 @@ namespace TModel.Export.Exporters
             if (package.Base is UFortAmmoItemDefinition AmmoItem)
                 return AmmoItem.GetPreviewInfo();
             return null;
+        }
+
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        {
+            BlenderExportInfo ExportInfo = new BlenderExportInfo();
+
+            if (package.Base is UFortWeaponItemDefinition WeaponDef)
+            {
+                WeaponDef.DeepDeserialize();
+                USkeletalMesh WeaponMesh = WeaponDef.WeaponMeshOverride.Load<USkeletalMesh>();
+                ExportInfo.Models.Add(new ModelRef(WeaponMesh));
+            }
+
+            return ExportInfo;
         }
     }
 }

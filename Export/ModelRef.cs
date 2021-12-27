@@ -21,10 +21,17 @@ namespace TModel.Export
             SkeletalMesh = skeletalMesh;
             foreach (var item in SkeletalMesh.Materials)
             {
-                UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
-                if (Material is UMaterialInstanceConstant InstanceConstant)
+                if (item.Material != null)
                 {
-                    Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                    UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
+                    if (Material is UMaterialInstanceConstant InstanceConstant)
+                    {
+                        Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                    }
+                }
+                else
+                {
+                    App.LogMessage($"Material was null: {item?.MaterialSlotName ?? "NULL NAME"}");
                 }
             }
         }

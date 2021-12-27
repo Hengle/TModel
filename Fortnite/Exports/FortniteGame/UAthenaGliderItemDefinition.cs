@@ -38,15 +38,21 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public FSoftObjectPath ThrustLoopSound; // USoundBase
         public Dictionary<ELayeredAudioTriggerDirection, FStructFallback> ThrustSoundParams = new(); // FFortGliderLayeredAudioFloatParam
 
+        public override void DeepDeserialize()
+        {
+            base.DeepDeserialize();
+
+            SkeletalMesh = GetOrDefault<FSoftObjectPath>(nameof(SkeletalMesh));
+        }
+
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             GliderType = GetOrDefault<EFortGliderType>(nameof(GliderType));
             CameraFramingBoundsCenterOffset = GetOrDefault<FVector>(nameof(CameraFramingBoundsCenterOffset));
             bActivateTrailsOnRotationalMovement = GetOrDefault<bool>(nameof(bActivateTrailsOnRotationalMovement));
             ParachutePrefabClass = GetOrDefault<FSoftObjectPath>(nameof(ParachutePrefabClass));
-            SkeletalMesh = GetOrDefault<FSoftObjectPath>(nameof(SkeletalMesh));
             AnimClass = GetOrDefault<FSoftObjectPath>(nameof(AnimClass));
             CameraClass = GetOrDefault<FSoftObjectPath>(nameof(CameraClass));
             PlayerAnimSet = GetOrDefault<FSoftObjectPath>(nameof(PlayerAnimSet));
@@ -78,6 +84,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
                     ThrustSoundParams.Add(direction, param);
                 }
             }
+#endif
         }
     }
 }

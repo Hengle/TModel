@@ -28,7 +28,16 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         {
             if (HeroDefinition is null)
                 return null;
-            return HeroDefinition.GetPreviewInfo();
+            ItemTileInfo HeroInfo = HeroDefinition.GetPreviewInfo();
+            HeroInfo.Name = DisplayName;
+            return HeroInfo;
+        }
+
+        public override void DeepDeserialize()
+        {
+            base.DeepDeserialize();
+
+            BaseCharacterParts = GetOrDefault<FSoftObjectPath[]>(nameof(BaseCharacterParts));
         }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
@@ -46,7 +55,6 @@ namespace CUE4Parse.FN.Exports.FortniteGame
                 }
             }
 
-            BaseCharacterParts = GetOrDefault<FSoftObjectPath[]>(nameof(BaseCharacterParts));
             DefaultBackpack = GetOrDefault<UAthenaBackpackItemDefinition>(nameof(DefaultBackpack));
             RequiredCosmeticItems = GetOrDefault<UAthenaCosmeticItemDefinition[]>(nameof(RequiredCosmeticItems));
             PreviewPawnScale = GetOrDefault<float>(nameof(PreviewPawnScale));

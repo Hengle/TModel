@@ -2078,6 +2078,7 @@ if __name__ == "__main__":
     register()
 
 def GetImage(name):
+    print(name)
     LastSlahshe = name.rindex("\\") + 1
     ImageName = name[LastSlahshe:len(name)]
     FoundImage = bpy.data.images.get(ImageName)
@@ -2086,7 +2087,6 @@ def GetImage(name):
     else:
         LoadedImage = bpy.data.images.load(name)
         return LoadedImage
-
 
 # Load cosmetics operator
 
@@ -2101,45 +2101,64 @@ def main(context):
 
     # Loads file with cosmetic info
     if exists(DataPath):
-        file = open(DataPath, "br")
-    
-        def ReadString():
-            StringSize = int.from_bytes(file.read(1), "big")
-            return util_bytes_to_str(file.read(StringSize))
+        try:
+            file = open(DataPath, "br")
 
-        def ReadSingle():
-            return struct.unpack("f", file.read(4))[0]
-        
-        def ReadInt8():
-            return int.from_bytes(file.read(1), "big")
+            def ReadString():
+                StringSize = int.from_bytes(file.read(1), "big")
+                return util_bytes_to_str(file.read(StringSize))
 
-        pathsNum = ReadInt8()
-        # Imports models
-        for mesh in range(pathsNum):
-            MeshName = ReadString()
-            IsSkeleton = not MeshName.endswith("x")
-            pskimport(MeshName)
+            def ReadSingle():
+                return struct.unpack("f", file.read(4))[0]
 
-        MaterialsNum = ReadInt8()
-        for material in range(MaterialsNum):
-            MatName = ReadString()
-            DiffusePath = ReadString()
+            def ReadInt8():
+                return int.from_bytes(file.read(1), "big")
 
-            CurrentMat = bpy.data.materials[MatName]
-            CurrentMat.use_nodes = True
-            CurrentMat.node_tree.nodes.clear()
-            ShaderOutput = CurrentMat.node_tree.nodes.new('ShaderNodeOutputMaterial')
-            bsdf = CurrentMat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-            ShaderOutput.location = [300, 0]
-            CurrentMat.node_tree.links.new(ShaderOutput.inputs[0], bsdf.outputs[0])
+            def ReadBool():
+                return struct.unpack('?', file.read(1))[0]
 
-            DiffuseImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-            DiffuseImage.image = GetImage(DiffusePath)
-            CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseImage.outputs[0]) # Diffuse Image (Color) -> Base Color on BSDF
+            pathsNum = ReadInt8()
+            # Imports models
+            for mesh in range(pathsNum):
+                ObjectName = ReadString()
+                IsSkeleton = not ObjectName.endswith("x")
+                pskimport(ObjectName)
+                Skeleton = bpy.context.selected_objects[0]
+                if IsSkeleton:
+                    Skeleton.select_set(False)
+                    Mesh = bpy.data.objects[Skeleton.name.replace(".ao", ".mo")]
+                    Mesh.select_set(True)
+                    bpy.ops.object.shade_smooth()
+                else:
+                    Mesh = bpy.context.selected_objects[0]
+                    bpy.ops.object.shade_smooth()
 
-            print(MatName)
+            def ReadTexture():
+                if ReadBool():
+                    return ReadString()
+                else:
+                    return False
 
-        file.close()
+            MaterialsNum = ReadInt8()
+            for material in range(MaterialsNum):
+                MatName = ReadString()
+                DiffusePath = ReadTexture()
+
+                CurrentMat = bpy.data.materials[MatName]
+                CurrentMat.use_nodes = True
+                CurrentMat.node_tree.nodes.clear()
+                ShaderOutput = CurrentMat.node_tree.nodes.new('ShaderNodeOutputMaterial')
+                bsdf = CurrentMat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                ShaderOutput.location = [300, 0]
+                CurrentMat.node_tree.links.new(ShaderOutput.inputs[0], bsdf.outputs[0])
+
+                DiffuseImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                DiffuseImage.image = GetImage(DiffusePath)
+                CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseImage.outputs[0]) # Diffuse Image (Color) -> Base Color on BSDF
+        except:
+            print("Failed for some reason")
+        finally:
+            file.close()
 
     else: # Export data does not exist - Shows an error message
         def draw(self, context):

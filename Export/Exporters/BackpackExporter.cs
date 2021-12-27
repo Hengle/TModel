@@ -1,4 +1,5 @@
-﻿using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
+﻿using CUE4Parse.FN.Exports.FortniteGame;
+using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
@@ -33,6 +34,26 @@ namespace TModel.Exporters
             if (package.Base is UAthenaBackpackItemDefinition Backpack)
                 return Backpack.GetPreviewInfo();
             return null;
+        }
+
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        {
+            BlenderExportInfo ExportInfo = new BlenderExportInfo();
+
+            if (package.Base is UAthenaBackpackItemDefinition Backpack)
+            {
+                Backpack.DeepDeserialize();
+                if (Backpack.CharacterParts is UCustomCharacterPart[] CustomParts)
+                {
+                    foreach (var part in CustomParts)
+                    {
+                        ExportInfo.Models.Add(part.GetModelRef());
+                    }
+                }
+
+            }
+
+            return ExportInfo;
         }
     }
 }

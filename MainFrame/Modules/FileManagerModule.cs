@@ -96,37 +96,6 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(LoadButton);
 
-            CButton SelectAllButton = new CButton("Select All");
-            CButton DeselectAllButton = new CButton("Deselect All");
-
-            SelectAllButton.Click += () =>
-            {
-                foreach (var item in FilesPanel.Children)
-                {
-                    ((FileManagerItem)item).Select();
-                }
-            };
-
-            DeselectAllButton.Click += () =>
-            {
-                foreach (var item in FilesPanel.Children)
-                {
-                    ((FileManagerItem)item).Deselect();
-                }
-            };
-
-            Grid.SetRow(SelectAllButton, 0);
-            Grid.SetRow(DeselectAllButton, 1);
-
-            Grid SelectionGrid = new Grid() { Height = 90, Width = 130 };
-            SelectionGrid.RowDefinitions.Add(new RowDefinition());
-            SelectionGrid.RowDefinitions.Add(new RowDefinition());
-
-            SelectionGrid.Children.Add(SelectAllButton);
-            SelectionGrid.Children.Add(DeselectAllButton);
-
-            ButtonPanel.Children.Add(SelectionGrid);
-
             Preferences.PreferencesChanged += () =>
             {
                 if (App.IsValidGameDirectory(Preferences.GameDirectory))
@@ -204,26 +173,6 @@ namespace TModel.Modules
 
     public class FileManagerItem : ContentControl
     {
-        CheckBox checkBox = new CheckBox()
-        {
-            IsEnabled = false,
-            LayoutTransform = new ScaleTransform(1.3, 1.3),
-            Margin = new Thickness(0),
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-
-        public bool IsSelected => checkBox.IsChecked == false ? false : true;
-
-        public void Select()
-        {
-            checkBox.IsChecked = true;
-        }
-
-        public void Deselect()
-        {
-            checkBox.IsChecked = false;
-        }
 
         // Needs name (and file size probs)
         public FileManagerItem(IAesVfsReader reader, bool tryload = false)
@@ -246,15 +195,6 @@ namespace TModel.Modules
             MouseLeave += (sender, args) =>
             {
                 RootBorder.Background = BackgroundBrush;
-            };
-
-            MouseLeftButtonDown += (sender, args) =>
-            {
-                RootBorder.Background = HexBrush("#1300d9");
-                if (IsSelected)
-                    Deselect();
-                else
-                    Select();
             };
 
             MouseLeftButtonUp += (sender, args) =>
@@ -290,7 +230,6 @@ namespace TModel.Modules
             MainPanel.Children.Add(FileNameText);
 
             DetailsPanel.Children.Add(FilesCountText);
-            DetailsPanel.Children.Add(checkBox);
 
 
             MainPanel.Children.Add(DetailsPanel);

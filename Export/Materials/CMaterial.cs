@@ -36,9 +36,20 @@ namespace TModel.Export.Materials
 
             Writer.Write(Name);
 
-            Diffuse.Save(out string diffusePath);
-            Writer.Write(diffusePath);
+            WriteTexture(Diffuse);
+
+            void WriteTexture(TextureRef texture)
+            {
+                Writer.Write((bool)(texture != null));
+                if (texture != null)
+                {
+                    Diffuse.Save(out string TexturePath);
+                    Writer.Write(TexturePath);
+                }
+            }
         }
+
+
 
         public static CMaterial CreateReader(UMaterialInstanceConstant material)
         {

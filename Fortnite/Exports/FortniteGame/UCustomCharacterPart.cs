@@ -2,9 +2,11 @@ using CUE4Parse.FN.Enums.FortniteGame;
 using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
 using CUE4Parse.FN.Structs.FortniteGame;
 using CUE4Parse.UE4.Assets.Exports;
+using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Export;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
@@ -86,6 +88,13 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             bUseIdleFXNativeCustomAttachmentParams = GetOrDefault<bool>(nameof(bUseIdleFXNativeCustomAttachmentParams));
             IdleFXNativeCustomAttachmentParams = GetOrDefault<FCharacterPartAttachmentParams>(nameof(IdleFXNativeCustomAttachmentParams));
             bAutoActivate = GetOrDefault<bool>(nameof(bAutoActivate));
+        }
+
+        public ModelRef GetModelRef()
+        {
+            ModelRef modelRef = new ModelRef(SkeletalMesh.Load<USkeletalMesh>());
+
+            return modelRef;
         }
     }
 }
