@@ -1,11 +1,10 @@
 ﻿using CUE4Parse.FN.Exports.FortniteGame;
 using CUE4Parse.UE4.Assets;
-using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
 using TModel.Modules;
 
-namespace TModel.Exporters
+namespace TModel.Export.Exporters
 {
     public class CharacterExporter : ExporterBase
     {

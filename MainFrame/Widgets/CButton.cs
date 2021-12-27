@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using static TModel.ColorConverters;
@@ -49,6 +50,7 @@ namespace TModel.MainFrame.Widgets
 
         public CButton(string text, double size = 20, Action clickEvent = null) : this()
         {
+            Padding = new Thickness(5);
             if (clickEvent != null)
                 Click += clickEvent;
             Child = new CoreTextBlock(text, size)

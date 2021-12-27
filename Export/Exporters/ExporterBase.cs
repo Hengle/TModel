@@ -1,13 +1,9 @@
 ﻿using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TModel.Modules;
 
-namespace TModel.Exporters
+namespace TModel.Export.Exporters
 {
     // Base class for exporting Fortnite cosmetics, playsets and props.
     public abstract class ExporterBase
@@ -25,5 +21,14 @@ namespace TModel.Exporters
         public abstract ItemTileInfo GetTileInfo(IPackage package);
 
         public abstract ExportPreviewInfo GetExportPreviewInfo(IPackage package);
+
+        public virtual BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        {
+            // Should never be called.
+#if DEBUG
+            App.LogMessage("GetBlenderExportInfo() called on ExporterBase", MessageLevel.Error);
+#endif
+            return null;
+        }
     }
 }

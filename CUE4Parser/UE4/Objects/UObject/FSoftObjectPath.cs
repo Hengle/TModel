@@ -67,7 +67,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Load<T>() where T : UExport =>
-            Load<T>(App.FileProvider ?? throw new ParserException("Package was loaded without a IFileProvider"));
+            Load<T>(App.FileProvider);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryLoad<T>(out T export) where T : UExport

@@ -1,17 +1,15 @@
-﻿using CUE4Parse.FileProvider;
-using CUE4Parse.UE4.Assets;
+﻿using CUE4Parse.UE4.Assets;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using TModel.Exporters;
-using TModel.MainFrame.Modules;
+using TModel.Export;
+using TModel.Export.Exporters;
 using TModel.MainFrame.Widgets;
 using static TModel.ColorConverters;
 
@@ -362,13 +360,24 @@ namespace TModel.Modules
         public IPackage Package { set; get; }
         public string Name { set; get; } = "";
         public string FullPath { set; get; } = "";
-        public TextureRef? PreviewIcon { set; get; } = TextureRef.Empty;
+        public TextureRef? PreviewIcon { set; get; } = null;
     }
 
     // Holds information to be displayed in ItemPreviewModule
     public class ExportPreviewInfo
     {
         public string Name { set; get; } = "";
-        public TextureRef? PreviewIcon { set; get; } = TextureRef.Empty;
+        public TextureRef? PreviewIcon { set; get; } = null;
+
+        public ExportPreviewInfo()
+        {
+
+        }
+
+        public ExportPreviewInfo(ItemTileInfo info)
+        {
+            Name = info.Name;
+            PreviewIcon = info.PreviewIcon;
+        }
     }
 }

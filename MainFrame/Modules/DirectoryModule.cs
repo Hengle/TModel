@@ -40,11 +40,11 @@ namespace TModel.Modules
         // The path currently being shown.
         string CurrentPath = "FortniteGame/Content";
 
-        // Left side. usaully smaller than asset panel
+        // Left side (Folder Panel). usaully smaller than asset panel
         ScrollViewer FolderScrollViewer = new ScrollViewer();
         StackPanel FoldersPanel = new StackPanel();
 
-        // Right side.
+        // Right side (Asset Panel).
         ScrollViewer AssetScrollViewer = new ScrollViewer();
         StackPanel AssetsPanel = new StackPanel();
 
@@ -95,8 +95,6 @@ namespace TModel.Modules
 
             ItemsGrid.Children.Add(AssetScrollViewer);
             ItemsGrid.Children.Add(FolderScrollViewer);
-
-
 
             StackPanel ButtonPanel = new StackPanel();
             Grid.SetRow(ButtonPanel, 2);

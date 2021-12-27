@@ -11,6 +11,7 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
+using TModel.Export;
 using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame

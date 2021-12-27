@@ -3,6 +3,7 @@ using CUE4Parse.UE4.Objects.Core.Math;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
+    // NOT associated with CMaterial
     public class CMaterialParams
     {
         // textures

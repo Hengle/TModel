@@ -87,7 +87,7 @@ namespace TModel
                 Type GivenType = Modules[i].GetType();
                 if (SearchType == GivenType)
                 {
-                    TabBar.SelectedIndex = i;
+                    TabBar.SelectedIndex = i - 1;
                     return true;
                 }
             }

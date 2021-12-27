@@ -1,6 +1,7 @@
 ﻿using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
+using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.Vfs;
 using CUE4Parse.Utils;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using TModel.MainFrame.Modules;
 using TModel.MainFrame.Widgets;
 using TModel.Sorters;
 using static TModel.ColorConverters;
@@ -60,17 +62,32 @@ namespace TModel.Modules
                 Log.Information("Loading files");
                 Task.Run(() => 
                     {
-                        LoadGame(); 
+                        if (App.IsValidGameDirectory(Preferences.GameDirectory))
+                        {
+                            if (App.FileProvider == null)
+                            {
+                                App.FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
+                                App.FileProvider.Initialize();
+                            }
+                            LoadGame();
+                        }
+                        else
+                        {
+                            App.LogMessage(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)", MessageLevel.Error);
+                        }
                     }
                 ).GetAwaiter().OnCompleted(() =>
                 {
-                    List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
-                    AllVFS.AddRange(App.FileProvider.MountedVfs);
-                    AllVFS.AddRange(App.FileProvider.UnloadedVFS.Keys);
-                    AllVFS.Sort(new NameSort());
-                    FilesPanel.Children.Clear();
-                    LoadFiles(AllVFS, true);
-                    FilesLoaded();
+                    if (App.FileProvider != null)
+                    {
+                        List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
+                        AllVFS.AddRange(App.FileProvider.MountedVfs);
+                        AllVFS.AddRange(App.FileProvider.UnloadedVFS.Keys);
+                        AllVFS.Sort(new NameSort());
+                        FilesPanel.Children.Clear();
+                        LoadFiles(AllVFS, true);
+                        FilesLoaded();
+                    }
                 });
             };
 
@@ -110,8 +127,23 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(SelectionGrid);
 
+            Preferences.PreferencesChanged += () =>
+            {
+                if (App.IsValidGameDirectory(Preferences.GameDirectory))
+                {
+                    if (App.FileProvider == null)
+                    {
+                        App.FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
+                        App.FileProvider.Initialize();
+                    }
+                    LoadGame();
+                    LoadFiles(App.FileProvider.UnloadedVFS.Keys);
+                }
+            };
+
             // App.FileProvider.UnloadedVfs.Sort(new NameSort()); 
-            LoadFiles(App.FileProvider.UnloadedVFS.Keys);
+            if (App.FileProvider != null)
+                LoadFiles(App.FileProvider.UnloadedVFS.Keys);
         }
 
         public static void LoadGame()

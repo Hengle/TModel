@@ -18,19 +18,14 @@ namespace CUE4Parse_Conversion.Meshes
             Materials = materials;
         }
 
-        public override bool TryWriteToDir(DirectoryInfo baseDirectory, out string savedFileName)
+        public override bool TryWriteToDir(DirectoryInfo baseDirectory, out string savedFilePath)
         {
-            savedFileName = string.Empty;
+            savedFilePath = string.Empty;
             if (!baseDirectory.Exists || FileData.Length <= 0) return false;
 
-            foreach (var material in Materials)
-            {
-                material.TryWriteToDir(baseDirectory, out _);
-            }
-
-            var filePath = FixAndCreatePath(baseDirectory, FileName);
+            var filePath = Path.Combine(baseDirectory.FullName, Path.GetFileName(FileName));
             File.WriteAllBytes(filePath, FileData);
-            savedFileName = Path.GetFileName(filePath);
+            savedFilePath = filePath;
             return File.Exists(filePath);
         }
 

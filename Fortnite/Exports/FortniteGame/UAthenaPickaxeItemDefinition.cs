@@ -28,11 +28,10 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             return null;
         }
 
-        public override void Deserialize(FAssetArchive Ar, long validPos)
+        public override void DeepDeserialize()
         {
-            base.Deserialize(Ar, validPos);
+            base.DeepDeserialize();
 
-            WeaponDefinition = GetOrDefault<UFortWeaponMeleeItemDefinition>(nameof(WeaponDefinition));
             MainMeshAttachmentSocketName = GetOrDefault<FName>(nameof(MainMeshAttachmentSocketName));
             OffhandMeshAttachmentSocketName = GetOrDefault<FName>(nameof(OffhandMeshAttachmentSocketName));
             MainMeshRelativeTransform = GetOrDefault<FTransform>(nameof(MainMeshRelativeTransform));
@@ -44,6 +43,13 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             PreviewSwingMontage = GetOrDefault<FSoftObjectPath>(nameof(PreviewSwingMontage));
             CameraFramingBounds = GetOrDefault<FFortUICameraFrameTargetBounds>(nameof(CameraFramingBounds));
             CameraFramingBoundsCenterOffset = GetOrDefault<FVector>(nameof(CameraFramingBoundsCenterOffset));
+        }
+
+        public override void Deserialize(FAssetArchive Ar, long validPos)
+        {
+            base.Deserialize(Ar, validPos);
+
+            WeaponDefinition = GetOrDefault<UFortWeaponMeleeItemDefinition>(nameof(WeaponDefinition));
         }
     }
 }

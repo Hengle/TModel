@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CUE4Parse.UE4.Assets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using TModel.Export;
 using TModel.MainFrame.Widgets;
 using static TModel.ColorConverters;
 
@@ -15,6 +17,8 @@ namespace TModel.Modules
     class ItemPreviewModule : ModuleBase
     {
         public override string ModuleName => "Item Preview";
+
+        IPackage? Package = null;
 
         public ItemPreviewModule()
         {
@@ -26,16 +30,24 @@ namespace TModel.Modules
         {
             Grid Root = new Grid() { Background = HexBrush("#17162e") };
             Root.RowDefinitions.Add(new RowDefinition() { });
-            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
+            Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
             Grid ItemDisplay = new Grid();
             Root.Children.Add(ItemDisplay);
-            WrapPanel ButtonPanel = new WrapPanel();
-            ButtonPanel.Children.Add(new CButton("Export", 30));
+            WrapPanel ButtonPanel = new WrapPanel()
+            {
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            ButtonPanel.Children.Add(new CButton("Export", 40, () => 
+            {
+                if (Package != null)
+                    GameContentModule.CurrentExporter.GetBlenderExportInfo(Package).Save();
+            }));
             Grid.SetRow(ButtonPanel, 1);
             Root.Children.Add(ButtonPanel);
             GameContentModule.SelectionChanged += (ItemTileInfo Item) =>
             {
+                this.Package = Item.Package;
                 ItemDisplay.Children.Clear();
                 ExportPreviewInfo Preview = GameContentModule.CurrentExporter.GetExportPreviewInfo(Item.Package);
 

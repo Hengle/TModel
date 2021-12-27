@@ -43,7 +43,7 @@ namespace CUE4Parse_Conversion.Meshes
             MeshLods.Add(new Mesh($"{MeshName}.psk", Ar.GetBuffer(), new List<MaterialExporter>()));
         }
 
-        public MeshExporter(UStaticMesh originalMesh, ELodFormat lodFormat = ELodFormat.FirstLod, bool exportMaterials = true, EMeshFormat meshFormat = EMeshFormat.ActorX)
+        public MeshExporter(UStaticMesh originalMesh, ELodFormat lodFormat = ELodFormat.FirstLod, bool exportMaterials = false, EMeshFormat meshFormat = EMeshFormat.ActorX)
         {
             MeshLods = new List<Mesh>();
             MeshName = originalMesh.Owner?.Name ?? originalMesh.Name;
@@ -90,7 +90,7 @@ namespace CUE4Parse_Conversion.Meshes
             }
         }
 
-        public MeshExporter(USkeletalMesh originalMesh, ELodFormat lodFormat = ELodFormat.FirstLod, bool exportMaterials = true, EMeshFormat meshFormat = EMeshFormat.ActorX)
+        public MeshExporter(USkeletalMesh originalMesh, ELodFormat lodFormat = ELodFormat.FirstLod, bool exportMaterials = false, EMeshFormat meshFormat = EMeshFormat.ActorX)
         {
             MeshLods = new List<Mesh>();
             MeshName = originalMesh.Owner?.Name ?? originalMesh.Name;
@@ -410,9 +410,6 @@ namespace CUE4Parse_Conversion.Meshes
             }
         }
 
-        /// <param name="baseDirectory"></param>
-        /// <param name="savedFileName"></param>
-        /// <returns>true if *ALL* lods were successfully exported</returns>
         public override bool TryWriteToDir(DirectoryInfo baseDirectory, out string savedFileName)
         {
             var b = false;
@@ -425,8 +422,6 @@ namespace CUE4Parse_Conversion.Meshes
                 b |= MeshLods[i].TryWriteToDir(baseDirectory, out savedFileName);
                 outText += $"{i} ";
             }
-
-            savedFileName = outText + $"as '{savedFileName.SubstringAfterWithLast('.')}' for '{MeshName.SubstringAfterLast('/')}'";
             return b;
         }
 

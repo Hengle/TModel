@@ -4,7 +4,7 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
 using TModel.Modules;
 
-namespace TModel.Exporters
+namespace TModel.Export.Exporters
 {
     public class GliderExporter : ExporterBase
     {

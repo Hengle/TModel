@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TModel.Modules;
 
-namespace TModel.Exporters
+namespace TModel.Export.Exporters
 {
     public class WeaponExporter : ExporterBase
     {

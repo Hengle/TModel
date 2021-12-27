@@ -11,6 +11,17 @@ namespace TModel
         public static FontFamily CoreFont = new FontFamily("Segoe UI");
     }
 
+    public class CoreTextBox : TextBox
+    {
+        public CoreTextBox()
+        {
+            Foreground = Brushes.White;
+            Background = HexBrush("#0f1243");
+            FontSize = 15;
+            VerticalContentAlignment = VerticalAlignment.Center;
+        }
+    }
+
     public class CoreTextBlock : TextBlock
     {
         public CoreTextBlock(string text, double size = 15, Thickness? margin = null)

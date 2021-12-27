@@ -1,33 +1,53 @@
-﻿using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows;
+using System.Windows.Documents;
+using static TModel.ColorConverters;
 
 namespace TModel.MainFrame.Modules
 {
     public class LoggerModule : ModuleBase
     {
-        public static Action<string> Write;
+        // DON'T use this, use App.LogMessage(string) 
+        public static Action<string, MessageLevel> Message;
+
+        public static List<string> MessageLog;
 
         public override string ModuleName => "Logger";
 
-
         ScrollViewer scrollViewer = new ScrollViewer();
-        CoreTextBlock textBlock = new CoreTextBlock() { Background = Brushes.Black };
+        CoreTextBlock textBlock = new CoreTextBlock("", 14) 
+        { 
+            VerticalAlignment = VerticalAlignment.Bottom,
+            TextWrapping = TextWrapping.Wrap,
+        };
 
         public override void StartupModule()
         {
-            Background = Brushes.Black;
+            Background = HexBrush("#092041");
             scrollViewer.Content = textBlock;
             Content = scrollViewer;
-            
-            Write += (message) => App.Refresh(() => { textBlock.Text += message + "\n"; scrollViewer.ScrollToVerticalOffset(1); } );
+
+            Message += (message, level) => App.Refresh(() => 
+            {
+                Brush FinalColor = Brushes.White;
+                if (level == MessageLevel.Error)
+                {
+                    FinalColor = HexBrush("#ff5e5e");
+                    App.ShowModule<LoggerModule>();
+                }
+
+                textBlock.Inlines.Add(new Run("\n" + message) { Foreground = FinalColor });
+                scrollViewer.ScrollToEnd(); 
+            });
         }
     }
+}
+
+public enum MessageLevel
+{
+    Info,
+    Error
 }

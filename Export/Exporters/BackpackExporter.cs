@@ -2,6 +2,8 @@
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Export;
+using TModel.Export.Exporters;
 using TModel.Modules;
 
 namespace TModel.Exporters

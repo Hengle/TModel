@@ -11,6 +11,7 @@ using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Export;
 using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
@@ -67,10 +68,10 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             return new ItemTileInfo() { PreviewIcon = new TextureRef(SmallImage) };
         }
 
-        public override void Deserialize(FAssetArchive Ar, long validPos)
+        public override void DeepDeserialize()
         {
-            base.Deserialize(Ar, validPos);
-#if false
+            base.DeepDeserialize();
+
             bIsShuffleTile = GetOrDefault<bool>(nameof(bIsShuffleTile));
             bIsOwnedByCampaignHero = GetOrDefault<bool>(nameof(bIsOwnedByCampaignHero));
             bHasMoreThanOneCharacterPartVariant = GetOrDefault<bool>(nameof(bHasMoreThanOneCharacterPartVariant));
@@ -127,7 +128,11 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             ExclusiveDescription = GetOrDefault<FText>(nameof(ExclusiveDescription));
             ExclusiveIcon = GetOrDefault<FSoftObjectPath>(nameof(ExclusiveIcon));
             ItemSearchTags = GetOrDefault<FText[]>(nameof(ItemSearchTags));
-#endif
+        }
+
+        public override void Deserialize(FAssetArchive Ar, long validPos)
+        {
+            base.Deserialize(Ar, validPos);
         }
     }
 }
