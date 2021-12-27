@@ -1,4 +1,5 @@
 ﻿using CUE4Parse.FileProvider;
+using CUE4Parse.FN.Exports.FortniteGame;
 using CUE4Parse.UE4.Assets;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace TModel
         public static BackpackExporter backpackExporter { get; } = new BackpackExporter();
         public static GliderExporter gliderExporter { get; } = new GliderExporter();
         public static PickaxeExporter pickaxeExporter { get; } = new PickaxeExporter();
+        public static WeaponExporter weaponExporter { get; } = new WeaponExporter();
 
         public static Dictionary<EItemFilterType, ExporterBase> Exporters { get; } = new()
         {
@@ -21,6 +23,7 @@ namespace TModel
             [EItemFilterType.Backpack] = backpackExporter,
             [EItemFilterType.Glider] = gliderExporter,
             [EItemFilterType.Pickaxe] = pickaxeExporter,
+            [EItemFilterType.Weapon] = weaponExporter,
         };
 
         // Gets all paths that could be a possible valid export for the given type
@@ -30,31 +33,26 @@ namespace TModel
             if (Exporters.TryGetValue(type, out ExporterBase Exporter))
             {
                 foreach (var path in App.FileProvider.Files)
-                {
                     if (Exporter.SearchTerm.CheckName(path.Key))
-                    {
                         Result.Add(path.Value);
-                    }
-                }
             }
             else
                 throw new Exception($"Unsupported type: {type}");
             return Result;
         }
 
-        public static bool TryLoadItemPreview(EItemFilterType type, GameFile gameFile, out ItemPreviewInfo itemPreviewInfo)
+        public static bool TryLoadItemPreviewInfo(EItemFilterType type, GameFile gameFile, out ItemTileInfo itemPreviewInfo)
         {
             itemPreviewInfo = null;
             if (App.FileProvider.TryLoadPackage(gameFile, out IPackage package))
-            {
                 if (Exporters.TryGetValue(type, out ExporterBase Exporter))
-                {
-                    itemPreviewInfo = Exporter.GetPreviewInfo(package);
-                    return itemPreviewInfo != null;
-                }
-            };
-
-            return false;
+                    if (package.Base is UFortItemDefinition FortItem)
+                    {
+                        itemPreviewInfo = Exporter.GetTileInfo(package);
+                        if (itemPreviewInfo != null)
+                            itemPreviewInfo.Package = package;
+                    }
+            return itemPreviewInfo != null;
         }
     }
 
@@ -63,6 +61,7 @@ namespace TModel
         Character,
         Backpack,
         Glider,
-        Pickaxe
+        Pickaxe,
+        Weapon
     }
 }

@@ -13,10 +13,11 @@ namespace TModel
 
     public class CoreTextBlock : TextBlock
     {
-        public CoreTextBlock(string text, double size = 15)
+        public CoreTextBlock(string text, double size = 15, Thickness? margin = null)
         {
             Text = text;
-            Style = new DefaultText(15);
+            Margin = margin ?? new Thickness(0);
+            Style = new DefaultText(size);
         }
     }
 

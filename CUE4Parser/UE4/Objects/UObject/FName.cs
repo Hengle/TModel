@@ -82,6 +82,8 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         public int CompareTo(FName other) => string.Compare(Text, other.Text, StringComparison.OrdinalIgnoreCase);
 
+        public static implicit operator string(FName fName) => fName.Text;
+
         public override string ToString() => Text;
     }
 

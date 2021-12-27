@@ -8,13 +8,12 @@ using System.Windows;
 
 namespace TModel
 {
-    /// <summary>
-    /// Interface for a module
-    /// </summary>
     public abstract class ModuleBase : ContentControl
     {
         public abstract string ModuleName { get; }
 
+        // Consider transforming this to just running on the constructor.
+        // There's no reason have it in a separate function.
         public abstract void StartupModule();
     }
 }

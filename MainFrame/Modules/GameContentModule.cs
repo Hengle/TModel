@@ -1,4 +1,5 @@
 ﻿using CUE4Parse.FileProvider;
+using CUE4Parse.UE4.Assets;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -23,9 +24,9 @@ namespace TModel.Modules
         // The number of items that can be shown on a page.
         // It limits the number of items that 
         // be shown at once to increase peformance.
-        private static readonly int PageSize = 300;
+        private static readonly int PageSize = 100;
 
-        public static Action<GameContentItem> SelectionChanged;
+        public static Action<ItemTileInfo> SelectionChanged;
 
         public static GameContentItem? SelectedItem { get; private set; }
 
@@ -48,12 +49,13 @@ namespace TModel.Modules
         CButton LeftButton = new CButton("Previous Page") { Width = 150 };
         CButton RightButton = new CButton("Next Page") { Width = 150 };
 
+        Dictionary<int, GameContentItem> LoadedContentItems = new Dictionary<int, GameContentItem>();
 
         public static readonly double MinItemSize = 50;
 
         CancellationTokenSource cTokenSource = new CancellationTokenSource();
 
-        ExporterBase CurrentExporter = FortUtils.characterExporter;
+        public static ExporterBase CurrentExporter = FortUtils.characterExporter;
 
         public GameContentModule() : base()
         {
@@ -64,8 +66,19 @@ namespace TModel.Modules
         {
             Grid Root = new Grid() { Background = HexBrush("#1a1b21") };
             Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Auto) }); // Buttons panel
-            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) }); // Filter options
+            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Auto) }); // Filter options
             Root.RowDefinitions.Add(new RowDefinition()); // Items Panel
+
+            CoreTextBlock LoadFilesWarningText = new CoreTextBlock("Load files in File Manager to use this window", 50)
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap,
+                TextAlignment = TextAlignment.Center,
+            };
+            Grid.SetRow(LoadFilesWarningText, 2);
+
+            FileManagerModule.FilesLoaded += () => LoadFilesWarningText.Visibility = Visibility.Collapsed;
 
             WrapPanel FilterOptions = new WrapPanel();
 
@@ -74,6 +87,7 @@ namespace TModel.Modules
             ItemPanelScroller.Content = ItemPanel;
             Grid.SetRow(ItemPanelScroller, 2);
             Root.Children.Add(ItemPanelScroller);
+            Root.Children.Add(LoadFilesWarningText);
 
             WrapPanel ButtonPanel = new WrapPanel() { Orientation = Orientation.Horizontal};
 
@@ -108,7 +122,8 @@ namespace TModel.Modules
                         EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
                         Filter = FilterType;
                         CurrentExporter = FortUtils.Exporters[FilterType];
-                        PageNum = 0;
+                        PageNum = 1;
+                        LoadedContentItems.Clear();
                         LoadFilterType();
                         UpdatePageCount();
                     });
@@ -206,7 +221,7 @@ namespace TModel.Modules
                         if (i > CurrentExporter.GameFiles.Count)
                             break;
                         cTokenSource.Token.ThrowIfCancellationRequested();
-                        if (FortUtils.TryLoadItemPreview(Filter, CurrentExporter.GameFiles[i], out ItemPreviewInfo itemPreviewInfo))
+                        if (FortUtils.TryLoadItemPreviewInfo(Filter, CurrentExporter.GameFiles[i], out ItemTileInfo itemPreviewInfo))
                         {
                             CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
                             App.Refresh(() =>
@@ -236,14 +251,17 @@ namespace TModel.Modules
 
         void LoadPage()
         {
-            ItemPreviewInfo[] Previews = CurrentExporter.LoadedPreviews.ToArray();
+            ItemTileInfo[] Previews = CurrentExporter.LoadedPreviews.ToArray();
             ItemPanel.Children.Clear();
 
             int FinalSize = (PageSize * PageNum) > Previews.Length ? Previews.Length : (PageSize * PageNum);
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
-                ItemPanel.Children.Add(new GameContentItem(Previews[i]));
+                if (LoadedContentItems.TryGetValue(i, out GameContentItem LoadedItem))
+                    ItemPanel.Children.Add(LoadedItem);
+                else
+                    ItemPanel.Children.Add(LoadedContentItems[i] = new GameContentItem(Previews[i]));
             }
         }
 
@@ -251,7 +269,7 @@ namespace TModel.Modules
         {
             public static double ShownSize { set; get; } = 80;
 
-            public ItemPreviewInfo Info { get; private set; }
+            public ItemTileInfo Info { get; private set; }
 
             private static Brush CBorder = HexBrush("#485abb");
             private static Brush CBackground = HexBrush("#002661");
@@ -265,7 +283,7 @@ namespace TModel.Modules
             {
                 BorderBrush = CBorder,
                 Background = CBackground,
-                BorderThickness = new Thickness(3),
+                BorderThickness = new Thickness(ShownSize / 30),
             };
 
             public void UpdateSize()
@@ -279,7 +297,7 @@ namespace TModel.Modules
                 }
                 else
                 {
-                    BackBorder.BorderThickness = new Thickness(ShownSize / 24);
+                    BackBorder.BorderThickness = new Thickness(ShownSize / 30);
                     Margin = new Thickness(ShownSize / 20);
                 }
 
@@ -295,7 +313,7 @@ namespace TModel.Modules
 
                 MouseLeftButtonDown += (sender, args) => Select();
 
-                Margin = new Thickness(4);
+                Margin = new Thickness(ShownSize / 20);
                 Root.Children.Add(BackBorder);
                 Content = Root;
             }
@@ -306,7 +324,7 @@ namespace TModel.Modules
                     Item.Deselect();
                 SelectedItem = this;
                 if (SelectionChanged is not null)
-                    SelectionChanged(this);
+                    SelectionChanged(Info);
                 BackBorder.BorderBrush = Selected;
             }
 
@@ -315,7 +333,7 @@ namespace TModel.Modules
                 BackBorder.BorderBrush = CBorder;
             }
 
-            public GameContentItem(ItemPreviewInfo info) : this()
+            public GameContentItem(ItemTileInfo info) : this()
             {
                 Info = info;
 
@@ -330,17 +348,19 @@ namespace TModel.Modules
         }
     }
 
-    // Base class for all item info to be displayed onto GameContent module.
-    public class ItemPreviewInfo
+    // Holds information for a single item to be displayed in GameContentModule.
+    public class ItemTileInfo
     {
+        public IPackage Package { set; get; }
         public string Name { set; get; } = "";
         public string FullPath { set; get; } = "";
         public TextureRef? PreviewIcon { set; get; } = TextureRef.Empty;
     }
 
-    // Fortnite cosmetics
-    public class ItemPreviewCosmeticInfo : ItemPreviewInfo
+    // Holds information to be displayed in ItemPreviewModule
+    public class ExportPreviewInfo
     {
-
+        public string Name { set; get; } = "";
+        public TextureRef? PreviewIcon { set; get; } = TextureRef.Empty;
     }
 }

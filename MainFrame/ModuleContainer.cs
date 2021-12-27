@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using TModel.Modules;
 using TModel.MainFrame.Modules;
+using static TModel.ColorConverters;
 
 namespace TModel
 {
@@ -17,7 +18,13 @@ namespace TModel
     /// </summary>
     public sealed class ModuleContainer : ContentControl
     {
-        private TabControl TabBar = new TabControl();
+        private TabControl TabBar = new TabControl() 
+        {
+            Background = Brushes.Black,
+            Margin = new Thickness(0),
+            Padding = new Thickness(5),
+            BorderThickness = new Thickness(0),
+        };
 
         private Grid OverlayPanel = new Grid();
 
@@ -50,7 +57,19 @@ namespace TModel
         {
             module.StartupModule();
             Modules.Add(module);
-            TabBar.Items.Add(new TabItem() { Header = new TextBlock() { FontSize = 18, FontFamily = new FontFamily("Microsoft Sans Serif"), Foreground = Brushes.Black, Text = module.ModuleName },  Content = module  } );
+            TabBar.Items.Add(new TabItem() 
+            { 
+                Header = new TextBlock() 
+                { 
+                    FontSize = 18, 
+                    FontFamily = new FontFamily("Microsoft Sans Serif"), 
+                    Foreground = Brushes.Black, 
+                    Text = module.ModuleName 
+                },
+                Content = module,
+                Padding = new Thickness(4),
+                Margin = new Thickness(0),
+            });
         }
 
 

@@ -42,7 +42,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             IdleEffect = GetOrDefault<FSoftObjectPath>(nameof(IdleEffect));
             IdleEffectNiagara = GetOrDefault<FSoftObjectPath>(nameof(IdleEffectNiagara));
             IdleFXSocketName = GetOrDefault<FName>(nameof(IdleFXSocketName));
@@ -119,6 +119,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             bNeedsMaterial0MID = GetOrDefault<bool>(nameof(bNeedsMaterial0MID));
             bWatchKills = GetOrDefault<bool>(nameof(bWatchKills));
             bCandyCaneKillReaction = GetOrDefault<bool>(nameof(bCandyCaneKillReaction));
+#endif
         }
     }
 }

@@ -18,7 +18,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             LevelToXpHandle = GetOrDefault<FCurveTableRowHandle>(nameof(LevelToXpHandle));
             LevelToSacrificeXpHandle = GetOrDefault<FCurveTableRowHandle>(nameof(LevelToSacrificeXpHandle));
             SacrificeRecipe = GetOrDefault<FDataTableRowHandle>(nameof(SacrificeRecipe));
@@ -28,6 +28,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             MinLevel = GetOrDefault<int>(nameof(MinLevel));
             MaxLevel = GetOrDefault<int>(nameof(MaxLevel));
             GrantToProfileType = GetOrDefault<string>(nameof(GrantToProfileType));
+#endif
         }
     }
 }

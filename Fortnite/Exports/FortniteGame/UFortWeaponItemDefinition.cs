@@ -70,11 +70,12 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
-            WeaponActorClass = GetOrDefault<FSoftObjectPath>(nameof(WeaponActorClass));
-            WeaponMeshOverride = GetOrDefault<FSoftObjectPath>(nameof(WeaponMeshOverride));
-            IntrinsicOverrideWrap = GetOrDefault<FSoftObjectPath>(nameof(IntrinsicOverrideWrap));
-            WeaponStatHandle = GetOrDefault<FDataTableRowHandle>(nameof(WeaponStatHandle));
+#if false
+            WeaponActorClass =          GetOrDefault<FSoftObjectPath>(nameof(WeaponActorClass));
+            WeaponMeshOverride =        GetOrDefault<FSoftObjectPath>(nameof(WeaponMeshOverride));
+            IntrinsicOverrideWrap =     GetOrDefault<FSoftObjectPath>(nameof(IntrinsicOverrideWrap));
+            WeaponStatHandle =          GetOrDefault<FDataTableRowHandle>(nameof(WeaponStatHandle));
+#endif
         }
     }
 }

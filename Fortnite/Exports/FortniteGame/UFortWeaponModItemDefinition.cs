@@ -12,9 +12,10 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             AdditionalGameplayTags = GetOrDefault<FFortConditionalIncludeTags[]>(nameof(AdditionalGameplayTags));
             AbilitySet = GetOrDefault<FSoftObjectPath>(nameof(AbilitySet));
+#endif
         }
     }
 }

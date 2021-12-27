@@ -21,7 +21,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public FFortUICameraFrameTargetBounds? CameraFramingBounds;
         public FVector CameraFramingBoundsCenterOffset;
 
-        public override ItemPreviewInfo? GetPreviewInfo()
+        public override ItemTileInfo? GetPreviewInfo()
         {
             if (WeaponDefinition != null)
                 return WeaponDefinition.GetPreviewInfo();

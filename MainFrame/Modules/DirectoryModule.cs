@@ -73,7 +73,7 @@ namespace TModel.Modules
                 }
             };
 
-            FileManagerModule.ContextChanged += RefreshStuff;
+            FileManagerModule.FilesLoaded += RefreshStuff;
 
             void RefreshStuff() => LoadPath(CurrentPath);
 
@@ -307,7 +307,11 @@ namespace TModel.Modules
                 IEnumerable<UObject>? Exports = null;
                 Task.Run(() => Exports = App.FileProvider.LoadObjectExports(FullPath))
                 .GetAwaiter()
-                .OnCompleted(() => SelectedItemChanged(Exports));
+                .OnCompleted(() => 
+                {
+                    if (SelectedItemChanged != null)
+                        SelectedItemChanged(Exports);
+                });
             }
         }
     }

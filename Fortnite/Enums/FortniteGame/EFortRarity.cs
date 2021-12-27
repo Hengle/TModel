@@ -10,9 +10,6 @@ namespace CUE4Parse.FN.Enums.FortniteGame
 {
     public enum EFortRarity : byte
     {
-        [Description("Uncommon")]
-        Uncommon = 1, // Default
-
         [Description("Unattainable")]
         Impossible = 7,
         [Description("Unattainable")]
@@ -42,6 +39,9 @@ namespace CUE4Parse.FN.Enums.FortniteGame
         Sturdy = 2,
         [Description("Rare")]
         Rare = 2,
+
+        [Description("Uncommon")]
+        Uncommon = 1,
 
         [Description("Common")]
         Handmade = 0,

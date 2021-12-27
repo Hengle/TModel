@@ -63,9 +63,12 @@ namespace TModel
             Window.ResizeMode = ResizeMode.CanResize;
             Window.MinWidth = 400;
             Window.MinHeight = 200;
-            Window.Show();
             Window.Background = Brushes.DarkSlateGray;
             app.MainWindow = Window;
+
+            Window.Content = ModulePanel;
+
+            Window.Show();
 
             Module_One.AddModule(new GameContentModule());
             Module_One.AddModule(new LoggerModule());
@@ -77,7 +80,6 @@ namespace TModel
             ModulePanel.AddModule(Module_One);
             ModulePanel.AddModule(Module_Two);
 
-            Window.Content = ModulePanel;
             app.Run();
         }
     }

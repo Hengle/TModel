@@ -21,7 +21,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             ClipIconBrush = GetOrDefault<FSlateBrush>(nameof(ClipIconBrush));
             bIsConsumed = GetOrDefault<FScalableFloat>(nameof(bIsConsumed));
             bTriggersFeedbackLines = GetOrDefault<bool>(nameof(bTriggersFeedbackLines));
@@ -31,6 +31,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             WorldItemClassOverride = GetOrDefault<UClass>(nameof(WorldItemClassOverride));
             ItemOptions = GetOrDefault<UPlaylistUserOptions>(nameof(ItemOptions));
             CreativeTagsHelper = GetOrDefault<FFortCreativeTagsHelper>(nameof(CreativeTagsHelper));
+#endif
         }
     }
 }

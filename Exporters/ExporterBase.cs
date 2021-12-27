@@ -18,10 +18,12 @@ namespace TModel.Exporters
 
         public List<GameFile> GameFiles { set; get; }
 
-        public List<ItemPreviewInfo> LoadedPreviews { get; } = new List<ItemPreviewInfo>();
+        public List<ItemTileInfo> LoadedPreviews { get; } = new List<ItemTileInfo>();
 
         public abstract SearchTerm SearchTerm { get; }
 
-        public abstract ItemPreviewInfo GetPreviewInfo(IPackage package);
+        public abstract ItemTileInfo GetTileInfo(IPackage package);
+
+        public abstract ExportPreviewInfo GetExportPreviewInfo(IPackage package);
     }
 }

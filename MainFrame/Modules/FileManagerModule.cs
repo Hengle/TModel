@@ -26,7 +26,7 @@ namespace TModel.Modules
 
         StackPanel FilesPanel = new StackPanel();
 
-        public static Action ContextChanged;
+        public static Action FilesLoaded;
 
         public FileManagerModule() : base()
         {
@@ -70,7 +70,7 @@ namespace TModel.Modules
                     AllVFS.Sort(new NameSort());
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);
-                    ContextChanged();
+                    FilesLoaded();
                 });
             };
 
@@ -236,18 +236,7 @@ namespace TModel.Modules
                 Text = reader.FileCount.ToString(),
                 TextAlignment = TextAlignment.Right,
                 Width = 60,
-            };
-
-            TextBlock MountPointText = new TextBlock()
-            {
-                Style = new DefaultText(),
-                Text = reader.MountPoint,
-                ToolTip = reader.MountPoint,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                TextAlignment = TextAlignment.Right,
-                TextWrapping = TextWrapping.NoWrap,
-                Width = 300,
+                Margin = new Thickness(0, 0, 40, 0)
             };
 
             Grid MainPanel = new Grid();
@@ -272,7 +261,6 @@ namespace TModel.Modules
             Grid.SetColumn(DetailsPanel, 1);
             MainPanel.Children.Add(FileNameText);
 
-            DetailsPanel.Children.Add(MountPointText);
             DetailsPanel.Children.Add(FilesCountText);
             DetailsPanel.Children.Add(checkBox);
 

@@ -59,18 +59,18 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public FSoftObjectPath ExclusiveIcon; // UTexture2D
         public FText[]? ItemSearchTags;
 
-        public override ItemPreviewInfo? GetPreviewInfo()
+        public override ItemTileInfo? GetPreviewInfo()
         {
             UTexture2D SmallImage = null;
-            if (SmallPreviewImage.Value != null)
-                SmallImage = SmallPreviewImage.Value?.Load<UTexture2D>();
-            return new ItemPreviewInfo() { PreviewIcon = new TextureRef(SmallImage) };
+            if (SmallPreviewImage != null)
+                SmallImage = SmallPreviewImage?.Load<UTexture2D>();
+            return new ItemTileInfo() { PreviewIcon = new TextureRef(SmallImage) };
         }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-
+#if false
             bIsShuffleTile = GetOrDefault<bool>(nameof(bIsShuffleTile));
             bIsOwnedByCampaignHero = GetOrDefault<bool>(nameof(bIsOwnedByCampaignHero));
             bHasMoreThanOneCharacterPartVariant = GetOrDefault<bool>(nameof(bHasMoreThanOneCharacterPartVariant));
@@ -127,6 +127,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             ExclusiveDescription = GetOrDefault<FText>(nameof(ExclusiveDescription));
             ExclusiveIcon = GetOrDefault<FSoftObjectPath>(nameof(ExclusiveIcon));
             ItemSearchTags = GetOrDefault<FText[]>(nameof(ItemSearchTags));
+#endif
         }
     }
 }

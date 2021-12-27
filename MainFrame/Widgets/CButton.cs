@@ -47,14 +47,23 @@ namespace TModel.MainFrame.Widgets
             };
         }
 
-        public CButton(string text, double size = 20) : this()
+        public CButton(string text, double size = 20, Action clickEvent = null) : this()
         {
-            Child = new TextBlock() 
-            { 
-                Text = text, Style = new DefaultText(size),
+            if (clickEvent != null)
+                Click += clickEvent;
+            Child = new TextBlock()
+            {
+                Text = text,
+                Style = new DefaultText(size),
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             };
+        }
+
+        public CButton(string text, Action? clickEvent) : this(text)
+        {
+            if (clickEvent != null)
+                Click += clickEvent;
         }
     }
 }

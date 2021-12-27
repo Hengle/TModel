@@ -144,6 +144,8 @@ namespace CUE4Parse.UE4.Objects.Core.i18N
             TextHistory = textHistory;
         }
 
+        public static implicit operator string(FText fText) => fText?.Text ?? string.Empty;
+
         public override string ToString() => Text;
     }
     

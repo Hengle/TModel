@@ -14,30 +14,28 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 {
     public class UAthenaCharacterItemDefinition : UAthenaCosmeticItemDefinition
     {
-        public Lazy<Dictionary<FName, UClass>>          RequestedDataStores = new();
-        public Lazy<FSoftObjectPath[]?>                 BaseCharacterParts;
-        public Lazy<UFortHeroType?>                     HeroDefinition;
-        public Lazy<UAthenaBackpackItemDefinition?>     DefaultBackpack;
-        public Lazy<UAthenaCosmeticItemDefinition[]?>   RequiredCosmeticItems;
-        public Lazy<float>                              PreviewPawnScale;
-        public Lazy<EFortCustomGender>                  Gender;
-        public Lazy<FSoftObjectPath>                    FeedbackBank; // UFortFeedbackBank
-        public Lazy<Dictionary<FGameplayTag, FAthenaCharacterTaggedPartsList>> TaggedPartsOverride = new();
+        public Dictionary<FName, UClass> RequestedDataStores = new();
+        public FSoftObjectPath[]? BaseCharacterParts;
+        public UFortHeroType? HeroDefinition;
+        public UAthenaBackpackItemDefinition? DefaultBackpack;
+        public UAthenaCosmeticItemDefinition[]? RequiredCosmeticItems;
+        public float PreviewPawnScale;
+        public EFortCustomGender Gender;
+        public FSoftObjectPath FeedbackBank; // UFortFeedbackBank
+        public Dictionary<FGameplayTag, FAthenaCharacterTaggedPartsList> TaggedPartsOverride = new();
 
-        public override ItemPreviewInfo? GetPreviewInfo()
+        public override ItemTileInfo? GetPreviewInfo()
         {
-            if (HeroDefinition.Value is null)
+            if (HeroDefinition is null)
                 return null;
-            var SmallImagePath = HeroDefinition.Value.SmallPreviewImage.Value;
-            UTexture2D SmallImage = SmallImagePath?.Load<UTexture2D>() ?? null;
-            TextureRef SmallImageRef = new TextureRef(SmallImage);
-
-            return new ItemPreviewCosmeticInfo() { PreviewIcon = SmallImageRef };
+            return HeroDefinition.GetPreviewInfo();
         }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
+
+            HeroDefinition = GetOrDefault<UFortHeroType>(nameof(HeroDefinition));
 #if false
             var dataStores = GetOrDefault(nameof(RequestedDataStores), new UScriptMap());
             foreach (var (key, value) in dataStores.Properties)
@@ -47,16 +45,14 @@ namespace CUE4Parse.FN.Exports.FortniteGame
                     RequestedDataStores.Add(name, store);
                 }
             }
-#endif
-            BaseCharacterParts =        new Lazy<FSoftObjectPath[]?>(() => GetOrDefault<FSoftObjectPath[]>(nameof(BaseCharacterParts)));
-            HeroDefinition =            new Lazy<UFortHeroType?>(() => GetOrDefault<UFortHeroType>(nameof(HeroDefinition)));
-            DefaultBackpack =           new Lazy<UAthenaBackpackItemDefinition?>(() => GetOrDefault<UAthenaBackpackItemDefinition>(nameof(DefaultBackpack)));
-            RequiredCosmeticItems =     new Lazy<UAthenaCosmeticItemDefinition[]?>(() => GetOrDefault<UAthenaCosmeticItemDefinition[]>(nameof(RequiredCosmeticItems)));
-            PreviewPawnScale =          new Lazy<float>(() => GetOrDefault<float>(nameof(PreviewPawnScale)));
-            Gender =                    new Lazy<EFortCustomGender>(() => GetOrDefault<EFortCustomGender>(nameof(Gender)));
-            FeedbackBank =              new Lazy<FSoftObjectPath>(() => GetOrDefault<FSoftObjectPath>(nameof(FeedbackBank)));
 
-#if false
+            BaseCharacterParts = GetOrDefault<FSoftObjectPath[]>(nameof(BaseCharacterParts));
+            DefaultBackpack = GetOrDefault<UAthenaBackpackItemDefinition>(nameof(DefaultBackpack));
+            RequiredCosmeticItems = GetOrDefault<UAthenaCosmeticItemDefinition[]>(nameof(RequiredCosmeticItems));
+            PreviewPawnScale = GetOrDefault<float>(nameof(PreviewPawnScale));
+            Gender = GetOrDefault<EFortCustomGender>(nameof(Gender));
+            FeedbackBank = GetOrDefault<FSoftObjectPath>(nameof(FeedbackBank));
+
             var taggedParts = GetOrDefault(nameof(TaggedPartsOverride), new UScriptMap());
             foreach (var (key, value) in taggedParts.Properties)
             {
