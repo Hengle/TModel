@@ -2077,8 +2077,6 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-
-
 def GetImage(name):
     LastSlahshe = name.rindex("\\") + 1
     ImageName = name[LastSlahshe:len(name)]
@@ -2088,7 +2086,6 @@ def GetImage(name):
     else:
         LoadedImage = bpy.data.images.load(name)
         return LoadedImage
-
 
 
 # Load cosmetics operator
@@ -2108,19 +2105,39 @@ def main(context):
     
         def ReadString():
             StringSize = int.from_bytes(file.read(1), "big")
-            return util_bytes_to_str(file.read(StringSize))#.strip()
+            return util_bytes_to_str(file.read(StringSize))
 
         def ReadSingle():
             return struct.unpack("f", file.read(4))[0]
+        
+        def ReadInt8():
+            return int.from_bytes(file.read(1), "big")
 
-        pathsNum = int.from_bytes(file.read(1), "big")
-        print(pathsNum)
+        pathsNum = ReadInt8()
         # Imports models
         for mesh in range(pathsNum):
             MeshName = ReadString()
-            print(MeshName)
             IsSkeleton = not MeshName.endswith("x")
             pskimport(MeshName)
+
+        MaterialsNum = ReadInt8()
+        for material in range(MaterialsNum):
+            MatName = ReadString()
+            DiffusePath = ReadString()
+
+            CurrentMat = bpy.data.materials[MatName]
+            CurrentMat.use_nodes = True
+            CurrentMat.node_tree.nodes.clear()
+            ShaderOutput = CurrentMat.node_tree.nodes.new('ShaderNodeOutputMaterial')
+            bsdf = CurrentMat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+            ShaderOutput.location = [300, 0]
+            CurrentMat.node_tree.links.new(ShaderOutput.inputs[0], bsdf.outputs[0])
+
+            DiffuseImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+            DiffuseImage.image = GetImage(DiffusePath)
+            CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseImage.outputs[0]) # Diffuse Image (Color) -> Base Color on BSDF
+
+            print(MatName)
 
         file.close()
 

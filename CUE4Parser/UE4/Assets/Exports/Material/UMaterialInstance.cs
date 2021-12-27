@@ -10,8 +10,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 {
     public class UMaterialInstance : UMaterialInterface
     {
-        private ResolvedObject? _parent;
-        public UUnrealMaterial? Parent => _parent?.Load<UUnrealMaterial>();
+        public ResolvedObject? Parent;
         public bool bHasStaticPermutationResource;
         public FMaterialInstanceBasePropertyOverrides BasePropertyOverrides;
         public FStaticParameterSet? StaticParameters;
@@ -20,7 +19,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-            _parent = GetOrDefault<ResolvedObject>(nameof(Parent));
+            Parent = GetOrDefault<ResolvedObject>(nameof(Parent));
             bHasStaticPermutationResource = GetOrDefault<bool>("bHasStaticPermutationResource");
             BasePropertyOverrides = GetOrDefault<FMaterialInstanceBasePropertyOverrides>(nameof(BasePropertyOverrides));
             StaticParameters = GetOrDefault<FStaticParameterSet>(nameof(StaticParameters));

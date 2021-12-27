@@ -5,7 +5,7 @@ using CUE4Parse_Conversion.Materials;
 
 namespace CUE4Parse_Conversion.Meshes
 {
-    public class Mesh : ExporterBase
+    public class Mesh : ExporterBaseArchived
     {
         public readonly string FileName;
         public readonly byte[] FileData;

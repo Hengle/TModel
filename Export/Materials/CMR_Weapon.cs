@@ -16,7 +16,7 @@ namespace TModel.Export.Materials
 
         }
 
-        public override void ReadParameters()
+        protected override void ReadParameters()
         {
             if (Textures.TryGetValue("Diffuse", out FPackageIndex diffuse))
             {

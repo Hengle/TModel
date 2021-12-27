@@ -12,7 +12,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public Dictionary<string, float> ScalarParameterValues { get; } = new();
         public Dictionary<string, FPackageIndex> TextureParameterValues { get; } = new();
         public Dictionary<string, FLinearColor?> VectorParameterValues { get; } = new();
-        public new FMaterialInstanceBasePropertyOverrides? BasePropertyOverrides;;
+        public new FMaterialInstanceBasePropertyOverrides? BasePropertyOverrides;
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

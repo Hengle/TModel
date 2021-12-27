@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TModel.Export.Materials;
 
 namespace TModel.Export
 {
@@ -11,24 +12,46 @@ namespace TModel.Export
     {
         public List<ModelRef> Models { get; } = new List<ModelRef>();
 
-        public void Save()
-        {
-            List<string> SavePaths = new List<string>();
 
+        // Returns list of all materials of all Models combined excluding duplicates.
+        // (Some models may use the same materials so it doesnt need to load the same one
+        // more than once)
+        public List<CMaterial> GetMaterials()
+        {
+            List<CMaterial> Final = new List<CMaterial>();
             foreach (var model in Models)
             {
-                SavePaths.Add(model.Save());
+                foreach (var material in model.Materials)
+                {
+                    foreach (var item in Final)
+                    {
+                        if (item.Name == material.Name)
+                        {
+                            break;
+                        }
+                    }
+                    Final.Add(material);
+                }
             }
+            return Final;
+        }
 
+        public void Save()
+        {
             string BlenderDataPath = Path.Combine(Preferences.StorageFolder, "BlenderData.export");
-
             CBinaryWriter Writer = new CBinaryWriter(File.Open(BlenderDataPath, FileMode.OpenOrCreate, FileAccess.Write));
 
-            Writer.Write((byte)SavePaths.Count);
-
-            foreach (string path in SavePaths)
+            Writer.Write((byte)Models.Count);
+            foreach (var model in Models)
             {
-                Writer.Write(path);
+                model.SaveMesh(Writer);
+            }
+
+            List<CMaterial> Materials = GetMaterials();
+            Writer.Write((byte)Materials.Count);
+            foreach (var material in Materials)
+            {
+                material.SaveAndWriteBinary(Writer);
             }
 
             Writer.Close();

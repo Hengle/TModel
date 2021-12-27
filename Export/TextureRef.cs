@@ -12,11 +12,16 @@ namespace TModel.Export
     // Supported formats are: UTexture2D, BitmapImage, and SKImage.
     public class TextureRef
     {
+        private string Name;
+
         private UTexture2D? _UTexture2D;
 
         private BitmapImage? _BitmapImage;
 
         private SKImage? _SKImage;
+
+
+        private byte[] ImageBuffer;
 
         // For unloaded UTexture2D
         public TextureRef(FPackageIndex? texture) : this(texture.Load<UTexture2D>())
@@ -32,6 +37,7 @@ namespace TModel.Export
         public TextureRef(UTexture2D? texture)
         {
             _UTexture2D = texture;
+            Name = _UTexture2D?.Name ?? Path.GetRandomFileName();
         }
 
         public TextureRef(SKImage? image)
@@ -52,7 +58,7 @@ namespace TModel.Export
                 if (TryGet_SKImage(out var OutSKImage) && OutSKImage is SKImage ValidSKImage)
                 {
                     using var data = ValidSKImage.Encode(false ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 100);
-                    using var stream = new MemoryStream(data.ToArray(), false);
+                    using var stream = new MemoryStream(ImageBuffer = data.ToArray(), false);
                     var image = new BitmapImage();
                     image.BeginInit();
                     image.CacheOption = BitmapCacheOption.None;
@@ -73,6 +79,24 @@ namespace TModel.Export
 
             result = _SKImage;
             return _SKImage != null;
+        }
+
+        public bool Save(out string SavePath)
+        {
+            SavePath = Path.Combine(Preferences.ExportsPath, Name + ".png");
+
+            if (TryGet_BitmapImage(out BitmapImage bitmap))
+            {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+                using (var fileStream = new FileStream(SavePath, FileMode.Create))
+                {
+                    encoder.Save(fileStream);
+                }
+                return true;
+            }
+            return false;
         }
     }
 }

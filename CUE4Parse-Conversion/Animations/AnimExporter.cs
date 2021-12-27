@@ -11,7 +11,7 @@ using CUE4Parse_Conversion.Animations.PSA;
 
 namespace CUE4Parse_Conversion.Animations
 {
-    public class AnimExporter : ExporterBase
+    public class AnimExporter : ExporterBaseArchived
     {
         private const int PSA_VERSION = 20100422;
 

@@ -1,7 +1,10 @@
-﻿using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
+﻿using CUE4Parse.UE4.Assets.Exports.Material;
+using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse_Conversion.Meshes;
+using System.Collections.Generic;
 using System.IO;
+using TModel.Export.Materials;
 
 namespace TModel.Export
 {
@@ -11,9 +14,19 @@ namespace TModel.Export
 
         UStaticMesh? StaticMesh;
 
+        public List<CMaterial> Materials = new List<CMaterial>();
+
         public ModelRef(USkeletalMesh skeletalMesh)
         {
             SkeletalMesh = skeletalMesh;
+            foreach (var item in SkeletalMesh.Materials)
+            {
+                UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
+                if (Material is UMaterialInstanceConstant InstanceConstant)
+                {
+                    Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                }
+            }
         }
 
         public ModelRef(UStaticMesh staticMesh)
@@ -22,7 +35,7 @@ namespace TModel.Export
         }
 
         // This saves the model as a .psk(x) to the Storage Folder defined in Preferences
-        public string Save()
+        public void SaveMesh(CBinaryWriter writer)
         {
             MeshExporter meshExporter = null;
             if (SkeletalMesh is USkeletalMesh skeletalMesh)
@@ -36,13 +49,10 @@ namespace TModel.Export
 
             if (meshExporter != null)
             {
-                string ExportsPath = Path.Combine(Preferences.StorageFolder, "Exports");
-                Directory.CreateDirectory(ExportsPath);
-                meshExporter.TryWriteToDir(new DirectoryInfo(ExportsPath), out string SaveName);
-                return Path.Combine(SaveName);
+                Directory.CreateDirectory(Preferences.ExportsPath);
+                meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName);
+                writer.Write(SaveName);
             }
-
-            return null;
         }
     }
 }

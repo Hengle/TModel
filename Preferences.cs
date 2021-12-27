@@ -15,6 +15,7 @@ namespace TModel
 
         // Folder for storing user settings, Fortnite mappings and other data for the software.
         public static string StorageFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TModel");
+        public static string ExportsPath = Path.Combine(Preferences.StorageFolder, "Exports");
 
         private static string SettingsFile = Path.Combine(StorageFolder, "Settings.settings");
 
