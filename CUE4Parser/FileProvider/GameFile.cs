@@ -21,6 +21,9 @@ namespace CUE4Parse.FileProvider
             Size = size;
         }
 
+        // For GameContentModule
+        public bool IsItemLoaded { set; get; } = false;
+
         public abstract bool IsEncrypted { get; }
         public abstract CompressionMethod CompressionMethod { get; }
         public string Path { get; protected set; }

@@ -71,8 +71,9 @@ namespace TModel.Modules
         public override void StartupModule()
         {
             Grid Root = new Grid() { Background = HexBrush("#1a1b21") };
-            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Auto) }); // Buttons panel
-            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Auto) }); // Filter options
+            Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // SearchBar
+            Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Buttons panel
+            Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Filter options
             Root.RowDefinitions.Add(new RowDefinition()); // Items Panel
 
             CoreTextBlock LoadFilesWarningText = new CoreTextBlock("Load files in File Manager to use this window", 50)
@@ -82,21 +83,15 @@ namespace TModel.Modules
                 TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Center,
             };
-            Grid.SetRow(LoadFilesWarningText, 2);
 
             FileManagerModule.FilesLoaded += () => LoadFilesWarningText.Visibility = Visibility.Collapsed;
 
             WrapPanel FilterOptions = new WrapPanel();
 
-            Root.Children.Add(FilterOptions);
             ScrollViewer ItemPanelScroller = new ScrollViewer();
             ItemPanelScroller.Content = ItemPanel;
-            Grid.SetRow(ItemPanelScroller, 2);
-            Root.Children.Add(ItemPanelScroller);
-            Root.Children.Add(LoadFilesWarningText);
 
             WrapPanel ButtonPanel = new WrapPanel() { Orientation = Orientation.Horizontal};
-
             CoreTextBox SearchBox = new CoreTextBox() { MinWidth = 600, MinHeight = 40 };
 
             SearchBox.TextChanged += (sender, args) =>
@@ -110,10 +105,8 @@ namespace TModel.Modules
                         MatchingPreviews.Add(item);
                     }
                 }
-                LoadPage(MatchingPreviews);
+                LoadPages(MatchingPreviews);
             };
-
-            ButtonPanel.Children.Add(SearchBox);
 
             ButtonPanel.Children.Add(LoadButton);
             ButtonPanel.Children.Add(RefreshButton);
@@ -148,6 +141,7 @@ namespace TModel.Modules
                         CurrentExporter = FortUtils.Exporters[FilterType];
                         PageNum = 1;
                         LoadedContentItems.Clear();
+                        LoadPages(CurrentExporter.LoadedPreviews.ToArray());
                         LoadFilterType();
                         UpdatePageCount();
                     });
@@ -155,7 +149,6 @@ namespace TModel.Modules
                 };
             }
 
-            Grid.SetRow(FilterTypesPanel, 1);
             Root.Children.Add(FilterTypesPanel);
 
             LeftButton.Click += () =>
@@ -164,7 +157,7 @@ namespace TModel.Modules
                 {
                     PageNum--;
                     UpdatePageCount();
-                    LoadPage(CurrentExporter.LoadedPreviews.ToArray());
+                    LoadPages(CurrentExporter.LoadedPreviews.ToArray());
                 }
             };
 
@@ -174,13 +167,13 @@ namespace TModel.Modules
                 {
                     PageNum++;
                     UpdatePageCount();
-                    LoadPage(CurrentExporter.LoadedPreviews.ToArray());
+                    LoadPages(CurrentExporter.LoadedPreviews.ToArray());
                 }
             };
 
             LoadButton.Click += () => LoadFilterType();
 
-            RefreshButton.Click += () => LoadPage(CurrentExporter.LoadedPreviews.ToArray());
+            RefreshButton.Click += () => LoadPages(CurrentExporter.LoadedPreviews.ToArray());
 
 
             bool CanZoom = false;
@@ -217,7 +210,18 @@ namespace TModel.Modules
                 }
             };
 
+            Grid.SetRow(SearchBox, 0);
+            Grid.SetRow(ButtonPanel, 1);
+            Grid.SetRow(FilterTypesPanel, 2);
+            Grid.SetRow(ItemPanelScroller, 3);
+            Grid.SetRow(LoadFilesWarningText, 3);
+
+            Root.Children.Add(SearchBox);
             Root.Children.Add(ButtonPanel);
+            Root.Children.Add(FilterOptions);
+            Root.Children.Add(ItemPanelScroller);
+
+            Root.Children.Add(LoadFilesWarningText);
 
 #if false // Shows filters
             foreach (var name in Enum.GetNames(typeof(GameContentFilterTypes)))
@@ -240,23 +244,25 @@ namespace TModel.Modules
             {
                 if (!CurrentExporter.bHasLoadedAllPreviews)
                 {
-                    for (int i = CurrentExporter.LoadedPreviews.Count; i < CurrentExporter.GameFiles.Count; i++)
+                    foreach (var gamefile in CurrentExporter.GameFiles)
                     {
-                        if (i > CurrentExporter.GameFiles.Count)
-                            break;
                         cTokenSource.Token.ThrowIfCancellationRequested();
-                        if (FortUtils.TryLoadItemPreviewInfo(Filter, CurrentExporter.GameFiles[i], out ItemTileInfo itemPreviewInfo))
+                        if (FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
                         {
-                            CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
-                            App.Refresh(() =>
+                            if (!gamefile.IsItemLoaded)
                             {
-                                UpdatePageCount();
-                                LoadedCountText.Text = $"{CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count}";
-                                if (PageNum == TotalPages)
+                                CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
+                                App.Refresh(() =>
                                 {
-                                    ItemPanel.Children.Add(new GameContentItem(itemPreviewInfo));
-                                }
-                            });
+                                    UpdatePageCount();
+                                    LoadedCountText.Text = $"{CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
+                                    if (PageNum == TotalPages)
+                                    {
+                                        ItemPanel.Children.Add(new GameContentItem(itemPreviewInfo));
+                                    }
+                                });
+                                gamefile.IsItemLoaded = true;
+                            }
                         }
                     }
                 }
@@ -273,7 +279,7 @@ namespace TModel.Modules
             });
         }
 
-        void LoadPage(IList<ItemTileInfo> Previews)
+        void LoadPages(IList<ItemTileInfo> Previews)
         {
             ItemPanel.Children.Clear();
 

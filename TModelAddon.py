@@ -2193,7 +2193,9 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-
+class TModelSourcePath(bpy.types.Operator):
+    bl_idname = "misc.TModelPath"
+    bl_label = "TModel Data Path"
 
 
 
@@ -2220,6 +2222,10 @@ class LayoutDemoPanel(bpy.types.Panel):
         row = layout.row()
         row.scale_y = 1.0
         row.operator("object.remove_mesh")
+
+        row = layout.row()
+        row.scale_y = 1.0
+        row.operator("misc.TModelPath")
         
         
         
