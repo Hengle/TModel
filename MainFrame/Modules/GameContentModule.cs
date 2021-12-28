@@ -38,18 +38,17 @@ namespace TModel.Modules
 
         WrapPanel ItemPanel = new WrapPanel() { Background = HexBrush("#21284d") };
 
-        CButton LoadButton = new CButton("Load") { Width = 150 };
-        CButton RefreshButton = new CButton("Refresh") { Width = 150 };
-
         CoreTextBlock PageNumberText = new CoreTextBlock("Page Number") 
         { 
-            MinWidth = 80, 
-            Margin = new Thickness(6, 0, 6, 0) 
+            Margin = new Thickness(20, 0, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center
         };
         CoreTextBlock LoadedCountText = new CoreTextBlock("Loaded Count") 
         { 
-            MinWidth = 80,
-            Margin = new Thickness(6, 0, 6, 0) 
+            Margin = new Thickness(0, 0, 20, 0),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center
         };
 
         CButton LeftButton = new CButton("Previous Page") { Width = 150 };
@@ -76,7 +75,7 @@ namespace TModel.Modules
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Filter options
             Root.RowDefinitions.Add(new RowDefinition()); // Items Panel
 
-            CoreTextBlock LoadFilesWarningText = new CoreTextBlock("Load files in File Manager to use this window", 50)
+            CoreTextBlock LoadFilesWarningText = new CoreTextBlock("Load files in File Manager to use this window", 25)
             {
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -91,7 +90,12 @@ namespace TModel.Modules
             ScrollViewer ItemPanelScroller = new ScrollViewer();
             ItemPanelScroller.Content = ItemPanel;
 
-            WrapPanel ButtonPanel = new WrapPanel() { Orientation = Orientation.Horizontal};
+            Grid ButtonPanel = new Grid();
+            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition());
+            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition());
+            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+
             CoreTextBox SearchBox = new CoreTextBox() { MinWidth = 600, MinHeight = 40 };
 
             SearchBox.TextChanged += (sender, args) =>
@@ -100,7 +104,7 @@ namespace TModel.Modules
                 List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
                 foreach (var item in ItemTiles)
                 {
-                    if (item.Name.Contains(SearchBox.Text, StringComparison.CurrentCultureIgnoreCase))
+                    if (item.Name.Contains(SearchBox.Text, StringComparison.InvariantCultureIgnoreCase))
                     {
                         MatchingPreviews.Add(item);
                     }
@@ -108,11 +112,14 @@ namespace TModel.Modules
                 LoadPages(MatchingPreviews);
             };
 
-            ButtonPanel.Children.Add(LoadButton);
-            ButtonPanel.Children.Add(RefreshButton);
+            Grid.SetColumn(PageNumberText, 1);
+            Grid.SetColumn(LoadedCountText, 2);
 
             ButtonPanel.Children.Add(PageNumberText);
             ButtonPanel.Children.Add(LoadedCountText);
+
+            Grid.SetColumn(LeftButton, 0);
+            Grid.SetColumn(RightButton, 3);
 
             ButtonPanel.Children.Add(LeftButton);
             ButtonPanel.Children.Add(RightButton);
@@ -171,11 +178,6 @@ namespace TModel.Modules
                 }
             };
 
-            LoadButton.Click += () => LoadFilterType();
-
-            RefreshButton.Click += () => LoadPages(CurrentExporter.LoadedPreviews.ToArray());
-
-
             bool CanZoom = false;
 
             Root.KeyDown += (sender, args) =>
@@ -223,13 +225,6 @@ namespace TModel.Modules
 
             Root.Children.Add(LoadFilesWarningText);
 
-#if false // Shows filters
-            foreach (var name in Enum.GetNames(typeof(GameContentFilterTypes)))
-            {
-                RadioButton radioButton = new RadioButton() { Content = new CoreTextBlock(name, 50) };
-                FilterOptions.Children.Add(radioButton);
-            }
-#endif
             Content = Root;
         }
 
@@ -344,7 +339,10 @@ namespace TModel.Modules
                     Item.Deselect();
                 SelectedItem = this;
                 if (SelectionChanged is not null)
+                {
+                    App.ShowModule<ItemPreviewModule>();
                     SelectionChanged(Info);
+                }
                 BackBorder.BorderBrush = Selected;
             }
 
@@ -363,7 +361,10 @@ namespace TModel.Modules
                 Task.Run(() =>
                 {
                     if (Info.PreviewIcon.TryGet_BitmapImage(out BitmapImage bitmapImage))
-                        App.Refresh(() => Root.Children.Add(new Image() { Source = bitmapImage }));
+                        App.Refresh(() => 
+                        {
+                            Root.Children.Add(new Image() { Source = bitmapImage }); 
+                        });
                 });
 
             }

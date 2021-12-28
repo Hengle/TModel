@@ -18,6 +18,7 @@ namespace TModel
             FontFamily = CoreFont;
             Foreground = Brushes.White;
             Background = HexBrush("#0f1243");
+            Padding = new Thickness(6);
             FontSize = 15;
             VerticalContentAlignment = VerticalAlignment.Center;
         }
