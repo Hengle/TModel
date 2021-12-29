@@ -17,13 +17,13 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <Optimize>False</Optimize>
+	  <Optimize>True</Optimize>
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-	  <Optimize>False</Optimize>
+	  <Optimize>True</Optimize>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -11,7 +11,7 @@ namespace TModel
 {
     public static class Preferences
     {
-        public static Action PreferencesChanged;
+        public static Action Changed;
 
         // Folder for storing user settings, Fortnite mappings and other data for the software.
         public static string StorageFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TModel");
@@ -22,18 +22,18 @@ namespace TModel
 
         public static string? GameDirectory { get; set; }
 
-        public static bool AutoLoad { set; get; }
+        public static bool? AutoLoad { set; get; }
 
         public static void Save()
         {
             CBinaryWriter Writer = new CBinaryWriter(File.Open(SettingsFile, FileMode.OpenOrCreate, FileAccess.ReadWrite));
 
             Writer.Write(GameDirectory);
-            Writer.Write(AutoLoad);
+            Writer.Write(AutoLoad ?? false);
 
             Writer.Close();
-            if (PreferencesChanged != null)
-                PreferencesChanged();
+            if (Changed != null)
+                Changed();
         }
 
         public static void Read()

@@ -64,7 +64,7 @@ namespace TModel.Modules
 
             ButtonPanel.Children.Add(LoadButton);
 
-            Preferences.PreferencesChanged += () =>
+            Preferences.Changed += () =>
             {
                 if (App.IsValidGameDirectory(Preferences.GameDirectory))
                 {
@@ -84,7 +84,7 @@ namespace TModel.Modules
 
             this.Loaded += (sender, args) =>
             {
-                if (App.FileProvider != null)
+                if (Preferences.AutoLoad ?? false && App.FileProvider != null)
                     LoadGameFiles();
             };
         }
