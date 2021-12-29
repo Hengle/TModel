@@ -143,7 +143,7 @@ namespace CUE4Parse.UE4.Objects.UObject
         
         #endregion
 
-        public override string ToString() => $"Name: {AssetPathName}\nSubPath: {SubPathString}\nType: {ObjectType ?? "NONE"}\nOwner: {Owner?.Name ?? "NONE"}";
+        public override string ToString() => $"Name: {AssetPathName}\n SubPath: {SubPathString}\n Type: {ObjectType ?? "NONE"}\n Owner: {Owner?.Name ?? "NONE"}";
     }
     
     public class FSoftObjectPathConverter : JsonConverter<FSoftObjectPath>

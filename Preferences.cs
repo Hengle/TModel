@@ -20,12 +20,15 @@ namespace TModel
         public static string SettingsFile { get; } = Path.Combine(StorageFolder, "Settings.settings");
 
         public static string? GameDirectory { get; set; }
+        public static bool AutoLoad { set; get; }
 
         public static void Save()
         {
             CBinaryWriter Writer = new CBinaryWriter(File.Open(SettingsFile, FileMode.OpenOrCreate, FileAccess.ReadWrite));
 
             Writer.Write(GameDirectory);
+            Writer.Write(AutoLoad);
+
             Writer.Close();
             if (PreferencesChanged != null)
                 PreferencesChanged();
@@ -39,6 +42,7 @@ namespace TModel
                 if (Reader.BaseStream.Length != 0)
                 {
                     GameDirectory = Reader.ReadString();
+                    AutoLoad = Reader.ReadBoolean();
                 }
                 Reader.Close();
             }

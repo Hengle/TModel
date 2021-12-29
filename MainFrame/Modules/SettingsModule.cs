@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CUE4Parse.UE4.Versions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using TModel.MainFrame.Widgets;
 using static TModel.ColorConverters;
 
@@ -19,7 +21,14 @@ namespace TModel.MainFrame.Modules
 
         Grid SettingsPanel = new Grid() { Background = HexBrush("#242d76") };
 
+        // Options
         CoreTextBox GameDirectoryText = new CoreTextBox();
+        CheckBox AutoLoadOnStartup = new CheckBox()
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+            RenderTransform = new ScaleTransform(1.8,1.8),
+        };
 
         public override void StartupModule()
         {
@@ -39,35 +48,34 @@ namespace TModel.MainFrame.Modules
             Grid.SetRow(ButtonPanel, 1);
             Root.Children.Add(ButtonPanel);
 
-            CButton SaveButton = new CButton("Save", 60);
-
-            SaveButton.Click += () =>
+            CButton SaveButton = new CButton("Save", 60, () => 
             {
                 Preferences.GameDirectory = GameDirectoryText.Text;
-
+                Preferences.AutoLoad = AutoLoadOnStartup.IsChecked ?? false;
                 Preferences.Save();
-            };
+            });
 
             ButtonPanel.Children.Add(SaveButton);
 
-            Root.Children.Add(SettingsPanel);
-
-            Content = Root;
-            
             AddOption("Game Directory", GameDirectoryText);
+            AddOption("Auto Load Upon Startup", AutoLoadOnStartup);
 
             ReadSettings += () =>
             {
                 Preferences.Read();
                 GameDirectoryText.Text = string.IsNullOrWhiteSpace(Preferences.GameDirectory) ? null : Preferences.GameDirectory;
+                AutoLoadOnStartup.IsChecked = Preferences.AutoLoad;
             };
+
+            Root.Children.Add(SettingsPanel);
+
+            Content = Root;
 
             ReadSettings();
         }
 
         public void AddOption(string name, UIElement input)
         {
-            SettingsPanel.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
 
             CoreTextBlock NameText = new CoreTextBlock(name, 20)
             {
@@ -80,6 +88,7 @@ namespace TModel.MainFrame.Modules
 
             SettingsPanel.Children.Add(NameText);
             SettingsPanel.Children.Add(input);
+            SettingsPanel.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
         }
     }
 }

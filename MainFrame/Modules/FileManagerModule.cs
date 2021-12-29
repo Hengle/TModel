@@ -37,59 +37,27 @@ namespace TModel.Modules
 
         public override void StartupModule()
         {
-            Grid grid = new Grid();
-            Content = grid;
-            grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(120) });
-            grid.RowDefinitions.Add(new RowDefinition());
+            Grid Root = new Grid();
+            Content = Root;
+            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(120) });
+            Root.RowDefinitions.Add(new RowDefinition());
 
             StackPanel ButtonPanel = new StackPanel() { Orientation = Orientation.Horizontal };
             ButtonPanel.HorizontalAlignment = HorizontalAlignment.Center;
             ButtonPanel.VerticalAlignment = VerticalAlignment.Center;
-            
+
             ScrollViewer FilePanelScroller = new ScrollViewer();
             FilePanelScroller.Content = FilesPanel;
             Grid.SetRow(ButtonPanel, 0);
             Grid.SetRow(FilePanelScroller, 1);
 
-            grid.Children.Add(ButtonPanel);
-            grid.Children.Add(FilePanelScroller);
+            Root.Children.Add(ButtonPanel);
+            Root.Children.Add(FilePanelScroller);
 
-            grid.Background = HexBrush("#2e3d54");
+            Root.Background = HexBrush("#2e3d54");
 
             CButton LoadButton = new CButton("Load", 40);
-            LoadButton.Click += () =>
-            {
-                Log.Information("Loading files");
-                Task.Run(() => 
-                    {
-                        if (App.IsValidGameDirectory(Preferences.GameDirectory))
-                        {
-                            if (App.FileProvider == null)
-                            {
-                                App.FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
-                                App.FileProvider.Initialize();
-                            }
-                            LoadGame();
-                        }
-                        else
-                        {
-                            App.LogMessage(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)", MessageLevel.Error);
-                        }
-                    }
-                ).GetAwaiter().OnCompleted(() =>
-                {
-                    if (App.FileProvider != null)
-                    {
-                        List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
-                        AllVFS.AddRange(App.FileProvider.MountedVfs);
-                        AllVFS.AddRange(App.FileProvider.UnloadedVFS.Keys);
-                        AllVFS.Sort(new NameSort());
-                        FilesPanel.Children.Clear();
-                        LoadFiles(AllVFS, true);
-                        FilesLoaded();
-                    }
-                });
-            };
+            LoadButton.Click += () => LoadGameFiles();
 
             LoadButton.Height = 90;
             LoadButton.Width = 180;
@@ -105,7 +73,7 @@ namespace TModel.Modules
                         App.FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
                         App.FileProvider.Initialize();
                     }
-                    LoadGame();
+                    InitilizeGame();
                     LoadFiles(App.FileProvider.UnloadedVFS.Keys);
                 }
             };
@@ -113,9 +81,49 @@ namespace TModel.Modules
             // App.FileProvider.UnloadedVfs.Sort(new NameSort()); 
             if (App.FileProvider != null)
                 LoadFiles(App.FileProvider.UnloadedVFS.Keys);
+
+            this.Loaded += (sender, args) =>
+            {
+                if (App.FileProvider != null)
+                    LoadGameFiles();
+            };
         }
 
-        public static void LoadGame()
+        public void LoadGameFiles()
+        {
+            Log.Information("Loading files");
+            Task.Run(() =>
+            {
+                if (App.IsValidGameDirectory(Preferences.GameDirectory))
+                {
+                    if (App.FileProvider == null)
+                    {
+                        App.FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
+                        App.FileProvider.Initialize();
+                    }
+                    InitilizeGame();
+                }
+                else
+                {
+                    App.LogMessage(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)", MessageLevel.Error);
+                }
+            }
+            ).GetAwaiter().OnCompleted(() =>
+            {
+                if (App.FileProvider != null)
+                {
+                    List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
+                    AllVFS.AddRange(App.FileProvider.MountedVfs);
+                    AllVFS.AddRange(App.FileProvider.UnloadedVFS.Keys);
+                    AllVFS.Sort(new NameSort());
+                    FilesPanel.Children.Clear();
+                    LoadFiles(AllVFS, true);
+                    FilesLoaded();
+                }
+            });
+        }
+
+        public static void InitilizeGame()
         {
             // Submits AES keys
             AesKeys AesKeys;
@@ -173,7 +181,6 @@ namespace TModel.Modules
 
     public class FileManagerItem : ContentControl
     {
-
         // Needs name (and file size probs)
         public FileManagerItem(IAesVfsReader reader, bool tryload = false)
         {

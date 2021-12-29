@@ -15,70 +15,78 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 {
     public class UFortWorldItemDefinition : UFortItemDefinition
     {
-        public Lazy<FGameplayTagContainer> RequiredEquipTags;
-        public Lazy<FFortPickupRestrictionLists[]?> PickupRestrictionListEntry;
-        public Lazy<EWorldItemDropBehavior> DropBehavior;
-        public Lazy<bool> bIgnoreRespawningForDroppingAsPickup;
-        public Lazy<bool> bCanAutoEquipByClass;
-        public Lazy<bool> bPersistInInventoryWhenFinalStackEmpty;
-        public Lazy<bool> bSupportsQuickbarFocus;
-        public Lazy<bool> bSupportsQuickbarFocusForGamepadOnly;
-        public Lazy<bool> bShouldActivateWhenFocused;
-        public Lazy<bool> bForceFocusWhenAdded;
-        public Lazy<bool> bForceIntoOverflow;
-        public Lazy<bool> bForceStayInOverflow;
-        public Lazy<bool> bDropCurrentItemOnOverflow;
-        public Lazy<bool> bShouldShowItemToast;
-        public Lazy<bool> bShowDirectionalArrowWhenFarOff;
-        public Lazy<bool> bCanBeDropped;
-        public Lazy<bool> bCanBeReplacedByPickup;
-        public Lazy<bool> bItemCanBeStolen;
-        public Lazy<bool> bCanBeDepositedInStorageVault;
-        public Lazy<bool> bItemHasDurability;
-        public Lazy<bool> bAllowedToBeLockedInInventory;
-        public Lazy<bool> bOverridePickupMeshTransform;
-        public Lazy<bool> bAlwaysCountForCollectionQuest;
-        public Lazy<bool> bDropOnDeath;
-        public Lazy<bool> bDropOnLogout;
-        public Lazy<bool> bDropOnDBNO;
-        public Lazy<bool> bDoesNotNeedSourceSchematic;
-        public Lazy<bool> bUsesGoverningTags;
-        public Lazy<int> DropCount;
-        public Lazy<float> MiniMapViewableDistance;
-        public Lazy<FSlateBrush?> MiniMapIconBrush;
-        public Lazy<FText?> OwnerPickupText;
-        public Lazy<FDataTableCategoryHandle?> LootLevelData;
-        public Lazy<FTransform> PickupMeshTransform;
-        public Lazy<bool> bIsPickupASpecialActor;
-        public Lazy<FGameplayTag?> SpecialActorPickupTag;
-        public Lazy<FSpecialActorSingleStatData[]?> SpecialActorPickupStatList;
-        public Lazy<FName> PickupSpecialActorUniqueID;
-        public Lazy<FSlateBrush?> PickupMinimapIconBrush;
-        public Lazy<FVector2D> PickupMinimapIconScale;
-        public Lazy<FSlateBrush?> PickupCompassIconBrush;
-        public Lazy<FVector2D> PickupCompassIconScale;
-        public Lazy<FScalableFloat?> PickupDespawnTime;
-        public Lazy<FScalableFloat?> InStormPickupDespawnTime;
-        public Lazy<FScalableFloat?> NetworkCullDistanceOverride;
-        public Lazy<FSoftObjectPath> PickupStaticMesh; // UStaticMesh
-        public Lazy<FSoftObjectPath> PickupSkeletalMesh; // USkeletalMesh
-        public Lazy<FSoftObjectPath> PickupEffectOverride; // UClass
-        public Lazy<FSoftObjectPath> PickupSound; // USoundBase
-        public Lazy<FSoftObjectPath> PickupByNearbyPawnSound; // USoundBase
-        public Lazy<FSoftObjectPath> DropSound; // USoundBase
-        public Lazy<FSoftObjectPath> DroppedLoopSound; // USoundBase
-        public Lazy<FSoftObjectPath> LandedSound; // USoundBase
-        public Lazy<FDataTableRowHandle?> DisassembleRecipe;
-        public Lazy<float> DisassembleDurabilityDegradeMinLootPercent;
-        public Lazy<float> DisassembleDurabilityDegradeMaxLootPercent;
-        public Lazy<int> PreferredQuickbarSlot;
-        public Lazy<int> MinLevel;
-        public Lazy<int> MaxLevel;
-        public Lazy<int> NumberOfSlotsToTake;
+        public FGameplayTagContainer RequiredEquipTags;
+        public FFortPickupRestrictionLists[]? PickupRestrictionListEntry;
+        public EWorldItemDropBehavior DropBehavior;
+        public bool bIgnoreRespawningForDroppingAsPickup;
+        public bool bCanAutoEquipByClass;
+        public bool bPersistInInventoryWhenFinalStackEmpty;
+        public bool bSupportsQuickbarFocus;
+        public bool bSupportsQuickbarFocusForGamepadOnly;
+        public bool bShouldActivateWhenFocused;
+        public bool bForceFocusWhenAdded;
+        public bool bForceIntoOverflow;
+        public bool bForceStayInOverflow;
+        public bool bDropCurrentItemOnOverflow;
+        public bool bShouldShowItemToast;
+        public bool bShowDirectionalArrowWhenFarOff;
+        public bool bCanBeDropped;
+        public bool bCanBeReplacedByPickup;
+        public bool bItemCanBeStolen;
+        public bool bCanBeDepositedInStorageVault;
+        public bool bItemHasDurability;
+        public bool bAllowedToBeLockedInInventory;
+        public bool bOverridePickupMeshTransform;
+        public bool bAlwaysCountForCollectionQuest;
+        public bool bDropOnDeath;
+        public bool bDropOnLogout;
+        public bool bDropOnDBNO;
+        public bool bDoesNotNeedSourceSchematic;
+        public bool bUsesGoverningTags;
+        public int DropCount;
+        public float MiniMapViewableDistance;
+        public FSlateBrush? MiniMapIconBrush;
+        public FText? OwnerPickupText;
+        public FDataTableCategoryHandle? LootLevelData;
+        public FTransform PickupMeshTransform;
+        public bool bIsPickupASpecialActor;
+        public FGameplayTag? SpecialActorPickupTag;
+        public FSpecialActorSingleStatData[]? SpecialActorPickupStatList;
+        public FName PickupSpecialActorUniqueID;
+        public FSlateBrush? PickupMinimapIconBrush;
+        public FVector2D PickupMinimapIconScale;
+        public FSlateBrush? PickupCompassIconBrush;
+        public FVector2D PickupCompassIconScale;
+        public FScalableFloat? PickupDespawnTime;
+        public FScalableFloat? InStormPickupDespawnTime;
+        public FScalableFloat? NetworkCullDistanceOverride;
+        public FSoftObjectPath PickupStaticMesh; // UStaticMesh
+        public FSoftObjectPath PickupSkeletalMesh; // USkeletalMesh
+        public FSoftObjectPath PickupEffectOverride; // UClass
+        public FSoftObjectPath PickupSound; // USoundBase
+        public FSoftObjectPath PickupByNearbyPawnSound; // USoundBase
+        public FSoftObjectPath DropSound; // USoundBase
+        public FSoftObjectPath DroppedLoopSound; // USoundBase
+        public FSoftObjectPath LandedSound; // USoundBase
+        public FDataTableRowHandle? DisassembleRecipe;
+        public float DisassembleDurabilityDegradeMinLootPercent;
+        public float DisassembleDurabilityDegradeMaxLootPercent;
+        public int PreferredQuickbarSlot;
+        public int MinLevel;
+        public int MaxLevel;
+        public int NumberOfSlotsToTake;
+
+        public override void DeepDeserialize()
+        {
+            base.DeepDeserialize();
+
+            PickupSkeletalMesh = GetOrDefault<FSoftObjectPath>(nameof(PickupSkeletalMesh));
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
+
 #if false
             RequiredEquipTags = GetOrDefault<FGameplayTagContainer>(nameof(RequiredEquipTags));
             PickupRestrictionListEntry = GetOrDefault<FFortPickupRestrictionLists[]>(nameof(PickupRestrictionListEntry));
@@ -126,7 +134,6 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             InStormPickupDespawnTime = GetOrDefault<FScalableFloat>(nameof(InStormPickupDespawnTime));
             NetworkCullDistanceOverride = GetOrDefault<FScalableFloat>(nameof(NetworkCullDistanceOverride));
             PickupStaticMesh = GetOrDefault<FSoftObjectPath>(nameof(PickupStaticMesh));
-            PickupSkeletalMesh = GetOrDefault<FSoftObjectPath>(nameof(PickupSkeletalMesh));
             PickupEffectOverride = GetOrDefault<FSoftObjectPath>(nameof(PickupEffectOverride));
             PickupSound = GetOrDefault<FSoftObjectPath>(nameof(PickupSound));
             PickupByNearbyPawnSound = GetOrDefault<FSoftObjectPath>(nameof(PickupByNearbyPawnSound));

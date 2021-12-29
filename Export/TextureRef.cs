@@ -23,30 +23,27 @@ namespace TModel.Export
 
         private FPackageIndex? _PackageIndex;
 
-        private byte[] ImageBuffer;
+        private byte[]? ImageBuffer;
 
-        // For unloaded UTexture2D
-        public TextureRef(FPackageIndex? index)
+        private TextureRef()
         {
-            _PackageIndex = index;
+            Name = StringUtils.RandomString();
         }
 
-        public TextureRef(BitmapImage? image)
+        public TextureRef(BitmapImage? image) : this()
         {
             _BitmapImage = image;
-            Name = StringUtils.RandomString();
         }
 
-        public TextureRef(UTexture2D? texture)
+        public TextureRef(UTexture2D? texture) : this()
         {
             _UTexture2D = texture;
-            Name = texture.Name;
+            Name = _UTexture2D.Name;
         }
 
-        public TextureRef(SKImage? image)
+        public TextureRef(SKImage? image) : this()
         {
             _SKImage = image;
-            Name = StringUtils.RandomString();
         }
 
         // Try get images
@@ -82,6 +79,9 @@ namespace TModel.Export
 
         public bool TryGet_SKImage(out SKImage? result)
         {
+            if (_UTexture2D == null && _PackageIndex != null)
+                _UTexture2D = _PackageIndex.Load<UTexture2D>();
+
             if (_SKImage == null && _UTexture2D is UTexture2D ValidUTexture2D)
                 _SKImage = ValidUTexture2D.Decode();
 
@@ -92,20 +92,11 @@ namespace TModel.Export
         public bool Save(out string SavePath)
         {
             SavePath = Path.Combine(Preferences.ExportsPath, Name + ".png");
-
-            if (TryGet_BitmapImage(out BitmapImage bitmap))
+            if (TryGet_BitmapImage(out _))
             {
-                BitmapEncoder encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bitmap));
-
-                try
+                using (var fs = new FileStream(SavePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
                 {
-                    FileStream fileStream = new FileStream(SavePath, FileMode.Create);
-                    encoder.Save(fileStream);
-                }
-                catch
-                {
-                    return false;
+                    fs.Write(ImageBuffer, 0, ImageBuffer.Length);
                 }
 
                 return true;

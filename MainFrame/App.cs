@@ -33,6 +33,7 @@ namespace TModel
 
         public static DefaultFileProvider FileProvider { set; get; } = null;
 
+        // Trys to find the type of module, if found then selects it
         public static void ShowModule<T>()
         {
             ModulePanel.TryShowModule<T>();

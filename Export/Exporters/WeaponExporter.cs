@@ -1,5 +1,6 @@
 ﻿using CUE4Parse.FN.Exports.FortniteGame;
 using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
@@ -54,8 +55,32 @@ namespace TModel.Export.Exporters
             if (package.Base is UFortWeaponItemDefinition WeaponDef)
             {
                 WeaponDef.DeepDeserialize();
-                USkeletalMesh WeaponMesh = WeaponDef.WeaponMeshOverride.Load<USkeletalMesh>();
-                ExportInfo.Models.Add(new ModelRef(WeaponMesh));
+                USkeletalMesh WeaponMesh = null;
+                try
+                {
+                    WeaponMesh = WeaponDef.WeaponMeshOverride.Load<USkeletalMesh>();
+                }
+                catch
+                {
+                    try
+                    {
+                        WeaponMesh = WeaponDef.PickupSkeletalMesh.Load<USkeletalMesh>();
+                    }
+                    catch (Exception e)
+                    {
+                        App.LogMessage("Can't Export Weapon"
+#if DEBUG
+                            + "\n\n" + e.ToString());
+#else
+                            );
+#endif
+                    }
+
+                }
+                finally
+                {
+                    ExportInfo.Models.Add(new ModelRef(WeaponMesh));
+                }
             }
 
             return ExportInfo;

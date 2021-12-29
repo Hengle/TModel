@@ -45,18 +45,49 @@ namespace TModel.Modules
             {
                 HorizontalAlignment = HorizontalAlignment.Center
             };
-            ButtonPanel.Children.Add(new CButton("Export", 60, () =>
+
+            CButton ExportButton = null;
+
+            ExportButton = new CButton("Export", 60, () =>
             {
-                if (Package != null)
-                    GameContentModule.CurrentExporter.GetBlenderExportInfo(Package).Save();
+                try
+                {
+                    App.Refresh(() => 
+                    {
+                        ExportButton.SetText("        ");
+                        ExportButton.IsEnabled = false;
+                    });
+                    Task.Run(() =>
+                    {
+                        if (Package != null)
+                            GameContentModule.CurrentExporter.GetBlenderExportInfo(Package).Save();
+                    })
+                    .GetAwaiter()
+                    .OnCompleted(() => 
+                    {
+                        ExportButton.SetText("Complete");
+                        ExportButton.IsEnabled = true;
+                    });
+                }
+                catch (Exception e)
+                {
+                    ExportButton.SetText("Failed");
+                    App.LogMessage(e.ToString());
+#if DEBUG
+                    throw;
+#endif
+                }
             })
             {
-                Margin = new Thickness(0,0,0,40)
-            });
+                Margin = new Thickness(0, 0, 0, 40)
+            };
+
+            ButtonPanel.Children.Add(ExportButton);
             Grid.SetRow(ButtonPanel, 1);
             Root.Children.Add(ButtonPanel);
             GameContentModule.SelectionChanged += (ItemTileInfo Item) =>
             {
+                ExportButton.SetText("Export");
                 this.Package = Item.Package;
                 ItemDisplay.Children.Clear();
                 ExportPreviewInfo Preview = GameContentModule.CurrentExporter.GetExportPreviewInfo(Item.Package);

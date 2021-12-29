@@ -20,14 +20,11 @@
 bl_info = {
     "name": "TModel Importer Addon",
     "author": "Tinfoilhat",
-    "version": (2, 7, 13),
-    "blender": (2, 80, 0),
-    "location": "Scene Properties > TModel Imporeter",
+    "version": (1, 0, 0),
+    "blender": (3, 0, 0),
+    "location": "Scene Properties > TModel Importer",
     "description": "Import exports from TModel",
-    "warning": "",
-    "wiki_url": "https://github.com/Befzz/blender3d_import_psk_psa",
-    "category": "Import-Export",
-    "tracker_url": "https://github.com/Befzz/blender3d_import_psk_psa/issues"
+    "category": "Import",
 }
 
 """
@@ -1803,9 +1800,7 @@ class ImportProps():
         layout.prop(props,'bRotationOnly')
         # layout.prop(props, 'bDontInvertRoot')
         # layout.separator()
-   
-class PskImportOptions(bpy.types.PropertyGroup, ImportProps):
-    pass
+
 
 def blen_hide_unused(armature_obj, mesh_obj):
     def is_bone_useless(psa_bone):
@@ -2005,41 +2000,7 @@ class PSKPSA_PT_import_panel(bpy.types.Panel, ImportProps):
         layout.operator(IMPORT_OT_psa.bl_idname, icon = 'ANIM')
         self.draw_psa(context)
 
-    
-def menu_import_draw(self, context):
-    self.layout.operator(IMPORT_OT_psk.bl_idname, text = "Skeleton Mesh (.psk)")
-    self.layout.operator(IMPORT_OT_psa.bl_idname, text = "Skeleton Anim (.psa)")
 
-classes = (
-        IMPORT_OT_psk,
-        IMPORT_OT_psa,
-        PskImportOptions,
-        PSKPSA_PT_import_panel,
-        PSKPSA_OT_show_message,
-        PSKPSA_OT_hide_unused_bones
-    )
-    
-    
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-        
-    bpy.types.TOPBAR_MT_file_import.append(menu_import_draw)
-
-    bpy.types.Scene.pskpsa_import = PointerProperty(type = PskImportOptions)
-    
-def unregister():
-    from bpy.utils import unregister_class
-    for cls in classes:
-        unregister_class(cls)
-        
-    bpy.types.TOPBAR_MT_file_import.remove(menu_import_draw)
-
-    del bpy.types.Scene.pskpsa_import
-    
-if __name__ == "__main__":
-    register()
 
 if __name__ == "io_import_scene_unreal_psa_psk_270_dev":
     import pskpsadev
@@ -2069,17 +2030,6 @@ class RemoveMesh(bpy.types.Operator):
         removemesh(context)
         return {'FINISHED'}
 
-
-def register():
-    bpy.utils.register_class(RemoveMesh)
-
-
-def unregister():
-    bpy.utils.unregister_class(RemoveMesh)
-
-
-if __name__ == "__main__":
-    register()
 
 def GetImage(name):
     print(name)
@@ -2136,10 +2086,11 @@ def main(context):
                     bpy.ops.object.shade_smooth()
 
             def ReadTexture():
-                if ReadBool():
+                isValidTexture = ReadBool()
+                if isValidTexture:
                     return ReadString()
                 else:
-                    return False
+                    return None
 
             MaterialsNum = ReadInt8()
             for material in range(MaterialsNum):
@@ -2167,9 +2118,9 @@ def main(context):
                     Seperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
                     MasksImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
                     MasksImage.image = GetImage(SpecularMasks)
-                    CurrentMat.node_tree.links.new(Seperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular on BSDF
-                    CurrentMat.node_tree.links.new(Seperator.outputs['G'], bsdf.inputs["Metallic"])  # Red -> Metallic on BSDF
-                    CurrentMat.node_tree.links.new(Seperator.outputs['B'], bsdf.inputs["Roughness"])  # Red -> Roughness on BSDF
+                    CurrentMat.node_tree.links.new(Seperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular
+                    CurrentMat.node_tree.links.new(Seperator.outputs['G'], bsdf.inputs["Metallic"]) # Green -> Metallic
+                    CurrentMat.node_tree.links.new(Seperator.outputs['B'], bsdf.inputs["Roughness"]) # Blue -> Roughness
                     CurrentMat.node_tree.links.new(Seperator.inputs['Image'], MasksImage.outputs["Color"])
                     
                 # Normals
@@ -2181,8 +2132,8 @@ def main(context):
                     CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
                     CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
 
-        except:
-            print("Failed for some reason")
+        except Exception as e:
+             print(e)
         finally:
             file.close()
 
@@ -2206,18 +2157,6 @@ class SimpleOperator(bpy.types.Operator):
     def execute(self, context):
         main(context)
         return {'FINISHED'}
-
-
-def register():
-    bpy.utils.register_class(SimpleOperator)
-
-
-def unregister():
-    bpy.utils.unregister_class(SimpleOperator)
-
-
-if __name__ == "__main__":
-    register()
 
 class TModelSourcePath(bpy.types.Operator):
     bl_idname = "misc.TModelPath"
@@ -2250,15 +2189,22 @@ class LayoutDemoPanel(bpy.types.Panel):
         row.operator("object.remove_mesh")
 
         
-        
-        
 def register():
+    from bpy.utils import register_class
+        
+
+    bpy.utils.register_class(RemoveMesh)
+    bpy.utils.register_class(SimpleOperator)
     bpy.utils.register_class(LayoutDemoPanel)
-
-
+    
 def unregister():
+    from bpy.utils import unregister_class
+        
+
+    bpy.utils.unregister_class(RemoveMesh)
+    bpy.utils.unregister_class(SimpleOperator)
     bpy.utils.unregister_class(LayoutDemoPanel)
-
-
+    del bpy.types.Scene.pskpsa_import
+    
 if __name__ == "__main__":
     register()

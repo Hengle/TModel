@@ -17,7 +17,7 @@ namespace TModel.Modules
 {
     // Module for selecting items for exporting.
     // ItemPreviewModule shows the selected item from this module.
-    internal class GameContentModule : ModuleBase
+    public class GameContentModule : ModuleBase
     {
         // The number of items that can be shown on a page.
         // It limits the number of items that 
@@ -32,7 +32,7 @@ namespace TModel.Modules
         int PageNum = 1;
         int TotalPages = 0;
 
-        EItemFilterType? Filter = null;
+        EItemFilterType? Filter = EItemFilterType.Character;
 
         public override string ModuleName => "Game Content";
 
@@ -53,8 +53,6 @@ namespace TModel.Modules
 
         CButton LeftButton = new CButton("Previous Page") { Width = 150 };
         CButton RightButton = new CButton("Next Page") { Width = 150 };
-
-        Dictionary<ItemTileInfo, GameContentItem> LoadedContentItems = new Dictionary<ItemTileInfo, GameContentItem>();
 
         public static readonly double MinItemSize = 50;
 
@@ -140,6 +138,7 @@ namespace TModel.Modules
             {
                 CRadioButton radioButton = new CRadioButton() { Content = new CoreTextBlock(name, 20) };
                 radioButton.Tag = name;
+                radioButton.IsChecked = Filter.ToString() == name.ToString();
                 FilterTypesPanel.Children.Add(radioButton);
 
                 radioButton.Click += (sender, args) =>
@@ -153,7 +152,6 @@ namespace TModel.Modules
                         Filter = FilterType;
                         CurrentExporter = FortUtils.Exporters[FilterType];
                         PageNum = 1;
-                        LoadedContentItems.Clear();
                         LoadPages(CurrentExporter.LoadedPreviews.ToArray());
                         LoadFilterType();
                         UpdatePageCount();
@@ -162,7 +160,7 @@ namespace TModel.Modules
                 };
             }
 
-            Root.Children.Add(FilterTypesPanel);
+
 
             LeftButton.Click += () =>
             {
@@ -188,7 +186,7 @@ namespace TModel.Modules
 
             Root.KeyDown += (sender, args) =>
             {
-                if (args.Key == Key.LeftCtrl)
+                if (args.Key == Key.LeftCtrl && !SearchBox.IsFocused)
                 {
                     ItemPanelScroller.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     CanZoom = true;
@@ -226,7 +224,7 @@ namespace TModel.Modules
 
             Root.Children.Add(SearchBox);
             Root.Children.Add(ButtonPanel);
-            Root.Children.Add(FilterOptions);
+            Root.Children.Add(FilterTypesPanel);
             Root.Children.Add(ItemPanelScroller);
 
             Root.Children.Add(LoadFilesWarningText);
@@ -292,10 +290,7 @@ namespace TModel.Modules
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
-                if (LoadedContentItems.TryGetValue(Previews[i], out GameContentItem LoadedItem))
-                    ItemPanel.Children.Add(LoadedItem);
-                else
-                    ItemPanel.Children.Add(LoadedContentItems[Previews[i]] = new GameContentItem(Previews[i]));
+                ItemPanel.Children.Add(new GameContentItem(Previews[i]));
             }
         }
 
@@ -380,6 +375,7 @@ namespace TModel.Modules
                         });
                 });
 
+                UpdateSize();
             }
         }
     }

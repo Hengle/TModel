@@ -1,5 +1,6 @@
 ﻿using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Material;
+using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
@@ -44,19 +45,22 @@ namespace TModel.Export.Materials
 
             void WriteTexture(TextureRef texture)
             {
-                Writer.Write((bool)(texture != null));
                 if (texture != null)
                 {
-                    texture.Save(out string TexturePath);
-                    Writer.Write(TexturePath);
+                    bool Successful = texture.Save(out string TexturePath);
+                    Writer.Write((bool)(Successful));
+                    if (Successful)
+                    {
+                        Writer.Write(TexturePath);
+                    }
                 }
             }
         }
 
-        protected void TryGetSetTex(string name, ref TextureRef value)
+        protected void TrySetTexture(string name, ref TextureRef value)
         {
             if (Textures.TryGetValue(name, out FPackageIndex texture))
-                value = new TextureRef(texture);
+                value = new TextureRef(texture.Load<UTexture2D>());
         }
 
         public static CMaterial CreateReader(UMaterialInstanceConstant material)

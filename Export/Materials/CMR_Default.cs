@@ -18,9 +18,9 @@ namespace TModel.Export.Materials
 
         protected override void ReadParameters()
         {
-            TryGetSetTex("Diffuse", ref Diffuse);
-            TryGetSetTex("SpecularMasks", ref SpecularMasks);
-            TryGetSetTex("Normals", ref Normals);
+            TrySetTexture("Diffuse", ref Diffuse);
+            TrySetTexture("SpecularMasks", ref SpecularMasks);
+            TrySetTexture("Normals", ref Normals);
         }
     }
 }

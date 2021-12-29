@@ -72,8 +72,6 @@ namespace TModel
             });
         }
 
-
-
         public void RemoveModule(ModuleBase module)
         {
 
@@ -83,9 +81,7 @@ namespace TModel
         {
             for (int i = 0; i < Modules.Count; i++)
             {
-                Type SearchType = typeof(T);
-                Type GivenType = Modules[i].GetType();
-                if (SearchType == GivenType)
+                if (typeof(T) == Modules[i].GetType())
                 {
                     TabBar.SelectedIndex = i - 1;
                     return true;

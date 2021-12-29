@@ -28,8 +28,11 @@ namespace TModel.MainFrame.Widgets
 
             MouseLeftButtonDown += (sender, args) => 
             {
-                Background = ClickBrush;
-                Click?.Invoke();
+                if (IsEnabled)
+                {
+                    Background = ClickBrush;
+                    Click?.Invoke();
+                }
             };
 
             MouseLeftButtonUp += (sender, args) =>
@@ -48,22 +51,31 @@ namespace TModel.MainFrame.Widgets
             };
         }
 
+        CoreTextBlock? CTextBlock;
+
         public CButton(string text, double size = 20, Action clickEvent = null) : this()
         {
             Padding = new Thickness(5);
             if (clickEvent != null)
                 Click += clickEvent;
-            Child = new CoreTextBlock(text, size)
+            CTextBlock = new CoreTextBlock(text, size)
             {
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             };
+            Child = CTextBlock;
         }
 
         public CButton(string text, Action? clickEvent) : this(text)
         {
             if (clickEvent != null)
                 Click += clickEvent;
+        }
+
+        public void SetText(string newText)
+        {
+            if (CTextBlock != null)
+                CTextBlock.Text = newText;
         }
     }
 }

@@ -32,7 +32,7 @@ namespace TModel
         /// <summary>
         /// List of <see cref="ModuleContainer"/>s that are currently being shown.
         /// </summary>
-        private List<ModuleContainer> Modules { get; } = new List<ModuleContainer>();
+        private List<ModuleContainer> Containers { get; } = new List<ModuleContainer>();
 
         public ModulePanel(Orientation direction = Orientation.Horizontal)
         {
@@ -44,7 +44,7 @@ namespace TModel
         public void MakeSeperator(ModuleContainer ContainerToReplace, ModuleContainer NewModule)
         {
             // Module exists in this panel.
-            if (Modules.IndexOf(ContainerToReplace) == -1) throw new ArgumentException("Module does not exist in panel", nameof(ContainerToReplace));
+            if (Containers.IndexOf(ContainerToReplace) == -1) throw new ArgumentException("Module does not exist in panel", nameof(ContainerToReplace));
             // Gets index of current module for replacing it.
             int Index = Children.IndexOf(ContainerToReplace);
             // Removes original module.
@@ -67,7 +67,7 @@ namespace TModel
 
         public bool TryShowModule<T>()
         {
-            foreach (var item in Modules)
+            foreach (var item in Containers)
                 if (item.TryShowModule<T>())
                     return true;
             return false;
@@ -101,7 +101,7 @@ namespace TModel
         public void AddModule(ModuleContainer moduleContainer)
         {
             AddSplitter();
-            Modules.Add(moduleContainer);
+            Containers.Add(moduleContainer);
             AddElement(moduleContainer, false);
         }
 

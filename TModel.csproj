@@ -1,14 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-	  <OutputType>WinExe</OutputType>
-	  <TargetFramework>net5.0-windows7.0</TargetFramework>
-	  <Nullable>annotations</Nullable>
-	  <UseWPF>true</UseWPF>
-	  <StartupObject>TModel.App</StartupObject>
-	  <ApplicationIcon>NewTModelIcon.ico</ApplicationIcon>
-	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	  <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-	  <DebugType>full</DebugType>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net5.0-windows7.0</TargetFramework>
+		<Nullable>annotations</Nullable>
+		<UseWPF>true</UseWPF>
+		<StartupObject>TModel.App</StartupObject>
+		<ApplicationIcon>NewTModelIcon.ico</ApplicationIcon>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+		<IsPackable>false</IsPackable>
+		<IsPublishable>true</IsPublishable>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<PublishSingleFile Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<DebugType>full</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
