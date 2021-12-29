@@ -2080,10 +2080,35 @@ def main(context):
                     Skeleton.select_set(False)
                     Mesh = bpy.data.objects[Skeleton.name.replace(".ao", ".mo")]
                     Mesh.select_set(True)
+                    Meshes.append(Mesh)
+                    Skeletons.append(Skeleton)
                     bpy.ops.object.shade_smooth()
                 else:
                     Mesh = bpy.context.selected_objects[0]
+                    Meshes.append(Mesh)
                     bpy.ops.object.shade_smooth()
+
+                # Deletes all unsused bones
+                if IsSkeleton:
+                    bpy.ops.object.posemode_toggle()
+                    for PoseBone in bpy.context.visible_pose_bones:
+                        if PoseBone.bone_group is not None:
+                            PoseBone.bone.select = True
+                        else:
+                            PoseBone.bone.select = False
+                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.armature.delete()
+                    bpy.ops.object.editmode_toggle()
+
+                    bpy.ops.object.select_all(action='DESELECT')
+
+            if IsSkeleton:
+                for skeleton in Skeletons:
+                    skeleton.select_set(True)
+                bpy.ops.object.join()
+                MainSkeleton = bpy.context.selected_objects[0]
+                for mesh in Meshes:
+                    mesh.modifiers[0].object = MainSkeleton
 
             def ReadTexture():
                 isValidTexture = ReadBool()

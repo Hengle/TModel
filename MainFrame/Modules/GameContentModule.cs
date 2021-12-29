@@ -1,6 +1,7 @@
 ﻿using CUE4Parse.UE4.Assets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -58,6 +59,8 @@ namespace TModel.Modules
 
         CancellationTokenSource cTokenSource = new CancellationTokenSource();
 
+        CoreTextBox SearchBox = new CoreTextBox() { MinHeight = 40 };
+
         public static ExporterBase CurrentExporter = FortUtils.characterExporter;
 
         public GameContentModule() : base()
@@ -95,15 +98,14 @@ namespace TModel.Modules
 
             Grid ButtonPanel = new Grid();
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition());
+            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition());
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-
-            CoreTextBox SearchBox = new CoreTextBox() { MinHeight = 40 };
+            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
             SearchBox.TextChanged += (sender, args) =>
             {
-                string SearchTerm = SearchBox.Text.Trim().Normalize();
+                string SearchTerm = SearchBox.Text.Normalize().Trim();
                 ItemTileInfo[] ItemTiles = CurrentExporter.LoadedPreviews.ToArray();
                 List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
                 foreach (var item in ItemTiles)
@@ -117,13 +119,17 @@ namespace TModel.Modules
             };
 
             Grid.SetColumn(PageNumberText, 1);
-            Grid.SetColumn(LoadedCountText, 2);
+            Grid.SetColumn(LoadedCountText, 3);
 
             ButtonPanel.Children.Add(PageNumberText);
             ButtonPanel.Children.Add(LoadedCountText);
 
+            CButton OpenExportsButton = new CButton("Open Exports", 15, () => Process.Start("explorer.exe", Preferences.ExportsPath)) { MaxWidth = 110 };
+            Grid.SetColumn(OpenExportsButton, 2);
+            ButtonPanel.Children.Add(OpenExportsButton);
+
             Grid.SetColumn(LeftButton, 0);
-            Grid.SetColumn(RightButton, 3);
+            Grid.SetColumn(RightButton, 4);
 
             ButtonPanel.Children.Add(LeftButton);
             ButtonPanel.Children.Add(RightButton);
@@ -136,7 +142,7 @@ namespace TModel.Modules
 
             foreach (string name in Enum.GetNames(typeof(EItemFilterType)))
             {
-                CRadioButton radioButton = new CRadioButton() { Content = new CoreTextBlock(name, 20) };
+                CRadioButton radioButton = new CRadioButton() { Content = new CoreTextBlock(name, 20), Margin = new Thickness(5,0,5,0) };
                 radioButton.Tag = name;
                 radioButton.IsChecked = Filter.ToString() == name.ToString();
                 FilterTypesPanel.Children.Add(radioButton);
