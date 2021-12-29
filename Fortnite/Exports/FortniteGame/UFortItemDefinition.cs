@@ -95,7 +95,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             PurchaseItemLimit = GetOrDefault<FScalableFloat>(nameof(PurchaseItemLimit));
             FrontendPreviewScale = GetOrDefault<float>(nameof(FrontendPreviewScale));
             TooltipClass = GetOrDefault<UClass>(nameof(TooltipClass));
-            StatList = GetOrDefault<UFortTooltipDisplayStatsList>(nameof(StatList));
+            // StatList = GetOrDefault<UFortTooltipDisplayStatsList>(nameof(StatList)); // Doesnt load - dont know why
             RatingLookup = GetOrDefault<FCurveTableRowHandle>(nameof(RatingLookup));
             WidePreviewImage = GetOrDefault<FSoftObjectPath>(nameof(WidePreviewImage));
             DisplayAssetPath = GetOrDefault<FSoftObjectPath>(nameof(DisplayAssetPath));

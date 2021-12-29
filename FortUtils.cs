@@ -17,6 +17,8 @@ namespace TModel
         public static GliderExporter gliderExporter { get; } = new GliderExporter();
         public static PickaxeExporter pickaxeExporter { get; } = new PickaxeExporter();
         public static WeaponExporter weaponExporter { get; } = new WeaponExporter();
+        public static PropExporter propExporter { get; } = new PropExporter();
+        public static PlaysetExporter PlaysetExporter { get; } = new PlaysetExporter();
 
         public static Dictionary<EItemFilterType, ExporterBase> Exporters { get; } = new()
         {
@@ -25,6 +27,8 @@ namespace TModel
             [EItemFilterType.Glider] = gliderExporter,
             [EItemFilterType.Pickaxe] = pickaxeExporter,
             [EItemFilterType.Weapon] = weaponExporter,
+            [EItemFilterType.Prop] = propExporter,
+            [EItemFilterType.Playset] = PlaysetExporter,
         };
 
         // Gets all paths that could be a possible valid export for the given type
@@ -63,6 +67,8 @@ namespace TModel
         Backpack,
         Glider,
         Pickaxe,
-        Weapon
+        Weapon,
+        Prop,
+        Playset
     }
 }

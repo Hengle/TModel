@@ -24,6 +24,8 @@ namespace TModel.Export.Materials
 
 
         protected TextureRef? Diffuse = null;
+        protected TextureRef? SpecularMasks = null;
+        protected TextureRef? Normals = null;
 
         protected CMaterial(UMaterialInstanceConstant material)
         {
@@ -37,38 +39,39 @@ namespace TModel.Export.Materials
             Writer.Write(Name);
 
             WriteTexture(Diffuse);
+            WriteTexture(SpecularMasks);
+            WriteTexture(Normals);
 
             void WriteTexture(TextureRef texture)
             {
                 Writer.Write((bool)(texture != null));
                 if (texture != null)
                 {
-                    Diffuse.Save(out string TexturePath);
+                    texture.Save(out string TexturePath);
                     Writer.Write(TexturePath);
                 }
             }
         }
 
-
+        protected void TryGetSetTex(string name, ref TextureRef value)
+        {
+            if (Textures.TryGetValue(name, out FPackageIndex texture))
+                value = new TextureRef(texture);
+        }
 
         public static CMaterial CreateReader(UMaterialInstanceConstant material)
         {
             var Parent = material.Parent.Name.Text;
             switch (Parent)
             {
-                case "M_FN_Weapon_MASTER":
-                    return new CMR_Weapon(material);
-                case "WeaponMat_Base_Do_Not_Use_Outdated":
-                    return new CMR_Weapon(material);
                 default:
 #if NOTIFY_MISSING_MATERIAL_TYPE
                     throw new Exception($"Material type '{Parent}' is unsupported.");
 #else
-                    return new CMR_Weapon(material);
+                    return new CMR_Default(material);
 #endif
             }
         }
-
 
         protected abstract void ReadParameters();
     }

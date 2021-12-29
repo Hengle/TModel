@@ -15,9 +15,9 @@ namespace TModel
 
         // Folder for storing user settings, Fortnite mappings and other data for the software.
         public static string StorageFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TModel");
-        public static string ExportsPath = Path.Combine(Preferences.StorageFolder, "Exports");
+        public static string ExportsPath { get; } = Path.Combine(StorageFolder, "Exports");
 
-        private static string SettingsFile = Path.Combine(StorageFolder, "Settings.settings");
+        public static string SettingsFile { get; } = Path.Combine(StorageFolder, "Settings.settings");
 
         public static string? GameDirectory { get; set; }
 
@@ -33,12 +33,15 @@ namespace TModel
 
         public static void Read()
         {
-            CBinaryReader Reader = new CBinaryReader(File.Open(SettingsFile, FileMode.Open, FileAccess.Read));
-            if (Reader.BaseStream.Length != 0)
+            if (File.Exists(SettingsFile))
             {
-                GameDirectory = Reader.ReadString();
+                CBinaryReader Reader = new CBinaryReader(File.Open(SettingsFile, FileMode.Open, FileAccess.Read));
+                if (Reader.BaseStream.Length != 0)
+                {
+                    GameDirectory = Reader.ReadString();
+                }
+                Reader.Close();
             }
-            Reader.Close();
         }
     }
 
@@ -65,7 +68,7 @@ namespace TModel
 
         public override string ReadString()
         {
-            int length = ReadInt32();
+            int length = ReadByte();
             return new string(ReadChars(length));
         }
     }

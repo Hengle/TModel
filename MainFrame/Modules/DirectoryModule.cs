@@ -16,6 +16,7 @@ using CUE4Parse.UE4.Assets.Exports;
 using System.Windows.Input;
 using TModel.MainFrame.Modules;
 
+#if !RELEASE
 namespace TModel.Modules
 {
     /** Navigation of the game files.
@@ -24,6 +25,7 @@ namespace TModel.Modules
         the most recently clicked one.
         TODO: add tile/grid view for asset panel and add custom previews on those tiles
     **/
+
     internal class DirectoryModule : ModuleBase
     {
         public static Action<IEnumerable<UObject>?> SelectedItemChanged;
@@ -307,3 +309,4 @@ namespace TModel.Modules
         }
     }
 }
+#endif

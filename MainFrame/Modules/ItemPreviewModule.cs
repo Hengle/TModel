@@ -36,8 +36,8 @@ namespace TModel.Modules
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
             Grid ItemDisplay = new Grid() { Margin = new Thickness(20) };
-            ItemDisplay.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
             ItemDisplay.RowDefinitions.Add(new RowDefinition());
+            ItemDisplay.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
             Root.Children.Add(ItemDisplay);
 

@@ -44,6 +44,7 @@ namespace CUE4Parse.MappingsProvider
 
                 if (!File.Exists(MappingsFile))
                 {
+#if false
                     var jsonText = _specificVersion != null
     ? await LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
     : await LoadEndpoint(BenMappingsEndpoint);
@@ -77,8 +78,10 @@ namespace CUE4Parse.MappingsProvider
                         usmapUrl = json[0]["url"]?.ToString()!;
                         usmapName = json[0]["fileName"]?.ToString()!;
                     }
-
                     usmapBytes = await LoadEndpointBytes(usmapUrl);
+#else
+                    usmapBytes = await LoadEndpointBytes(@"https://benbot.app/api/v1/mappings/++Fortnite+Release-19.01-CL-18489740-Windows_oo.usmap");
+#endif
                     if (usmapBytes == null)
                     {
                         Log.Warning("Failed to download usmap");

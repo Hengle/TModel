@@ -43,13 +43,9 @@ namespace TModel.MainFrame.Modules
 
             SaveButton.Click += () =>
             {
-                SaveButton.IsEnabled = false;
-
                 Preferences.GameDirectory = GameDirectoryText.Text;
 
                 Preferences.Save();
-
-                SaveButton.IsEnabled = true;
             };
 
             ButtonPanel.Children.Add(SaveButton);

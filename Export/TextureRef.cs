@@ -4,6 +4,7 @@ using System.Windows.Media.Imaging;
 using static CUE4Parse_Conversion.Textures.TextureDecoder;
 using System.IO;
 using CUE4Parse.UE4.Objects.UObject;
+using CUE4Parse.Utils;
 
 namespace TModel.Export
 {
@@ -20,34 +21,41 @@ namespace TModel.Export
 
         private SKImage? _SKImage;
 
+        private FPackageIndex? _PackageIndex;
 
         private byte[] ImageBuffer;
 
         // For unloaded UTexture2D
-        public TextureRef(FPackageIndex? texture) : this(texture.Load<UTexture2D>())
+        public TextureRef(FPackageIndex? index)
         {
-        
+            _PackageIndex = index;
         }
 
         public TextureRef(BitmapImage? image)
         {
             _BitmapImage = image;
+            Name = StringUtils.RandomString();
         }
 
         public TextureRef(UTexture2D? texture)
         {
             _UTexture2D = texture;
-            Name = _UTexture2D?.Name ?? Path.GetRandomFileName();
+            Name = texture.Name;
         }
 
         public TextureRef(SKImage? image)
         {
             _SKImage = image;
+            Name = StringUtils.RandomString();
         }
 
         // Try get images
         public bool TryGet_UTexture2D(out UTexture2D? result)
         {
+            if (_UTexture2D == null && _PackageIndex != null)
+            {
+                _UTexture2D = _PackageIndex.Load<UTexture2D>();
+            }
             result = _UTexture2D;
             return _UTexture2D != null;
         }
@@ -90,13 +98,21 @@ namespace TModel.Export
                 BitmapEncoder encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
 
-                using (var fileStream = new FileStream(SavePath, FileMode.Create))
+                try
                 {
+                    FileStream fileStream = new FileStream(SavePath, FileMode.Create);
                     encoder.Save(fileStream);
                 }
+                catch
+                {
+                    return false;
+                }
+
                 return true;
             }
             return false;
         }
+
+        public override string ToString() => _UTexture2D?.Name ?? Name;
     }
 }

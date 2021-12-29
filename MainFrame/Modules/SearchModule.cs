@@ -1,4 +1,6 @@
-﻿using CUE4Parse.FileProvider;
+﻿#if !RELEASE
+
+using CUE4Parse.FileProvider;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -125,3 +127,5 @@ namespace TModel.MainFrame.Modules
         }
     }
 }
+
+#endif

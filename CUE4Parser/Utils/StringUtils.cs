@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CUE4Parse.Encryption.Aes;
@@ -8,6 +9,16 @@ namespace CUE4Parse.Utils
 {
     public static class StringUtils
     {
+        public static string RandomString(int length = 10)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+            var random = new Random();
+            var randomString = new string(Enumerable.Repeat(chars, length)
+                                                    .Select(s => s[random.Next(s.Length)]).ToArray());
+            return randomString;
+        }
+
         public static int NumOccurrences(this string s, char delimiter)
         {
             int Counter = 0;

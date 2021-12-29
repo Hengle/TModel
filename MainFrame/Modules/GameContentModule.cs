@@ -32,7 +32,7 @@ namespace TModel.Modules
         int PageNum = 1;
         int TotalPages = 0;
 
-        EItemFilterType Filter = EItemFilterType.Pickaxe;
+        EItemFilterType? Filter = null;
 
         public override string ModuleName => "Game Content";
 
@@ -54,7 +54,7 @@ namespace TModel.Modules
         CButton LeftButton = new CButton("Previous Page") { Width = 150 };
         CButton RightButton = new CButton("Next Page") { Width = 150 };
 
-        Dictionary<int, GameContentItem> LoadedContentItems = new Dictionary<int, GameContentItem>();
+        Dictionary<ItemTileInfo, GameContentItem> LoadedContentItems = new Dictionary<ItemTileInfo, GameContentItem>();
 
         public static readonly double MinItemSize = 50;
 
@@ -83,7 +83,12 @@ namespace TModel.Modules
                 TextAlignment = TextAlignment.Center,
             };
 
-            FileManagerModule.FilesLoaded += () => LoadFilesWarningText.Visibility = Visibility.Collapsed;
+            FileManagerModule.FilesLoaded += () =>
+            {
+                LoadFilesWarningText.Visibility = Visibility.Collapsed;
+                if (Filter != null)
+                    LoadFilterType();
+            };
 
             WrapPanel FilterOptions = new WrapPanel();
 
@@ -96,15 +101,16 @@ namespace TModel.Modules
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition());
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-            CoreTextBox SearchBox = new CoreTextBox() { MinWidth = 600, MinHeight = 40 };
+            CoreTextBox SearchBox = new CoreTextBox() { MinHeight = 40 };
 
             SearchBox.TextChanged += (sender, args) =>
             {
+                string SearchTerm = SearchBox.Text.Trim().Normalize();
                 ItemTileInfo[] ItemTiles = CurrentExporter.LoadedPreviews.ToArray();
                 List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
                 foreach (var item in ItemTiles)
                 {
-                    if (item.Name.Contains(SearchBox.Text, StringComparison.InvariantCultureIgnoreCase))
+                    if (item.Name.Contains(SearchTerm, StringComparison.CurrentCultureIgnoreCase))
                     {
                         MatchingPreviews.Add(item);
                     }
@@ -233,7 +239,7 @@ namespace TModel.Modules
         void LoadFilterType()
         {
             if (!CurrentExporter.bHasGameFiles)
-                CurrentExporter.GameFiles = FortUtils.GetPossibleFiles(Filter);
+                CurrentExporter.GameFiles = FortUtils.GetPossibleFiles(Filter ?? EItemFilterType.Character);
 
             Task.Run(() =>
             {
@@ -242,23 +248,27 @@ namespace TModel.Modules
                     foreach (var gamefile in CurrentExporter.GameFiles)
                     {
                         cTokenSource.Token.ThrowIfCancellationRequested();
-                        if (FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
+                        try
                         {
-                            if (!gamefile.IsItemLoaded)
+                            if (FortUtils.TryLoadItemPreviewInfo(Filter ?? EItemFilterType.Character, gamefile, out ItemTileInfo itemPreviewInfo))
                             {
-                                CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
-                                App.Refresh(() =>
+                                if (!gamefile.IsItemLoaded)
                                 {
-                                    UpdatePageCount();
-                                    LoadedCountText.Text = $"{CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
-                                    if (PageNum == TotalPages)
+                                    CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
+                                    App.Refresh(() =>
                                     {
-                                        ItemPanel.Children.Add(new GameContentItem(itemPreviewInfo));
-                                    }
-                                });
-                                gamefile.IsItemLoaded = true;
+                                        UpdatePageCount();
+                                        LoadedCountText.Text = $"{CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
+                                        if (PageNum == TotalPages)
+                                        {
+                                            ItemPanel.Children.Add(new GameContentItem(itemPreviewInfo));
+                                        }
+                                    });
+                                    gamefile.IsItemLoaded = true;
+                                }
                             }
                         }
+                        catch { } // Don't care
                     }
                 }
                 else
@@ -282,10 +292,10 @@ namespace TModel.Modules
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
-                if (LoadedContentItems.TryGetValue(i, out GameContentItem LoadedItem))
+                if (LoadedContentItems.TryGetValue(Previews[i], out GameContentItem LoadedItem))
                     ItemPanel.Children.Add(LoadedItem);
                 else
-                    ItemPanel.Children.Add(LoadedContentItems[i] = new GameContentItem(Previews[i]));
+                    ItemPanel.Children.Add(LoadedContentItems[Previews[i]] = new GameContentItem(Previews[i]));
             }
         }
 
@@ -363,7 +373,10 @@ namespace TModel.Modules
                     if (Info.PreviewIcon.TryGet_BitmapImage(out BitmapImage bitmapImage))
                         App.Refresh(() => 
                         {
-                            Root.Children.Add(new Image() { Source = bitmapImage }); 
+                            Root.Children.Add(new Image()
+                            {
+                                Source = bitmapImage,
+                            }); 
                         });
                 });
 

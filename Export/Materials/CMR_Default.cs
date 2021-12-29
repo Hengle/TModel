@@ -9,19 +9,18 @@ using System.Threading.Tasks;
 namespace TModel.Export.Materials
 {
     // M_FN_Weapon_MASTER
-    public class CMR_Weapon : CMaterial
+    public class CMR_Default : CMaterial
     {
-        public CMR_Weapon(UMaterialInstanceConstant material) : base(material)
+        public CMR_Default(UMaterialInstanceConstant material) : base(material)
         {
 
         }
 
         protected override void ReadParameters()
         {
-            if (Textures.TryGetValue("Diffuse", out FPackageIndex diffuse))
-            {
-                Diffuse = new TextureRef(diffuse);
-            }
+            TryGetSetTex("Diffuse", ref Diffuse);
+            TryGetSetTex("SpecularMasks", ref SpecularMasks);
+            TryGetSetTex("Normals", ref Normals);
         }
     }
 }

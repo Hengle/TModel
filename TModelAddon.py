@@ -18,12 +18,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Import Unreal Skeleton Mesh (.psk)/Animation Set (.psa) (280)",
-    "author": "Darknet, flufy3d, camg188, befzz",
+    "name": "TModel Importer Addon",
+    "author": "Tinfoilhat",
     "version": (2, 7, 13),
     "blender": (2, 80, 0),
-    "location": "File > Import > Skeleton Mesh (.psk)/Animation Set (.psa) OR View3D > Tool Shelf (key T) > Misc. tab",
-    "description": "Import Skeleton Mesh / Animation Data",
+    "location": "Scene Properties > TModel Imporeter",
+    "description": "Import exports from TModel",
     "warning": "",
     "wiki_url": "https://github.com/Befzz/blender3d_import_psk_psa",
     "category": "Import-Export",
@@ -74,6 +74,10 @@ from os.path import exists
 from mathutils import Euler
 from struct import unpack, unpack_from, Struct
 import time
+import os
+
+
+ExportDataPath = os.getenv('APPDATA') + "\\TModel\\BlenderData.export"
 
 #DEV
 # from mathutils import *
@@ -2053,7 +2057,7 @@ def removemesh(context):
         bpy.ops.object.delete()
     
 class RemoveMesh(bpy.types.Operator):
-    """Load Cosmetic"""
+    """Removes all meshes in scene (DONT USE THIS)"""
     bl_idname = "object.remove_mesh"
     bl_label = "Remove Mesh"
 
@@ -2092,17 +2096,15 @@ def GetImage(name):
 
 def main(context):
 
-    DataPath = "C:\\Users\\bigho\\AppData\\Roaming\\TModel\\BlenderData.export"
-
     IsSkeleton = True
 
     Meshes = []
     Skeletons = []
 
     # Loads file with cosmetic info
-    if exists(DataPath):
+    if exists(ExportDataPath):
         try:
-            file = open(DataPath, "br")
+            file = open(ExportDataPath, "br")
 
             def ReadString():
                 StringSize = int.from_bytes(file.read(1), "big")
@@ -2142,7 +2144,9 @@ def main(context):
             MaterialsNum = ReadInt8()
             for material in range(MaterialsNum):
                 MatName = ReadString()
-                DiffusePath = ReadTexture()
+                Diffuse = ReadTexture()
+                SpecularMasks = ReadTexture()
+                Normals = ReadTexture()
 
                 CurrentMat = bpy.data.materials[MatName]
                 CurrentMat.use_nodes = True
@@ -2152,9 +2156,31 @@ def main(context):
                 ShaderOutput.location = [300, 0]
                 CurrentMat.node_tree.links.new(ShaderOutput.inputs[0], bsdf.outputs[0])
 
-                DiffuseImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                DiffuseImage.image = GetImage(DiffusePath)
-                CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseImage.outputs[0]) # Diffuse Image (Color) -> Base Color on BSDF
+                # Diffuse
+                if Diffuse is not None:
+                    DiffuseNode = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                    DiffuseNode.image = GetImage(Diffuse)
+                    CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseNode.outputs[0])
+                
+                # SpecularMasks
+                if SpecularMasks is not None:
+                    Seperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                    MasksImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                    MasksImage.image = GetImage(SpecularMasks)
+                    CurrentMat.node_tree.links.new(Seperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular on BSDF
+                    CurrentMat.node_tree.links.new(Seperator.outputs['G'], bsdf.inputs["Metallic"])  # Red -> Metallic on BSDF
+                    CurrentMat.node_tree.links.new(Seperator.outputs['B'], bsdf.inputs["Roughness"])  # Red -> Roughness on BSDF
+                    CurrentMat.node_tree.links.new(Seperator.inputs['Image'], MasksImage.outputs["Color"])
+                    
+                # Normals
+                if Normals is not None:
+                    NormalsImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                    NormalsImage.image = GetImage(Normals)
+                    NormalsImage.image.colorspace_settings.name = 'Non-Color'
+                    NormalMap = CurrentMat.node_tree.nodes.new('ShaderNodeNormalMap')
+                    CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
+                    CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
+
         except:
             print("Failed for some reason")
         finally:
@@ -2169,9 +2195,9 @@ def main(context):
 
 
 class SimpleOperator(bpy.types.Operator):
-    """Load Cosmetic"""
+    """Imports exported item from TModel"""
     bl_idname = "object.simple_operator"
-    bl_label = "Load Fortnite Item"
+    bl_label = "Import TModel Item"
 
     @classmethod
     def poll(cls, context):
@@ -2202,8 +2228,8 @@ class TModelSourcePath(bpy.types.Operator):
 # User interface widget
 
 class LayoutDemoPanel(bpy.types.Panel):
-    """Creates a Panel in the scene context of the properties editor"""
-    bl_label = "Fortnite Importer"
+    """TModel Importer Panel"""
+    bl_label = "TModel Importer"
     bl_idname = "SCENE_PT_layout"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -2223,9 +2249,6 @@ class LayoutDemoPanel(bpy.types.Panel):
         row.scale_y = 1.0
         row.operator("object.remove_mesh")
 
-        row = layout.row()
-        row.scale_y = 1.0
-        row.operator("misc.TModelPath")
         
         
         

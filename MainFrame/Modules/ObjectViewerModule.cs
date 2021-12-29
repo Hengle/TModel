@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if !RELEASE
+
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using CUE4Parse.UE4.Assets.Exports;
@@ -41,3 +43,5 @@ namespace TModel.Modules
         }
     }
 }
+
+#endif
