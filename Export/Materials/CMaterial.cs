@@ -1,5 +1,6 @@
 ﻿using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Material;
+using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
@@ -69,12 +70,13 @@ namespace TModel.Export.Materials
             switch (Parent)
             {
                 default:
-#if NOTIFY_MISSING_MATERIAL_TYPE
-                    throw new Exception($"Material type '{Parent}' is unsupported.");
-#else
                     return new CMR_Default(material);
-#endif
             }
+        }
+
+        public FSkeletalMaterial GetSkeletalMaterial() 
+        {
+            return new FSkeletalMaterial() { MaterialSlotName = Name, Material = new ResolvedLoadedObject(Material) };
         }
 
         protected abstract void ReadParameters();

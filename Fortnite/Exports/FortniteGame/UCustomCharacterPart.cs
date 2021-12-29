@@ -2,11 +2,14 @@ using CUE4Parse.FN.Enums.FortniteGame;
 using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
 using CUE4Parse.FN.Structs.FortniteGame;
 using CUE4Parse.UE4.Assets.Exports;
+using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
+using System;
 using TModel.Export;
+using TModel.Export.Materials;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
@@ -75,7 +78,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             bSinglePieceMesh = GetOrDefault<bool>(nameof(bSinglePieceMesh));
             bSupportsColorSwatches = GetOrDefault<bool>(nameof(bSupportsColorSwatches));
             bAllowStaticRenderPath = GetOrDefault<bool>(nameof(bAllowStaticRenderPath));
-            MaterialOverrides = GetOrDefault<FCustomPartMaterialOverrideData[]>(nameof(MaterialOverrides));
+            MaterialOverrides = GetOrDefault<FCustomPartMaterialOverrideData[]>(nameof(MaterialOverrides), Array.Empty<FCustomPartMaterialOverrideData>());
             TextureParameters = GetOrDefault<FCustomPartTextureParameter[]>(nameof(TextureParameters));
             ScalarParameters = GetOrDefault<FCustomPartScalarParameter[]>(nameof(ScalarParameters));
             VectorParameters = GetOrDefault<FCustomPartVectorParameter[]>(nameof(VectorParameters));
@@ -92,9 +95,17 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 
         public ModelRef GetModelRef()
         {
-            ModelRef modelRef = new ModelRef(SkeletalMesh.Load<USkeletalMesh>());
+            ModelRef model = new ModelRef(SkeletalMesh.Load<USkeletalMesh>());
 
-            return modelRef;
+            foreach (var overrideMaterial in MaterialOverrides)
+            {
+                if (overrideMaterial.OverrideMaterial.Load() is UMaterialInstanceConstant InstanceMat)
+                {
+                    model.Materials[overrideMaterial.MaterialOverrideIndex] = CMaterial.CreateReader(InstanceMat);
+                }
+            }
+
+            return model;
         }
     }
 }

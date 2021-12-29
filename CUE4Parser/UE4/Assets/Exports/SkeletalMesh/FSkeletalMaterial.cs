@@ -15,6 +15,8 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
         public FName? ImportedMaterialSlotName;
         public FMeshUVChannelInfo? UVChannelData;
 
+        public FSkeletalMaterial() { }
+
         public FSkeletalMaterial(FAssetArchive Ar)
         {
             Material = new FPackageIndex(Ar).ResolvedObject;

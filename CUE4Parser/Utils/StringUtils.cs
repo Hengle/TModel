@@ -9,12 +9,18 @@ namespace CUE4Parse.Utils
 {
     public static class StringUtils
     {
+        public static string Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789qwertyuiopasdfghjklzxcvbnm";
+
+        public static char RandomCharacter()
+        {
+            Random random = new Random();
+            return Characters.ToArray()[random.Next(Characters.Length)];
+        }
+
         public static string RandomString(int length = 10)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
             var random = new Random();
-            var randomString = new string(Enumerable.Repeat(chars, length)
+            var randomString = new string(Enumerable.Repeat(Characters, length)
                                                     .Select(s => s[random.Next(s.Length)]).ToArray());
             return randomString;
         }

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TModel.Export;
+using TModel.MainFrame.Modules;
 using TModel.MainFrame.Widgets;
 using static TModel.ColorConverters;
 
@@ -54,7 +55,7 @@ namespace TModel.Modules
                 {
                     App.Refresh(() => 
                     {
-                        ExportButton.SetText("        ");
+                        ExportButton.SetText("          ");
                         ExportButton.IsEnabled = false;
                     });
                     Task.Run(() =>
@@ -66,12 +67,12 @@ namespace TModel.Modules
                     .OnCompleted(() => 
                     {
                         ExportButton.SetText("Complete");
-                        ExportButton.IsEnabled = true;
                     });
                 }
                 catch (Exception e)
                 {
                     ExportButton.SetText("Failed");
+                    App.ShowModule<LoggerModule>();
                     App.LogMessage(e.ToString());
 #if DEBUG
                     throw;
@@ -87,6 +88,7 @@ namespace TModel.Modules
             Root.Children.Add(ButtonPanel);
             GameContentModule.SelectionChanged += (ItemTileInfo Item) =>
             {
+                ExportButton.IsEnabled = true;
                 ExportButton.SetText("Export");
                 this.Package = Item.Package;
                 ItemDisplay.Children.Clear();

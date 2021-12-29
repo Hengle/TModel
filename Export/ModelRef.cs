@@ -14,24 +14,27 @@ namespace TModel.Export
 
         UStaticMesh? StaticMesh;
 
-        public List<CMaterial> Materials = new List<CMaterial>();
+        public List<CMaterial> Materials { get; } = new List<CMaterial>();
 
         public ModelRef(USkeletalMesh skeletalMesh)
         {
             SkeletalMesh = skeletalMesh;
-            foreach (var item in SkeletalMesh.Materials)
+            if (SkeletalMesh.Materials is not null)
             {
-                if (item.Material != null)
+                foreach (var item in SkeletalMesh.Materials)
                 {
-                    UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
-                    if (Material is UMaterialInstanceConstant InstanceConstant)
+                    if (item.Material != null)
                     {
-                        Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                        UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
+                        if (Material is UMaterialInstanceConstant InstanceConstant)
+                        {
+                            Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                        }
                     }
-                }
-                else
-                {
-                    App.LogMessage($"Material was null: {item?.MaterialSlotName ?? "NULL NAME"}");
+                    else
+                    {
+                        App.LogMessage($"Material was null: {item?.MaterialSlotName ?? "NULL NAME"}");
+                    }
                 }
             }
         }
@@ -47,11 +50,21 @@ namespace TModel.Export
             MeshExporter meshExporter = null;
             if (SkeletalMesh is USkeletalMesh skeletalMesh)
             {
+                for (int i = 0; i < Materials.Count; i++)
+                {
+                    skeletalMesh.Materials[i] = Materials[i].GetSkeletalMaterial();
+                }
                 meshExporter = new MeshExporter(skeletalMesh);
             }
             else if (StaticMesh is UStaticMesh staticMesh)
             {
                 meshExporter = new MeshExporter(staticMesh);
+            }
+            else
+            {
+#if DEBUG
+                throw new System.Exception("Failed to save mesh");
+#endif
             }
 
             if (meshExporter != null)

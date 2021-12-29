@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -44,10 +45,10 @@ namespace CUE4Parse.MappingsProvider
 
                 if (!File.Exists(MappingsFile))
                 {
-#if false
+#if true
                     var jsonText = _specificVersion != null
-    ? await LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
-    : await LoadEndpoint(BenMappingsEndpoint);
+    ? LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
+    : LoadEndpoint(BenMappingsEndpoint);
                     if (jsonText == null)
                     {
                         Log.Warning("Failed to get BenBot Mappings Endpoint");
@@ -105,18 +106,10 @@ namespace CUE4Parse.MappingsProvider
             }
         }
         
-        private async Task<string?> LoadEndpoint(string url)
+        private string LoadEndpoint(string url)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            try
-            {
-                var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
-                return await response.Content.ReadAsStringAsync();
-            }
-            catch
-            {
-                return null;
-            }
+            WebClient client = new WebClient();
+            return client.DownloadString(url);
         }
         
         private async Task<byte[]?> LoadEndpointBytes(string url)

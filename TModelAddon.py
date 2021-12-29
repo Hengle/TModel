@@ -2098,42 +2098,44 @@ def main(context):
                 Diffuse = ReadTexture()
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
+                try:
+                    CurrentMat = bpy.data.materials[MatName]
+                    CurrentMat.use_nodes = True
+                    CurrentMat.node_tree.nodes.clear()
+                    ShaderOutput = CurrentMat.node_tree.nodes.new('ShaderNodeOutputMaterial')
+                    bsdf = CurrentMat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                    ShaderOutput.location = [300, 0]
+                    CurrentMat.node_tree.links.new(ShaderOutput.inputs[0], bsdf.outputs[0])
 
-                CurrentMat = bpy.data.materials[MatName]
-                CurrentMat.use_nodes = True
-                CurrentMat.node_tree.nodes.clear()
-                ShaderOutput = CurrentMat.node_tree.nodes.new('ShaderNodeOutputMaterial')
-                bsdf = CurrentMat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-                ShaderOutput.location = [300, 0]
-                CurrentMat.node_tree.links.new(ShaderOutput.inputs[0], bsdf.outputs[0])
+                    # Diffuse
+                    if Diffuse is not None:
+                        DiffuseNode = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        DiffuseNode.image = GetImage(Diffuse)
+                        CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseNode.outputs[0])
 
-                # Diffuse
-                if Diffuse is not None:
-                    DiffuseNode = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                    DiffuseNode.image = GetImage(Diffuse)
-                    CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseNode.outputs[0])
-                
-                # SpecularMasks
-                if SpecularMasks is not None:
-                    Seperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
-                    MasksImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                    MasksImage.image = GetImage(SpecularMasks)
-                    CurrentMat.node_tree.links.new(Seperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular
-                    CurrentMat.node_tree.links.new(Seperator.outputs['G'], bsdf.inputs["Metallic"]) # Green -> Metallic
-                    CurrentMat.node_tree.links.new(Seperator.outputs['B'], bsdf.inputs["Roughness"]) # Blue -> Roughness
-                    CurrentMat.node_tree.links.new(Seperator.inputs['Image'], MasksImage.outputs["Color"])
-                    
-                # Normals
-                if Normals is not None:
-                    NormalsImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                    NormalsImage.image = GetImage(Normals)
-                    NormalsImage.image.colorspace_settings.name = 'Non-Color'
-                    NormalMap = CurrentMat.node_tree.nodes.new('ShaderNodeNormalMap')
-                    CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
-                    CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
+                    # SpecularMasks
+                    if SpecularMasks is not None:
+                        Seperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                        MasksImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        MasksImage.image = GetImage(SpecularMasks)
+                        CurrentMat.node_tree.links.new(Seperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular
+                        CurrentMat.node_tree.links.new(Seperator.outputs['G'], bsdf.inputs["Metallic"]) # Green -> Metallic
+                        CurrentMat.node_tree.links.new(Seperator.outputs['B'], bsdf.inputs["Roughness"]) # Blue -> Roughness
+                        CurrentMat.node_tree.links.new(Seperator.inputs['Image'], MasksImage.outputs["Color"])
+
+                    # Normals
+                    if Normals is not None:
+                        NormalsImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        NormalsImage.image = GetImage(Normals)
+                        NormalsImage.image.colorspace_settings.name = 'Non-Color'
+                        NormalMap = CurrentMat.node_tree.nodes.new('ShaderNodeNormalMap')
+                        CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
+                        CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
+                except Exception as e:
+                    print(e)
 
         except Exception as e:
-             print(e)
+            print(e)
         finally:
             file.close()
 
