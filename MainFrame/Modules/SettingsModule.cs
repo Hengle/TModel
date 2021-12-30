@@ -68,9 +68,7 @@ namespace TModel.MainFrame.Modules
             };
 
             Root.Children.Add(SettingsPanel);
-
             Content = Root;
-
             ReadSettings();
         }
 

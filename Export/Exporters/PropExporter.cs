@@ -1,13 +1,18 @@
 ﻿using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports;
+using CUE4Parse.UE4.Assets.Exports.Component.StaticMesh;
+using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TModel.Fortnite.Exports.FortniteGame;
 using TModel.Modules;
+using static CUE4Parse.Utils.StringUtils;
 
 namespace TModel.Export.Exporters
 {
@@ -42,6 +47,35 @@ namespace TModel.Export.Exporters
             if (package.Base is UFortPlaysetPropItemDefinition Prop)
                 return Prop.GetPreviewInfo();
             return null;
+        }
+
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        {
+            BlenderExportInfo ExportInfo = new BlenderExportInfo();
+
+            if (package.Base is UFortPlaysetPropItemDefinition Prop)
+            {
+                foreach (KeyValuePair<string, CUE4Parse.FileProvider.GameFile> file in App.FileProvider.Files)
+                {
+                    if (Path.GetFileName(file.Key).SubstringBeforeLast('.') == Prop.DisplayName)
+                    {
+                        IPackage PropPackage = App.FileProvider.LoadPackage(file.Value);
+                        foreach (Lazy<CUE4Parse.UE4.Assets.Exports.UObject> uObject in PropPackage.ExportsLazy)
+                        {
+                            if (uObject.Value is UStaticMeshComponent Mesh)
+                            {
+                                if (Mesh.StaticMesh is ResolvedObject MeshPath)
+                                {
+                                    UStaticMesh StaticMesh = MeshPath.Load<UStaticMesh>();
+                                    ExportInfo.Models.Add(new ModelRef(StaticMesh));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return ExportInfo;
         }
     }
 }

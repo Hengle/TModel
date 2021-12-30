@@ -27,8 +27,8 @@ namespace TModel
             [EItemFilterType.Glider] = gliderExporter,
             [EItemFilterType.Pickaxe] = pickaxeExporter,
             [EItemFilterType.Weapon] = weaponExporter,
-#if !RELEASE
             [EItemFilterType.Prop] = propExporter,
+#if !RELEASE
             [EItemFilterType.Playset] = PlaysetExporter,
 #endif
         };
@@ -70,8 +70,8 @@ namespace TModel
         Glider,
         Pickaxe,
         Weapon,
-#if !RELEASE
         Prop,
+#if !RELEASE
         Playset
 #endif
     }

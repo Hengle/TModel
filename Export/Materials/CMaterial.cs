@@ -1,6 +1,7 @@
 ﻿using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
+using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
@@ -18,7 +19,7 @@ namespace TModel.Export.Materials
     {
         public string Name => Material.Name;
 
-        protected UMaterialInstanceConstant Material;
+        public UMaterialInstanceConstant Material { get; private set; }
 
         protected Dictionary<string, float> Scalars => Material.ScalarParameterValues;
         protected Dictionary<string, FPackageIndex> Textures => Material.TextureParameterValues;
@@ -77,6 +78,11 @@ namespace TModel.Export.Materials
         public FSkeletalMaterial GetSkeletalMaterial() 
         {
             return new FSkeletalMaterial() { MaterialSlotName = Name, Material = new ResolvedLoadedObject(Material) };
+        }
+
+        public FStaticMaterial GetStaticMaterial()
+        {
+            return new FStaticMaterial() { MaterialSlotName = Name, MaterialInterface = new ResolvedLoadedObject(Material) };
         }
 
         protected abstract void ReadParameters();

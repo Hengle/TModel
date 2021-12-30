@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using CUE4Parse.FileProvider;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.Assets.Exports;
@@ -18,7 +19,7 @@ namespace CUE4Parse.UE4.Assets
         public FNameEntrySerialized[] NameMap { get; }
         public Lazy<UObject>[] ExportsLazy { get; }
 
-        public UObject Base => ExportsLazy[0].Value;
+        public UObject Base => GetExport(Path.GetFileName(Name));
 
         public abstract bool IsFullyLoaded { get; }
 

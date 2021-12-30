@@ -1,4 +1,6 @@
 ﻿using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports.Texture;
+using CUE4Parse.UE4.Objects.UObject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,21 @@ namespace TModel.Export.Exporters
 
         public override ExportPreviewInfo GetExportPreviewInfo(IPackage package)
         {
-            throw new NotImplementedException();
+            if (package.Base is UFortPlaysetItemDefinition Playset)
+            {
+                TextureRef previewIcon = null;
+                if ((Playset.LargePreviewImage ?? Playset.SmallPreviewImage) is FSoftObjectPath ImagePath)
+                {
+                    previewIcon = new TextureRef(ImagePath.Load<UTexture2D>());
+                }
+
+                return new ExportPreviewInfo()
+                {
+                    Name = Playset.DisplayName,
+                    PreviewIcon = previewIcon
+                };
+            }
+            return null;
         }
 
         public override ItemTileInfo GetTileInfo(IPackage package)

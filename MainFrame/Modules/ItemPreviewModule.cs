@@ -93,12 +93,12 @@ namespace TModel.Modules
                 this.Package = Item.Package;
                 ItemDisplay.Children.Clear();
                 ExportPreviewInfo Preview = GameContentModule.CurrentExporter.GetExportPreviewInfo(Item.Package);
-
-                if (Preview.PreviewIcon is TextureRef ImageRef)
+                if (Preview != null && Preview.PreviewIcon is TextureRef ImageRef)
                     if (ImageRef.TryGet_BitmapImage(out BitmapImage? previewIcon))
                     {
                         ItemDisplay.Children.Add(new Image() { Source = previewIcon, MaxHeight = 500 });
                     }
+
                 ReadonlyText NameText = new ReadonlyText(Item?.Name ?? "NULL", 60) 
                 {
                     VerticalAlignment = VerticalAlignment.Top,

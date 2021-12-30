@@ -377,6 +377,7 @@ namespace TModel.Modules
                             Root.Children.Add(new Image()
                             {
                                 Source = bitmapImage,
+                                Margin = new Thickness(ShownSize / 30),
                             }); 
                         });
                 });
@@ -404,12 +405,6 @@ namespace TModel.Modules
         public ExportPreviewInfo()
         {
 
-        }
-
-        public ExportPreviewInfo(ItemTileInfo info)
-        {
-            Name = info.Name;
-            PreviewIcon = info.PreviewIcon;
         }
     }
 }

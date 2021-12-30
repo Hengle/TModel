@@ -9,6 +9,11 @@ namespace TModel
     public static class CoreStyle
     {
         public static FontFamily CoreFont = new FontFamily("Segoe UI");
+
+        public static Brush Normal = HexBrush("#1e2936");
+        public static Brush Hover = HexBrush("#1e64a5");
+        public static Brush Selected = HexBrush("#448af6");
+        public static Brush Border = HexBrush("#2a3d53");
     }
 
     public class CoreTextBox : TextBox

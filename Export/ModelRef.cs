@@ -1,4 +1,5 @@
-﻿using CUE4Parse.UE4.Assets.Exports.Material;
+﻿using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse_Conversion.Meshes;
@@ -23,17 +24,10 @@ namespace TModel.Export
             {
                 foreach (var item in SkeletalMesh.Materials)
                 {
-                    if (item.Material != null)
+                    UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
+                    if (Material is UMaterialInstanceConstant InstanceConstant)
                     {
-                        UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
-                        if (Material is UMaterialInstanceConstant InstanceConstant)
-                        {
-                            Materials.Add(CMaterial.CreateReader(InstanceConstant));
-                        }
-                    }
-                    else
-                    {
-                        App.LogMessage($"Material was null: {item?.MaterialSlotName ?? "NULL NAME"}");
+                        Materials.Add(CMaterial.CreateReader(InstanceConstant));
                     }
                 }
             }
@@ -42,6 +36,17 @@ namespace TModel.Export
         public ModelRef(UStaticMesh staticMesh)
         {
             StaticMesh = staticMesh;
+            if (staticMesh is not null)
+            {
+                foreach (FStaticMaterial material in staticMesh.StaticMaterials)
+                {
+                    UMaterialInterface LoadedMaterial = material.MaterialInterface.Load<UMaterialInterface>();
+                    if (LoadedMaterial is UMaterialInstanceConstant InstanceConstant)
+                    {
+                        Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                    }
+                }
+            }
         }
 
         // This saves the model as a .psk(x) to the Storage Folder defined in Preferences
@@ -59,6 +64,11 @@ namespace TModel.Export
             else if (StaticMesh is UStaticMesh staticMesh)
             {
                 meshExporter = new MeshExporter(staticMesh);
+                for (int i = 0; i < Materials.Count; i++)
+                {
+                    staticMesh.StaticMaterials[i] = Materials[i].GetStaticMaterial();
+                    staticMesh.Materials[i] = new ResolvedLoadedObject(Materials[i].Material);
+                }
             }
             else
             {

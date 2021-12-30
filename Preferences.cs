@@ -20,6 +20,8 @@ namespace TModel
 
         public static string SettingsFile { get; } = Path.Combine(StorageFolder, "Settings.settings");
 
+        public static string MappingsFile { set; get; } = @"https://benbot.app/api/v1/mappings/++Fortnite+Release-19.01-CL-18489740-Windows_oo.usmap";
+
         public static string? GameDirectory { get; set; }
 
         public static bool? AutoLoad { set; get; }
@@ -30,6 +32,7 @@ namespace TModel
 
             Writer.Write(GameDirectory);
             Writer.Write(AutoLoad ?? false);
+            Writer.Write(MappingsFile);
 
             Writer.Close();
             if (Changed != null)
@@ -45,6 +48,7 @@ namespace TModel
                 {
                     GameDirectory = Reader.ReadString();
                     AutoLoad = Reader.ReadBoolean();
+                    MappingsFile = Reader.ReadString();
                 }
                 Reader.Close();
             }
