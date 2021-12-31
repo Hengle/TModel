@@ -2131,6 +2131,7 @@ def main(context):
                 Diffuse = ReadTexture()
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
+                Emissive = ReadTexture()
                 Metallic = ReadTexture()
 
                 SkinBoostColor = ReadVector()
@@ -2168,6 +2169,12 @@ def main(context):
                         NormalMap = CurrentMat.node_tree.nodes.new('ShaderNodeNormalMap')
                         CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
                         CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
+
+                    # Emissive
+                    if Diffuse is not None:
+                        EmissiveImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        EmissiveImage.image = GetImage(Emissive)
+                        CurrentMat.node_tree.links.new(bsdf.inputs['Emission'], EmissiveImage.outputs[0])
 
                     # if Metallic is not None:
                     #     MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')

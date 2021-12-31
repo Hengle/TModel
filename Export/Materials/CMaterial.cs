@@ -30,6 +30,7 @@ namespace TModel.Export.Materials
         protected TextureRef? Diffuse = null;
         protected TextureRef? SpecularMasks = null;
         protected TextureRef? Normals = null;
+        protected TextureRef? Emissive = null;
         protected TextureRef? Metallic = null;
 
         protected CMaterial(UMaterialInstanceConstant material)
@@ -46,6 +47,7 @@ namespace TModel.Export.Materials
             WriteTexture(Diffuse);
             WriteTexture(SpecularMasks);
             WriteTexture(Normals);
+            WriteTexture(Emissive);
             WriteTexture(Metallic);
 
             WriteVector(SkinBoostColor);
