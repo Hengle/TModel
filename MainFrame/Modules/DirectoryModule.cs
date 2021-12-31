@@ -19,6 +19,7 @@ using CUE4Parse.FN.Exports.FortniteGame;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using System.Windows.Media.Imaging;
 using TModel.Export;
+using CUE4Parse.UE4.Objects.UObject;
 
 #if !RELEASE
 namespace TModel.Modules
@@ -37,39 +38,17 @@ namespace TModel.Modules
 
         public static Dictionary<string, string> QuickPaths { get; } = new Dictionary<string, string>()
         {
-            ["Characters"] = "FortniteGame/Content/Athena/Items/Cosmetics/Characters/",
-            ["Backpacks"] = "FortniteGame/Content/Athena/Items/Cosmetics/Backpacks/",
-            ["Gliders"] = "FortniteGame/Content/Athena/Items/Cosmetics/Gliders/"
+            ["Characters"] = "FortniteGame/Content/Athena/Items/Cosmetics/Characters",
+            ["Backpacks"] = "FortniteGame/Content/Athena/Items/Cosmetics/Backpacks",
+            ["Gliders"] = "FortniteGame/Content/Athena/Items/Cosmetics/Gliders",
+            ["Pickaxes"] = "FortniteGame/Content/Athena/Items/Cosmetics/PickAxes",
         };
 
         public override string ModuleName => "Directory";
 
         public DirectoryModule() : base()
         {
-
-        }
-
-        // The path currently being shown.
-        string CurrentPath = "FortniteGame/Content";
-
-        // Left side (Folder Panel). usaully smaller than asset panel
-        ScrollViewer FolderScrollViewer = new ScrollViewer();
-        StackPanel FoldersPanel = new StackPanel();
-
-        // Right side (Asset Panel).
-        ScrollViewer AssetScrollViewer = new ScrollViewer();
-        WrapPanel AssetsPanel = new WrapPanel();
-
-
-        // Very top bar. Shows CurrentPath.
-        CoreTextBlock PathText = new CoreTextBlock() 
-        { 
-            VerticalAlignment = VerticalAlignment.Center 
-        };
-
-        public override void StartupModule()
-        {
-            GoToPath += (path) => 
+            GoToPath += (path) =>
             {
                 CurrentPath = path.SubstringBeforeLast('/');
                 LoadPath(path.SubstringBeforeLast('/'));
@@ -98,7 +77,7 @@ namespace TModel.Modules
             Grid.SetRow(ItemsGrid, 1);
             ItemsGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Auto), MinWidth = 200 });
             ItemsGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            
+
             AssetScrollViewer.Content = AssetsPanel;
             FolderScrollViewer.Content = FoldersPanel;
 
@@ -139,14 +118,14 @@ namespace TModel.Modules
             ComboBox QuickPathsBox = new ComboBox();
             foreach (var path in QuickPaths)
             {
-                CoreTextBlock ItemText = new CoreTextBlock(path.Key) { Foreground = Brushes.Black };
+                CTextBlock ItemText = new CTextBlock(path.Key) { Foreground = Brushes.Black };
                 ItemText.Tag = path.Key;
                 QuickPathsBox.Items.Add(ItemText);
             }
 
             QuickPathsBox.SelectionChanged += (sender, args) =>
             {
-                string FoundPath = QuickPaths[(string)((CoreTextBlock)QuickPathsBox.SelectedItem).Tag];
+                string FoundPath = QuickPaths[(string)((CTextBlock)QuickPathsBox.SelectedItem).Tag];
                 CurrentPath = FoundPath;
                 LoadPath(FoundPath);
             };
@@ -172,6 +151,24 @@ namespace TModel.Modules
                 }
             };
         }
+
+        // The path currently being shown.
+        string CurrentPath = "FortniteGame/Content";
+
+        // Left side (Folder Panel). usaully smaller than asset panel
+        ScrollViewer FolderScrollViewer = new ScrollViewer();
+        StackPanel FoldersPanel = new StackPanel();
+
+        // Right side (Asset Panel).
+        ScrollViewer AssetScrollViewer = new ScrollViewer();
+        WrapPanel AssetsPanel = new WrapPanel();
+
+
+        // Very top bar. Shows CurrentPath.
+        CTextBlock PathText = new CTextBlock() 
+        { 
+            VerticalAlignment = VerticalAlignment.Center 
+        };
 
         void LoadPath(string path)
         {
@@ -223,10 +220,10 @@ namespace TModel.Modules
 
             Border border = new Border()
             {
-                Background = CoreStyle.Normal,
-                BorderBrush = CoreStyle.Border,
+                Background = Theme.BackNormal,
+                BorderBrush = Theme.BorderNormal,
                 BorderThickness = new Thickness(1.8),
-                Padding = new Thickness(5),
+                Margin = new Thickness(2),
                 Height = 80,
             };
 
@@ -240,7 +237,7 @@ namespace TModel.Modules
                 FullPath = path;
                 Root.Children.Add(border);
 
-                CoreTextBlock NameText = new CoreTextBlock(Path.GetFileName(path.SubstringBeforeLast('.')), 10)
+                CTextBlock NameText = new CTextBlock(Path.GetFileName(path.SubstringBeforeLast('.')), 10)
                 {
                     TextWrapping = TextWrapping.Wrap,
                     TextAlignment = TextAlignment.Center,
@@ -250,20 +247,37 @@ namespace TModel.Modules
 
                 MouseEnter += (sender, args) =>
                 {
-                    border.Background = CoreStyle.Hover;
+                    Root.Background = Theme.BackHover;
                 };
 
                 MouseLeave += (sender, args) =>
                 {
-                    border.Background = CoreStyle.Normal;
+                    Root.Background = Brushes.Transparent;
                 };
 
                 MouseLeftButtonDown += (sender, args) =>
                 {
                     App.ShowModule<ObjectViewerModule>();
+                    IEnumerable<UObject>? Exports = null;
+                    Exports = App.FileProvider.LoadObjectExports(FullPath);
+
+                    SelectedItemChanged(Exports);
                 };
 
                 Content = Root;
+#if false
+                Task.Run(() =>
+                {
+                    BitmapImage PreviewImage = new BitmapImage();
+
+                    UObject BaseObject = App.FileProvider.LoadPackage(FullPath).ExportsLazy[0].Value;
+                    App.Refresh(() =>
+                    {
+                        border.Child = new Image() { Source = BaseObject.GetPreviewIcon() };
+                        ToolTip = new CTooltip(BaseObject.ExportType);
+                    });
+                });
+#endif
             }
 
             public void Select()
@@ -272,7 +286,7 @@ namespace TModel.Modules
                 if (SelectedAsset is AssetItem item)
                     item.Deselect();
                 // Selects this asset
-                border.Background = CoreStyle.Selected;
+                border.Background = Theme.BackSelected;
                 SelectedAsset = this;
 
                 // Calls a Action to let the ObjectViewer know to update its contents.
@@ -288,7 +302,7 @@ namespace TModel.Modules
 
             void Deselect()
             {
-                border.Background = CoreStyle.Normal;
+                border.Background = Theme.BackNormal;
             }
         }
 
@@ -298,8 +312,8 @@ namespace TModel.Modules
             DirectoryModule Owner;
             Border border = new Border()
             {
-                Background = CoreStyle.Normal,
-                BorderBrush = CoreStyle.Border,
+                Background = Theme.BackNormal,
+                BorderBrush = Theme.BorderNormal,
                 BorderThickness = new Thickness(1.8),
                 Padding = new Thickness(5)
             };
@@ -308,17 +322,17 @@ namespace TModel.Modules
             {
                 FullPath = path;
                 Owner = owner;
-                border.Child = new CoreTextBlock(Path.GetFileName(path));
+                border.Child = new CTextBlock(Path.GetFileName(path));
                 Content = border;
 
                 MouseEnter += (sender, args) =>
                 {
-                    border.Background = CoreStyle.Hover;
+                    border.Background = Theme.BackHover;
                 };
 
                 MouseLeave += (sender, args) =>
                 {
-                    border.Background = CoreStyle.Normal;
+                    border.Background = Theme.BackNormal;
                 };
 
                 MouseLeftButtonDown += (s, e) => Open();

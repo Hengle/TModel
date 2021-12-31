@@ -60,7 +60,7 @@ namespace TModel
             // Makes sure the storage folder exists
             Directory.CreateDirectory(Preferences.StorageFolder);
 
-#if true
+#if false
             ModuleContainer Module_Left = new ModuleContainer(new DirectoryModule(), ModulePanel);
 #else
             ModuleContainer Module_Left = new ModuleContainer(new GameContentModule(), ModulePanel);
@@ -91,7 +91,9 @@ namespace TModel
             Module_Right.AddModule(new ObjectViewerModule());
 #endif
             Module_Left.AddModule(new SettingsModule());
-            Module_Right.AddModule(new ObjectViewerModule());
+            // Module_Right.AddModule(new SearchModule());
+            Module_Right.AddModule(new HexEditorModule());
+            Module_Right.AddModule(new ItemPreviewModule());
             Module_Right.AddModule(new LoggerModule());
 
             ModulePanel.AddModule(Module_Left);

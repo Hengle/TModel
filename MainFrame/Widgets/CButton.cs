@@ -51,14 +51,14 @@ namespace TModel.MainFrame.Widgets
             };
         }
 
-        CoreTextBlock? CTextBlock;
+        CTextBlock? CTextBlock;
 
         public CButton(string text, double size = 20, Action clickEvent = null) : this()
         {
             Padding = new Thickness(5);
             if (clickEvent != null)
                 Click += clickEvent;
-            CTextBlock = new CoreTextBlock(text, size)
+            CTextBlock = new CTextBlock(text, size)
             {
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,

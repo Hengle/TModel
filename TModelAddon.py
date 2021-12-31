@@ -2117,12 +2117,24 @@ def main(context):
                 else:
                     return None
 
+            def ReadVector():
+                R = ReadSingle()
+                G = ReadSingle()
+                B = ReadSingle()
+                A = ReadSingle()
+                return (R, G, B, A)
+
             MaterialsNum = ReadInt8()
             for material in range(MaterialsNum):
+
                 MatName = ReadString()
                 Diffuse = ReadTexture()
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
+                Metallic = ReadTexture()
+
+                SkinBoostColor = ReadVector()
+
                 try:
                     CurrentMat = bpy.data.materials[MatName]
                     CurrentMat.use_nodes = True
@@ -2134,28 +2146,44 @@ def main(context):
 
                     # Diffuse
                     if Diffuse is not None:
-                        DiffuseNode = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                        DiffuseNode.image = GetImage(Diffuse)
-                        CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseNode.outputs[0])
+                        DiffuseImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        DiffuseImage.image = GetImage(Diffuse)
+                        CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseImage.outputs[0])
 
                     # SpecularMasks
                     if SpecularMasks is not None:
-                        Seperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                        SpecularSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
                         MasksImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
                         MasksImage.image = GetImage(SpecularMasks)
-                        CurrentMat.node_tree.links.new(Seperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular
-                        CurrentMat.node_tree.links.new(Seperator.outputs['G'], bsdf.inputs["Metallic"]) # Green -> Metallic
-                        CurrentMat.node_tree.links.new(Seperator.outputs['B'], bsdf.inputs["Roughness"]) # Blue -> Roughness
-                        CurrentMat.node_tree.links.new(Seperator.inputs['Image'], MasksImage.outputs["Color"])
+                        CurrentMat.node_tree.links.new(SpecularSeperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular
+                        CurrentMat.node_tree.links.new(SpecularSeperator.outputs['G'], bsdf.inputs["Metallic"]) # Green -> Metallic
+                        CurrentMat.node_tree.links.new(SpecularSeperator.outputs['B'], bsdf.inputs["Roughness"]) # Blue -> Roughness
+                        CurrentMat.node_tree.links.new(SpecularSeperator.inputs['Image'], MasksImage.outputs["Color"])
 
                     # Normals
-                    if Normals is not None:
+                    if Normals is not None and Diffuse is not None:
                         NormalsImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
                         NormalsImage.image = GetImage(Normals)
                         NormalsImage.image.colorspace_settings.name = 'Non-Color'
                         NormalMap = CurrentMat.node_tree.nodes.new('ShaderNodeNormalMap')
                         CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
                         CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
+
+                    # if Metallic is not None:
+                    #     MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                    #     MetallicImage.image = GetImage(Metallic)
+                    #     MetallicSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                    #     MultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
+                    #     SecondMultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
+                    #     SecondMultiplyNode.blend_type = 'MULTIPLY'
+                    #     SecondMultiplyNode.inputs[1].default_value = SkinBoostColor
+                    #     SecondMultiplyNode.inputs[2].default_value = (SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3])
+                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[1], DiffuseImage.outputs[0])
+                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[2], SecondMultiplyNode.outputs[0])
+                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[0], MetallicSeperator.outputs["B"])
+                    #     CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], MultiplyNode.outputs[0])
+                    #     CurrentMat.node_tree.links.new(MetallicSeperator.inputs[0], MetallicImage.outputs["Color"])
+
                 except Exception as e:
                     print(e)
 

@@ -23,12 +23,14 @@ namespace TModel.Export.Materials
 
         protected Dictionary<string, float> Scalars => Material.ScalarParameterValues;
         protected Dictionary<string, FPackageIndex> Textures => Material.TextureParameterValues;
-        protected Dictionary<string, FLinearColor?> Vectors => Material.VectorParameterValues;
+        protected Dictionary<string, FLinearColor> Vectors => Material.VectorParameterValues;
 
+        protected FLinearColor SkinBoostColor = FLinearColor.MAX;
 
         protected TextureRef? Diffuse = null;
         protected TextureRef? SpecularMasks = null;
         protected TextureRef? Normals = null;
+        protected TextureRef? Metallic = null;
 
         protected CMaterial(UMaterialInstanceConstant material)
         {
@@ -44,6 +46,9 @@ namespace TModel.Export.Materials
             WriteTexture(Diffuse);
             WriteTexture(SpecularMasks);
             WriteTexture(Normals);
+            WriteTexture(Metallic);
+
+            WriteVector(SkinBoostColor);
 
             void WriteTexture(TextureRef texture)
             {
@@ -57,6 +62,20 @@ namespace TModel.Export.Materials
                     }
                 }
             }
+
+            void WriteVector(FLinearColor color)
+            {
+                Writer.Write(color.R);
+                Writer.Write(color.G);
+                Writer.Write(color.B);
+                Writer.Write(color.A);
+            }
+        }
+
+        protected void TrySetVector(string name, ref FLinearColor value)
+        {
+            if (Vectors.TryGetValue(name, out FLinearColor color))
+                value = color;
         }
 
         protected void TrySetTexture(string name, ref TextureRef value)

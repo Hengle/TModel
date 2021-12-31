@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TModel
 {
-    public interface HexPosRef
+    public interface HexReference
     {
         public int HexPosition { get; protected set; }
 

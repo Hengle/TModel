@@ -1,37 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using TModel.Modules;
+using static TModel.ColorConverters;
 
 namespace TModel
 {
-    /// <summary>
-    /// Seperates multiple instances of <see cref="ModuleContainer"/> into resizable widgets
-    /// <br/>
-    /// Only works in one direction
-    /// </summary>
+    // Contains an array of ModuleContainers that are seperated by GridSplitters
     public sealed class ModulePanel : Grid
     {
-        /// <summary>
-        /// The direction of this panel
-        /// </summary>
         private Orientation Direction;
+
         private Orientation OppositeDirection => Direction == Orientation.Horizontal ? Orientation.Vertical : Orientation.Horizontal;
 
-        /// <summary>
-        /// The number of modules that are contained inside of this widget
-        /// </summary>
         private int ModuleCount => Direction == Orientation.Horizontal ? ColumnDefinitions.Count : RowDefinitions.Count;
 
-        /// <summary>
-        /// List of <see cref="ModuleContainer"/>s that are currently being shown.
-        /// </summary>
         private List<ModuleContainer> Containers { get; } = new List<ModuleContainer>();
 
         public ModulePanel(Orientation direction = Orientation.Horizontal)
@@ -43,25 +26,17 @@ namespace TModel
         // containing the module that was there before and the NewModule.
         public void MakeSeperator(ModuleContainer ContainerToReplace, ModuleContainer NewModule)
         {
-            // Module exists in this panel.
             if (Containers.IndexOf(ContainerToReplace) == -1) throw new ArgumentException("Module does not exist in panel", nameof(ContainerToReplace));
-            // Gets index of current module for replacing it.
             int Index = Children.IndexOf(ContainerToReplace);
-            // Removes original module.
             Children.Remove(ContainerToReplace);
-            // Creates new module panel of OppositeDireciton.
             ModulePanel NewModulePanel = new ModulePanel(OppositeDirection);
-            // Adds the module that was removed onto the new panel.
             NewModulePanel.AddModule(ContainerToReplace);
-            // Adds the new module.
             NewModule.ParentPanel = NewModulePanel;
             NewModulePanel.AddModule(NewModule);
-            // Sets the Grid Index for the new module
             if (Direction == Orientation.Horizontal)
-                Grid.SetColumn(NewModulePanel, Index);
+                SetColumn(NewModulePanel, Index);
             else
-                Grid.SetRow(NewModulePanel, Index);
-            // Adds new module to panel
+                SetRow(NewModulePanel, Index);
             Children.Add(NewModulePanel);
         }
 
@@ -81,7 +56,7 @@ namespace TModel
                 {
                     VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                    Background = Brushes.Black,
+                    Background = HexBrush("#353535"),
                     ResizeBehavior = GridResizeBehavior.PreviousAndNext
                 };
                 if (Direction == Orientation.Horizontal)

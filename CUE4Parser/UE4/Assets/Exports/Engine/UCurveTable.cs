@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Engine.Curves;
@@ -6,6 +7,7 @@ using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 using Serilog;
+using TModel;
 
 namespace CUE4Parse.UE4.Assets.Exports.Engine
 {
@@ -13,6 +15,11 @@ namespace CUE4Parse.UE4.Assets.Exports.Engine
     {
         public Dictionary<FName, FStructFallback> RowMap { get; private set; } // FStructFallback is FRealCurve aka FSimpleCurve if CurveTableMode is SimpleCurves else FRichCurve
         public ECurveTableMode CurveTableMode { get; private set; }
+
+        public override ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.CurveTable;
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

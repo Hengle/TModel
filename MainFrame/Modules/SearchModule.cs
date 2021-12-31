@@ -16,16 +16,11 @@ namespace TModel.MainFrame.Modules
 {
     public class SearchModule : ModuleBase
     {
-        private static int MaxSize = 100;
+        private static int MaxSize = 500;
 
         public override string ModuleName => "Search";
 
-        public SearchModule()
-        {
-
-        }
-
-        public override void StartupModule()
+        public SearchModule() : base()
         {
             Grid Root = new Grid() { Background = HexBrush("#3a3a3a") };
             Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(100) });
@@ -42,7 +37,7 @@ namespace TModel.MainFrame.Modules
                 Height = 40,
                 FontSize = 16,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                FontFamily = CoreStyle.CoreFont,
+                FontFamily = Theme.CoreFont,
                 Background = HexBrush("#282828"),
                 Foreground = Brushes.White,
                 Padding = new Thickness(5),
@@ -69,7 +64,7 @@ namespace TModel.MainFrame.Modules
                             Results.Add(item.Value);
                         }
                     }
-                }).GetAwaiter().OnCompleted(() => 
+                }).GetAwaiter().OnCompleted(() =>
                 {
                     ResultsPanel.Children.Clear();
                     for (int i = 0; i < (MaxSize < Results.Count ? MaxSize : Results.Count); i++)
@@ -82,7 +77,6 @@ namespace TModel.MainFrame.Modules
 
             ButtonPanel.Children.Add(SearchBar);
 
-
             Root.Children.Add(ButtonPanel);
             Grid.SetRow(scrollViewer, 1);
             Root.Children.Add(scrollViewer);
@@ -93,7 +87,6 @@ namespace TModel.MainFrame.Modules
         class SearchResult : Grid
         {
             private static Brush Hover = HexBrush("#051c56");
-            private static Brush NameBrush = HexBrush("#24c5e3");
 
             public SearchResult(GameFile file)
             {
@@ -109,8 +102,7 @@ namespace TModel.MainFrame.Modules
 
                 MouseLeftButtonDown += (sender, args) =>
                 {
-                    App.ShowModule<DirectoryModule>();
-                    DirectoryModule.GoToPath(file.Path);
+                    DirectoryModule.GoToPath(file.Path.SubstringBeforeWithLast('/'));
                 };
 
                 RichTextBox richTextBox = new RichTextBox()
@@ -118,11 +110,11 @@ namespace TModel.MainFrame.Modules
                     Foreground = Brushes.White,
                     BorderThickness = new Thickness(0),
                     Background = Brushes.Transparent,
-                    FontSize = 13,
+                    FontSize = 10,
                     IsReadOnly = true,
                 };
 
-                Children.Add(new CoreTextBlock(file.Path));
+                Children.Add(new CTextBlock(file.Path));
             }
         }
     }

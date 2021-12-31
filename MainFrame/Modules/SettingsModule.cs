@@ -22,7 +22,7 @@ namespace TModel.MainFrame.Modules
         Grid SettingsPanel = new Grid() { Background = HexBrush("#242d76") };
 
         // Options
-        CoreTextBox GameDirectoryText = new CoreTextBox();
+        CTextBox GameDirectoryText = new CTextBox();
         CheckBox AutoLoadOnStartup = new CheckBox()
         {
             HorizontalAlignment = HorizontalAlignment.Left,
@@ -30,17 +30,17 @@ namespace TModel.MainFrame.Modules
             RenderTransform = new ScaleTransform(1.8,1.8),
         };
 
-        public override void StartupModule()
+        public SettingsModule() : base()
         {
             SettingsPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             SettingsPanel.ColumnDefinitions.Add(new ColumnDefinition());
 
             Grid Root = new Grid() { Background = HexBrush("#010744") };
             Root.RowDefinitions.Add(new RowDefinition());
-            Root.RowDefinitions.Add(new RowDefinition() { Height = new System.Windows.GridLength(100) } );
+            Root.RowDefinitions.Add(new RowDefinition() { Height = new System.Windows.GridLength(100) });
 
-            StackPanel ButtonPanel = new StackPanel() 
-            { 
+            StackPanel ButtonPanel = new StackPanel()
+            {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Bottom,
@@ -48,7 +48,7 @@ namespace TModel.MainFrame.Modules
             Grid.SetRow(ButtonPanel, 1);
             Root.Children.Add(ButtonPanel);
 
-            CButton SaveButton = new CButton("Save", 60, () => 
+            CButton SaveButton = new CButton("Save", 60, () =>
             {
                 Preferences.GameDirectory = GameDirectoryText.Text;
                 Preferences.AutoLoad = AutoLoadOnStartup.IsChecked ?? false;
@@ -75,7 +75,7 @@ namespace TModel.MainFrame.Modules
         public void AddOption(string name, UIElement input)
         {
 
-            CoreTextBlock NameText = new CoreTextBlock(name, 20)
+            CTextBlock NameText = new CTextBlock(name, 20)
             {
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0,0,40,0),

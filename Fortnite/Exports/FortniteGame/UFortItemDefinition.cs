@@ -11,6 +11,9 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using TModel;
 using TModel.Export;
 using TModel.Modules;
 
@@ -65,6 +68,11 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             if (SmallPreviewImage != null)
                 SmallImage = SmallPreviewImage?.Load<UTexture2D>();
             return new ItemTileInfo() { PreviewIcon = new TextureRef(SmallImage), Name = DisplayName };
+        }
+
+        public override ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.FortItem;
         }
 
         public virtual void DeepDeserialize()

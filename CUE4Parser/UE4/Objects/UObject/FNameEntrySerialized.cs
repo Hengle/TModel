@@ -63,8 +63,8 @@ namespace CUE4Parse.UE4.Objects.UObject
             var entries = new FNameEntrySerialized[num];
             for (var i = 0; i < num; i++)
             {
-                var header = headers[i];
-                var length = (int) header.Length;
+                FSerializedNameHeader header = headers[i];
+                int length = (int) header.Length;
                 string s = header.IsUtf16 ? new string(Ar.ReadArray<char>(length)) : Encoding.UTF8.GetString(Ar.ReadBytes(length));
                 entries[i] = new FNameEntrySerialized(s);
             }

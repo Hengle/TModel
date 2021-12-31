@@ -12,9 +12,9 @@ namespace TModel.MainFrame.Modules
     {
         public override string ModuleName => "Image Creator";
 
-        public override void StartupModule()
+        public ImageCreatorModule() : base()
         {
-            throw new NotImplementedException();
+
         }
     }
 }

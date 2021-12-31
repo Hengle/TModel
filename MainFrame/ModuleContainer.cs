@@ -32,10 +32,6 @@ namespace TModel
 
         public List<ModuleBase> Modules { get; } = new List<ModuleBase>();
 
-        /// <summary>
-        /// Creates new instance of <see cref="ModuleContainer"/>.
-        /// </summary>
-        /// <param name="Base">The first tab module.</param>
         public ModuleContainer(ModuleBase Base, ModulePanel? parent = null)
         {
             ParentPanel = parent;
@@ -55,7 +51,6 @@ namespace TModel
 
         public void AddModule(ModuleBase module)
         {
-            module.StartupModule();
             Modules.Add(module);
             TabBar.Items.Add(new TabItem() 
             { 
@@ -70,11 +65,6 @@ namespace TModel
                 Padding = new Thickness(4),
                 Margin = new Thickness(0),
             });
-        }
-
-        public void RemoveModule(ModuleBase module)
-        {
-
         }
 
         public bool TryShowModule<T>()

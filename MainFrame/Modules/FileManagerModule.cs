@@ -28,14 +28,11 @@ namespace TModel.Modules
 
         StackPanel FilesPanel = new StackPanel();
 
+        bool FirstTimeShown = true;
+
         public static Action FilesLoaded;
 
         public FileManagerModule() : base()
-        {
-
-        }
-
-        public override void StartupModule()
         {
             Grid Root = new Grid();
             Content = Root;
@@ -54,7 +51,7 @@ namespace TModel.Modules
             Root.Children.Add(ButtonPanel);
             Root.Children.Add(FilePanelScroller);
 
-            Root.Background = HexBrush("#2e3d54");
+            Root.Background = Theme.BackDark;
 
             CButton LoadButton = new CButton("Load", 40);
             LoadButton.Click += () => LoadGameFiles();
@@ -84,8 +81,12 @@ namespace TModel.Modules
 
             this.Loaded += (sender, args) =>
             {
-                if (Preferences.AutoLoad ?? false && App.FileProvider != null)
-                    LoadGameFiles();
+                if (FirstTimeShown)
+                {
+                    if (Preferences.AutoLoad ?? false && App.FileProvider != null)
+                        LoadGameFiles();
+                    FirstTimeShown = false;
+                }
             };
         }
 
@@ -173,8 +174,7 @@ namespace TModel.Modules
         {
             foreach (var item in files)
             {
-                if (item.Name.EndsWith(".utoc"))
-                    FilesPanel.Children.Add(new FileManagerItem(item, tryload));
+                FilesPanel.Children.Add(new FileManagerItem(item, tryload));
             }
         }
     }
@@ -184,11 +184,10 @@ namespace TModel.Modules
         // Needs name (and file size probs)
         public FileManagerItem(IAesVfsReader reader, bool tryload = false)
         {
-            Brush BackgroundBrush = reader.FileCount > 0 ? HexBrush("073880") : HexBrush("031c40");
             Border RootBorder = new Border()
             {
                 Padding = new Thickness(5),
-                Background = BackgroundBrush,
+                Background = Theme.BackNormal,
                 BorderThickness = new Thickness(0),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Top
@@ -196,20 +195,20 @@ namespace TModel.Modules
 
             MouseEnter += (sender, args) =>
             {
-                RootBorder.Background = HexBrush("#0f00b2");
+                RootBorder.Background = Theme.BackHover;
             };
 
             MouseLeave += (sender, args) =>
             {
-                RootBorder.Background = BackgroundBrush;
+                RootBorder.Background = Theme.BackNormal;
             };
 
             MouseLeftButtonUp += (sender, args) =>
             {
-                RootBorder.Background = HexBrush("#0f00b2");
+                RootBorder.Background = Theme.BackNormal;
             };
 
-            CoreTextBlock FilesCountText = new CoreTextBlock(reader.FileCount.ToString())
+            CTextBlock FilesCountText = new CTextBlock(reader.FileCount.ToString())
             {
                 TextAlignment = TextAlignment.Right,
                 Width = 60,
@@ -221,7 +220,7 @@ namespace TModel.Modules
             MainPanel.ColumnDefinitions.Add(new ColumnDefinition());
             RootBorder.Child = MainPanel;
 
-            CoreTextBlock FileNameText = new CoreTextBlock(reader.Name)
+            CTextBlock FileNameText = new CTextBlock(reader.Name)
             {
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left,

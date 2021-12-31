@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
+using TModel;
 
 namespace CUE4Parse.UE4.Objects.Niagara
 {
@@ -24,6 +26,11 @@ namespace CUE4Parse.UE4.Objects.Niagara
                     NiagaraEmitterCompiledDataStructs.Add(new FStructFallback(Ar, "NiagaraEmitterCompiledData"));
                 }
             }
+        }
+
+        public override ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.NiagaraSystem;
         }
 
         protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)

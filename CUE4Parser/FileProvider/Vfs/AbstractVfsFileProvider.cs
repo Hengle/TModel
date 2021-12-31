@@ -28,7 +28,7 @@ namespace CUE4Parse.FileProvider.Vfs
         private readonly ConcurrentDictionary<IAesVfsReader, object?> _mountedVfs = new ();
         public IReadOnlyCollection<IAesVfsReader> MountedVfs => (IReadOnlyCollection<IAesVfsReader>) _mountedVfs.Keys;
 
-        public readonly ConcurrentDictionary<FGuid, FAesKey> _keys = new ();
+        public readonly ConcurrentDictionary<FGuid, FAesKey> _workingKeys = new ();
         
         protected readonly ConcurrentDictionary<FGuid, object?> _requiredKeys = new ();
         public IReadOnlyCollection<FGuid> RequiredKeys => (IReadOnlyCollection<FGuid>) _requiredKeys.Keys;
@@ -105,7 +105,7 @@ namespace CUE4Parse.FileProvider.Vfs
             _files = new FileProviderDictionary(IsCaseInsensitive);
             foreach (var reader in _mountedVfs.Keys)
             {
-                _keys.TryRemove(reader.EncryptionKeyGuid, out _);
+                _workingKeys.TryRemove(reader.EncryptionKeyGuid, out _);
                 _requiredKeys[reader.EncryptionKeyGuid] = null;
                 _mountedVfs.TryRemove(reader, out _);
                 UnloadedVFS[reader] = null;
@@ -168,7 +168,6 @@ namespace CUE4Parse.FileProvider.Vfs
         public async Task<int> SubmitKeysAsync(IEnumerable<KeyValuePair<FGuid, FAesKey>> keys)
         {
             var countNewMounts = 0;
-            var tasks = new LinkedList<Task<IAesVfsReader?>>();
             foreach (var it in keys)
             {
                 var guid = it.Key;
@@ -179,40 +178,27 @@ namespace CUE4Parse.FileProvider.Vfs
                     {
                         GlobalData = new IoGlobalData(ioReader);
                     }
-                    
                     if (!reader.HasDirectoryIndex)
                         continue;
-                    
-                    tasks.AddLast(Task.Run(() =>
+                    try
                     {
-                        try
-                        {
-                            reader.MountTo(_files, IsCaseInsensitive, key);
-                            UnloadedVFS.TryRemove(reader, out _);
-                            _mountedVfs[reader] = null;
-                            Interlocked.Increment(ref countNewMounts);
-                            return reader;
-                        }
-                        catch (InvalidAesKeyException)
-                        {
-                            // Ignore this 
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Warning(e, $"Uncaught exception while loading pak file {reader.Path.SubstringAfterLast('/')}");
-                        }
-                        return null;
-                    }));
+                        reader.MountTo(_files, IsCaseInsensitive, key);
+                        UnloadedVFS.TryRemove(reader, out _);
+                        _mountedVfs[reader] = null;
+                        Interlocked.Increment(ref countNewMounts);
+                        FAesKey localKey = reader?.AesKey;
+                        _requiredKeys.TryRemove(reader.EncryptionKeyGuid, out _);
+                        _workingKeys.TryAdd(reader.EncryptionKeyGuid, localKey);
+                    }
+                    catch (InvalidAesKeyException)
+                    {
+                        // Ignore this 
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warning(e, $"Uncaught exception while loading pak file {reader.Path.SubstringAfterLast('/')}");
+                    }
                 }
-            }
-
-            var completed = await Task.WhenAll(tasks).ConfigureAwait(false);
-            foreach (var it in completed)
-            {
-                var key = it?.AesKey;
-                if (it == null || key == null) continue;
-                _requiredKeys.TryRemove(it.EncryptionKeyGuid, out _);
-                _keys.TryAdd(it.EncryptionKeyGuid, key);
             }
 
             return countNewMounts;
@@ -225,7 +211,7 @@ namespace CUE4Parse.FileProvider.Vfs
             UnloadedVFS.Clear();
             foreach (var reader in MountedVfs) reader.Dispose();
             _mountedVfs.Clear();
-            _keys.Clear();
+            _workingKeys.Clear();
             _requiredKeys.Clear();
             GlobalData = null;
         }

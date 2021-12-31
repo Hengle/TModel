@@ -19,7 +19,7 @@ namespace CUE4Parse.UE4.Assets
         public FNameEntrySerialized[] NameMap { get; }
         public Lazy<UObject>[] ExportsLazy { get; }
 
-        public UObject Base => GetExport(Path.GetFileName(Name));
+        public UObject Base => GetExport(Path.GetFileName(Name)) ?? ExportsLazy[0].Value;
 
         public abstract bool IsFullyLoaded { get; }
 

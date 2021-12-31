@@ -15,6 +15,8 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         public float B;
         public float A;
 
+        public static FLinearColor MAX = new FLinearColor(1,1,1,1);
+
         public string Hex => ToFColor(true).Hex;
 
         public FColor ToFColor(bool sRGB)

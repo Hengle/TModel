@@ -27,81 +27,109 @@ namespace TModel.Modules
 
         public static Action<ItemTileInfo> SelectionChanged;
 
+        ScrollViewer ItemPanelScroller = new ScrollViewer();
         public static GameContentItem? SelectedItem { get; private set; }
 
-        // Cant be below one
         int PageNum = 1;
         int TotalPages = 0;
 
-        EItemFilterType? Filter = EItemFilterType.Character;
+        EItemFilterType Filter = EItemFilterType.Character;
 
         public override string ModuleName => "Game Content";
 
-        WrapPanel ItemPanel = new WrapPanel() { Background = HexBrush("#21284d") };
+        WrapPanel ItemsPanel = new WrapPanel()
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
 
-        CoreTextBlock PageNumberText = new CoreTextBlock("Page Number") 
+        CTextBlock PageNumberText = new CTextBlock("Page Number") 
         { 
             Margin = new Thickness(20, 0, 0, 0),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center
         };
-        CoreTextBlock LoadedCountText = new CoreTextBlock("Loaded Count") 
+        CTextBlock LoadedCountText = new CTextBlock("Loaded Count") 
         { 
             Margin = new Thickness(0, 0, 20, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        CButton LeftButton = new CButton("Previous Page") { Width = 150 };
-        CButton RightButton = new CButton("Next Page") { Width = 150 };
+        CButton OpenExportsButton = new CButton("Open Exports", 15, () => Process.Start("explorer.exe", Preferences.ExportsPath)) { MaxWidth = 110 };
+
+        CButton B_LeftPage = new CButton("Previous Page");
+        CButton B_RightPage = new CButton("Next Page");
 
         public static readonly double MinItemSize = 50;
 
         CancellationTokenSource cTokenSource = new CancellationTokenSource();
 
-        CoreTextBox SearchBox = new CoreTextBox() { MinHeight = 40 };
+        CTextBox SearchBox = new CTextBox() { MinHeight = 40 };
+
+        WrapPanel FilterTypesPanel = new WrapPanel()
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        Grid ButtonPanel = new Grid();
+
+        Grid PageButtonsPanel = new Grid();
 
         public static ExporterBase CurrentExporter = FortUtils.characterExporter;
 
+        Grid Root = new Grid() { Background = Theme.BackDark };
+        WrapPanel FilterOptions = new WrapPanel();
+
+        bool CanZoom;
+
         public GameContentModule() : base()
         {
-
-        }
-
-        public override void StartupModule()
-        {
-            Grid Root = new Grid() { Background = HexBrush("#1a1b21") };
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // SearchBar
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Buttons panel
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Filter options
             Root.RowDefinitions.Add(new RowDefinition()); // Items Panel
+            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) }); // Page Buttons
 
-            CoreTextBlock LoadFilesWarningText = new CoreTextBlock("Load files in File Manager to use this window", 25)
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
-                TextAlignment = TextAlignment.Center,
-            };
+            ItemPanelScroller.Content = ItemsPanel;
 
-            FileManagerModule.FilesLoaded += () =>
-            {
-                LoadFilesWarningText.Visibility = Visibility.Collapsed;
-                if (Filter != null)
-                    LoadFilterType();
-            };
-
-            WrapPanel FilterOptions = new WrapPanel();
-
-            ScrollViewer ItemPanelScroller = new ScrollViewer();
-            ItemPanelScroller.Content = ItemPanel;
-
-            Grid ButtonPanel = new Grid();
-            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition());
             ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-            ButtonPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+
+            Grid.SetColumn(PageNumberText, 0);
+            Grid.SetColumn(LoadedCountText, 2);
+
+            ButtonPanel.Children.Add(PageNumberText);
+            ButtonPanel.Children.Add(LoadedCountText);
+
+            Grid.SetColumn(OpenExportsButton, 1);
+            ButtonPanel.Children.Add(OpenExportsButton);
+
+            Grid.SetColumn(B_LeftPage, 0);
+            Grid.SetColumn(B_RightPage, 1);
+
+            PageButtonsPanel.ColumnDefinitions.Add(new ColumnDefinition());
+            PageButtonsPanel.ColumnDefinitions.Add(new ColumnDefinition());
+
+            PageButtonsPanel.Children.Add(B_LeftPage);
+            PageButtonsPanel.Children.Add(B_RightPage);
+
+
+            Grid.SetRow(SearchBox, 0);
+            Grid.SetRow(ButtonPanel, 1);
+            Grid.SetRow(FilterTypesPanel, 2);
+            Grid.SetRow(ItemPanelScroller, 3);
+            Grid.SetRow(PageButtonsPanel, 4);
+
+            Root.Children.Add(SearchBox);
+            Root.Children.Add(ButtonPanel);
+            Root.Children.Add(FilterTypesPanel);
+            Root.Children.Add(ItemPanelScroller);
+            Root.Children.Add(PageButtonsPanel);
+
+            GenerateFilterTypes();
 
             SearchBox.TextChanged += (sender, args) =>
             {
@@ -110,7 +138,7 @@ namespace TModel.Modules
                 List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
                 foreach (var item in ItemTiles)
                 {
-                    if (item.Name.Contains(SearchTerm, StringComparison.CurrentCultureIgnoreCase))
+                    if (item.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
                     {
                         MatchingPreviews.Add(item);
                     }
@@ -118,57 +146,7 @@ namespace TModel.Modules
                 LoadPages(MatchingPreviews);
             };
 
-            Grid.SetColumn(PageNumberText, 1);
-            Grid.SetColumn(LoadedCountText, 3);
-
-            ButtonPanel.Children.Add(PageNumberText);
-            ButtonPanel.Children.Add(LoadedCountText);
-
-            CButton OpenExportsButton = new CButton("Open Exports", 15, () => Process.Start("explorer.exe", Preferences.ExportsPath)) { MaxWidth = 110 };
-            Grid.SetColumn(OpenExportsButton, 2);
-            ButtonPanel.Children.Add(OpenExportsButton);
-
-            Grid.SetColumn(LeftButton, 0);
-            Grid.SetColumn(RightButton, 4);
-
-            ButtonPanel.Children.Add(LeftButton);
-            ButtonPanel.Children.Add(RightButton);
-
-            WrapPanel FilterTypesPanel = new WrapPanel() 
-            { 
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            foreach (string name in Enum.GetNames(typeof(EItemFilterType)))
-            {
-                CRadioButton radioButton = new CRadioButton() { Content = new CoreTextBlock(name, 20), Margin = new Thickness(5,0,5,0) };
-                radioButton.Tag = name;
-                radioButton.IsChecked = Filter.ToString() == name.ToString();
-                FilterTypesPanel.Children.Add(radioButton);
-
-                radioButton.Click += (sender, args) =>
-                {
-                    ItemPanel.Children.Clear();
-                    cTokenSource.Token.Register(() => 
-                    {
-                        cTokenSource = new CancellationTokenSource();
-                        string Name = (string)((CRadioButton)sender).Tag;
-                        EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
-                        Filter = FilterType;
-                        CurrentExporter = FortUtils.Exporters[FilterType];
-                        PageNum = 1;
-                        LoadPages(CurrentExporter.LoadedPreviews.ToArray());
-                        LoadFilterType();
-                        UpdatePageCount();
-                    });
-                    cTokenSource.Cancel();
-                };
-            }
-
-
-
-            LeftButton.Click += () =>
+            B_LeftPage.Click += () =>
             {
                 if (PageNum > 1)
                 {
@@ -178,7 +156,15 @@ namespace TModel.Modules
                 }
             };
 
-            RightButton.Click += () =>
+            FileManagerModule.FilesLoaded += () =>
+            {
+                // Automaticlly loads items once File Manager is done loading files
+                // TODO: make this optional in settings
+                if (Filter != null)
+                    LoadFilterType();
+            };
+
+            B_RightPage.Click += () =>
             {
                 if (PageNum < TotalPages)
                 {
@@ -188,7 +174,19 @@ namespace TModel.Modules
                 }
             };
 
-            bool CanZoom = false;
+            ItemsPanel.MouseWheel += (sender, args) =>
+            {
+                if (CanZoom)
+                {
+                    double Multiplier = (args.Delta / 50F);
+                    double Result = GameContentItem.ShownSize + Multiplier;
+                    GameContentItem.ShownSize = Result > MinItemSize ? Result : MinItemSize;
+                    foreach (var item in ItemsPanel.Children)
+                    {
+                        ((GameContentItem)item).UpdateSize();
+                    }
+                }
+            };
 
             Root.KeyDown += (sender, args) =>
             {
@@ -208,34 +206,40 @@ namespace TModel.Modules
                 }
             };
 
-            ItemPanel.MouseWheel += (sender, args) =>
-            {
-                if (CanZoom)
-                {
-                    double Multiplier = (args.Delta / 50F);
-                    double Result = GameContentItem.ShownSize + Multiplier;
-                    GameContentItem.ShownSize = Result > MinItemSize ? Result : MinItemSize;
-                    foreach (var item in ItemPanel.Children)
-                    {
-                        ((GameContentItem)item).UpdateSize();
-                    }
-                }
-            };
-
-            Grid.SetRow(SearchBox, 0);
-            Grid.SetRow(ButtonPanel, 1);
-            Grid.SetRow(FilterTypesPanel, 2);
-            Grid.SetRow(ItemPanelScroller, 3);
-            Grid.SetRow(LoadFilesWarningText, 3);
-
-            Root.Children.Add(SearchBox);
-            Root.Children.Add(ButtonPanel);
-            Root.Children.Add(FilterTypesPanel);
-            Root.Children.Add(ItemPanelScroller);
-
-            Root.Children.Add(LoadFilesWarningText);
-
             Content = Root;
+        }
+
+        void GenerateFilterTypes()
+        {
+            foreach (string name in Enum.GetNames(typeof(EItemFilterType)))
+            {
+                CRadioButton radioButton = new CRadioButton()
+                {
+                    Content = new CTextBlock(name, 20),
+                    Margin = new Thickness(4)
+                };
+                radioButton.Tag = name;
+                radioButton.IsChecked = Filter.ToString() == name.ToString();
+                FilterTypesPanel.Children.Add(radioButton);
+
+                radioButton.Click += (sender, args) =>
+                {
+                    ItemsPanel.Children.Clear();
+                    cTokenSource.Token.Register(() =>
+                    {
+                        cTokenSource = new CancellationTokenSource();
+                        string Name = (string)((CRadioButton)sender).Tag;
+                        EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
+                        Filter = FilterType;
+                        CurrentExporter = FortUtils.Exporters[FilterType];
+                        PageNum = 1;
+                        LoadPages(CurrentExporter.LoadedPreviews.ToArray());
+                        LoadFilterType();
+                        UpdatePageCount();
+                    });
+                    cTokenSource.Cancel();
+                };
+            }
         }
 
         void UpdatePageCount() => PageNumberText.Text = $"{PageNum}/{TotalPages = (CurrentExporter.LoadedPreviews.Count / PageSize) + 1}";
@@ -243,7 +247,7 @@ namespace TModel.Modules
         void LoadFilterType()
         {
             if (!CurrentExporter.bHasGameFiles)
-                CurrentExporter.GameFiles = FortUtils.GetPossibleFiles(Filter ?? EItemFilterType.Character);
+                CurrentExporter.GameFiles = FortUtils.GetPossibleFiles(Filter);
 
             Task.Run(() =>
             {
@@ -254,7 +258,7 @@ namespace TModel.Modules
                         cTokenSource.Token.ThrowIfCancellationRequested();
                         try
                         {
-                            if (FortUtils.TryLoadItemPreviewInfo(Filter ?? EItemFilterType.Character, gamefile, out ItemTileInfo itemPreviewInfo))
+                            if (FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
                             {
                                 if (!gamefile.IsItemLoaded)
                                 {
@@ -265,14 +269,14 @@ namespace TModel.Modules
                                         LoadedCountText.Text = $"{CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
                                         if (PageNum == TotalPages)
                                         {
-                                            ItemPanel.Children.Add(new GameContentItem(itemPreviewInfo));
+                                            ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
                                         }
                                     });
                                     gamefile.IsItemLoaded = true;
                                 }
                             }
                         }
-                        catch { } // Don't care
+                        catch { }
                     }
                 }
                 else
@@ -281,7 +285,7 @@ namespace TModel.Modules
                     {
                         foreach (var preview in CurrentExporter.LoadedPreviews)
                         {
-                            ItemPanel.Children.Add(new GameContentItem(preview));
+                            ItemsPanel.Children.Add(new GameContentItem(preview));
                         }
                     });
                 }
@@ -290,13 +294,13 @@ namespace TModel.Modules
 
         void LoadPages(IList<ItemTileInfo> Previews)
         {
-            ItemPanel.Children.Clear();
+            ItemsPanel.Children.Clear();
 
             int FinalSize = (PageSize * PageNum) > Previews.Count ? Previews.Count : (PageSize * PageNum);
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
-                ItemPanel.Children.Add(new GameContentItem(Previews[i]));
+                ItemsPanel.Children.Add(new GameContentItem(Previews[i]));
             }
         }
 
@@ -306,18 +310,14 @@ namespace TModel.Modules
 
             public ItemTileInfo Info { get; private set; }
 
-            private static Brush CBorder = HexBrush("#485abb");
-            private static Brush CBackground = HexBrush("#002661");
-            private static Brush Selected = HexBrush("#ffde59");
-
             bool IsSelected => SelectedItem == this;
 
             Grid Root = new Grid();
 
             Border BackBorder = new Border()
             {
-                BorderBrush = CBorder,
-                Background = CBackground,
+                BorderBrush = Theme.BorderNormal,
+                Background = Theme.BackNormal,
                 BorderThickness = new Thickness(ShownSize / 30),
             };
 
@@ -334,8 +334,8 @@ namespace TModel.Modules
                 UpdateSize();
 
                 // Hover FX
-                MouseEnter += (sender, args) => BackBorder.BorderBrush = IsSelected ? Selected : Brushes.White;
-                MouseLeave += (sender, args) => BackBorder.BorderBrush = IsSelected ? Selected : CBorder;
+                MouseEnter += (sender, args) => BackBorder.BorderBrush = IsSelected ? Theme.BorderSelected : Theme.BorderHover;
+                MouseLeave += (sender, args) => BackBorder.BorderBrush = IsSelected ? Theme.BorderSelected : Theme.BorderNormal;
 
                 MouseLeftButtonDown += (sender, args) => Select();
 
@@ -354,12 +354,12 @@ namespace TModel.Modules
                     App.ShowModule<ItemPreviewModule>();
                     SelectionChanged(Info);
                 }
-                BackBorder.BorderBrush = Selected;
+                BackBorder.BorderBrush = Theme.BorderSelected;
             }
 
             void Deselect()
             {
-                BackBorder.BorderBrush = CBorder;
+                BackBorder.BorderBrush = Theme.BorderNormal;
             }
 
             public GameContentItem(ItemTileInfo info) : this()
@@ -406,5 +406,17 @@ namespace TModel.Modules
         {
 
         }
+    }
+
+    public class ExportPreviewStyle
+    {
+        public string Name { set; get; } = string.Empty;
+        public List<ExportPreviewSet> Options = new List<ExportPreviewSet>();
+    }
+
+    public class ExportPreviewSet
+    {
+        public string Name { set; get; } = string.Empty;
+        public TextureRef Icon;
     }
 }

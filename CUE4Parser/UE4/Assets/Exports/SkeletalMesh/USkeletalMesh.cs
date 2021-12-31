@@ -5,6 +5,8 @@ using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
+using System.Windows.Media;
+using TModel;
 
 namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
 {
@@ -16,6 +18,11 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
         public FStaticLODModel[]? LODModels { get; private set; }
         public bool bHasVertexColors { get; private set; }
         public byte NumVertexColorChannels { get; private set; }
+
+        public override ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.SkeletalMesh;
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

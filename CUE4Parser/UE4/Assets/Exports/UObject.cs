@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Objects.Unversioned;
@@ -13,6 +16,8 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using Newtonsoft.Json;
 using Serilog;
+using TModel;
+using static CUE4Parse.Utils.StringUtils;
 
 namespace CUE4Parse.UE4.Assets.Exports
 {
@@ -66,9 +71,18 @@ namespace CUE4Parse.UE4.Assets.Exports
             Properties = properties;
         }
 
-        public virtual void GenerateWidget(Panel root)
+        public virtual UIElement GenerateWidget()
         {
+            StackPanel stackPanel = new StackPanel();
+            stackPanel.Children.Add(new CTextBlock(Name, 20));
+            stackPanel.Children.Add(new CTextBlock(ExportType, 12));
 
+            return stackPanel;
+        }
+
+        public virtual ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.UObject;
         }
 
         public virtual void Deserialize(FAssetArchive Ar, long validPos)

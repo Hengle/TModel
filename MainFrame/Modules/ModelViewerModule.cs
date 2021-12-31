@@ -17,11 +17,6 @@ namespace TModel.MainFrame.Modules
 
         public ModelViewerModule()
         {
-            
-        }
-
-        public override void StartupModule()
-        {
             Content = new ReadonlyText("ModelViewer", 60) { Background = Brushes.Black };
         }
     }

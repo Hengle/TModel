@@ -10,6 +10,7 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Serilog;
+using TModel.MainFrame.Modules;
 using static CUE4Parse.Compression.Compression;
 using static CUE4Parse.UE4.Objects.Core.Misc.ECompressionFlags;
 using static CUE4Parse.UE4.Objects.UObject.FPackageFileSummary;

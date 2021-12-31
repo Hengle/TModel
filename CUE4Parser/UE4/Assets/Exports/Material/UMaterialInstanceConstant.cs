@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
@@ -11,8 +13,13 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
     {
         public Dictionary<string, float> ScalarParameterValues { get; } = new();
         public Dictionary<string, FPackageIndex> TextureParameterValues { get; } = new();
-        public Dictionary<string, FLinearColor?> VectorParameterValues { get; } = new();
+        public Dictionary<string, FLinearColor> VectorParameterValues { get; } = new();
         public new FMaterialInstanceBasePropertyOverrides? BasePropertyOverrides;
+
+        public override ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.MaterialInstance;
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

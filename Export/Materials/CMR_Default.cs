@@ -1,4 +1,5 @@
 ﻿using CUE4Parse.UE4.Assets.Exports.Material;
+using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,9 @@ namespace TModel.Export.Materials
             TrySetTexture("Diffuse", ref Diffuse);
             TrySetTexture("SpecularMasks", ref SpecularMasks);
             TrySetTexture("Normals", ref Normals);
+            TrySetTexture("M", ref Metallic);
+
+            TrySetVector("Skin Boost Color And Exponent", ref SkinBoostColor);
         }
     }
 }

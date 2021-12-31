@@ -15,27 +15,31 @@ namespace TModel.Modules
 
         public ObjectViewerModule() : base()
         {
-
-        }
-
-        public override void StartupModule()
-        {
             ScrollViewer Scroller = new ScrollViewer();
             StackPanel ObjectPanel = new StackPanel();
+
+            Scroller.Background = Theme.BackDark;
 
             Scroller.Content = ObjectPanel;
 
             DirectoryModule.SelectedItemChanged += (IEnumerable<UObject>? Item) =>
             {
+                StackPanel stackPanel = new StackPanel();
                 ObjectPanel.Children.Clear();
                 if (Item is IEnumerable<UObject> uObjects)
                 {
                     foreach (UObject obj in uObjects)
                     {
-                        StackPanel stackPanel = new StackPanel();
-                        obj.GenerateWidget(stackPanel);
-                        ObjectPanel.Children.Add(stackPanel);
+                        UIElement ObjWidget = obj.GenerateWidget();
+                        ContentControl Frame = new ContentControl();
+                        Frame.Margin = new Thickness(0, 20, 0, 20);
+                        Frame.Content = ObjWidget;
+                        ObjectPanel.Children.Add(Frame);
                     }
+                }
+                else
+                {
+                    ObjectPanel.Children.Add(new CTextBlock("Failed", 60));
                 }
             };
 

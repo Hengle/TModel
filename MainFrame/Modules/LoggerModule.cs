@@ -18,19 +18,19 @@ namespace TModel.MainFrame.Modules
         public override string ModuleName => "Logger";
 
         ScrollViewer scrollViewer = new ScrollViewer();
-        CoreTextBlock textBlock = new CoreTextBlock("", 14) 
+        CTextBlock textBlock = new CTextBlock("", 14) 
         { 
             VerticalAlignment = VerticalAlignment.Bottom,
             TextWrapping = TextWrapping.Wrap,
         };
 
-        public override void StartupModule()
+        public LoggerModule() : base()
         {
             Background = HexBrush("#092041");
             scrollViewer.Content = textBlock;
             Content = scrollViewer;
 
-            Message += (message, level) => App.Refresh(() => 
+            Message += (message, level) => App.Refresh(() =>
             {
                 Brush FinalColor = Brushes.White;
                 if (level == MessageLevel.Error)
@@ -40,7 +40,7 @@ namespace TModel.MainFrame.Modules
                 }
 
                 textBlock.Inlines.Add(new Run("\n" + message) { Foreground = FinalColor });
-                scrollViewer.ScrollToEnd(); 
+                scrollViewer.ScrollToEnd();
             });
         }
     }

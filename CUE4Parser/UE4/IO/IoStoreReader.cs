@@ -14,6 +14,7 @@ using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.Vfs;
 using CUE4Parse.Utils;
+using TModel.MainFrame.Modules;
 
 namespace CUE4Parse.UE4.IO
 {
@@ -298,6 +299,7 @@ namespace CUE4Parse.UE4.IO
 
         public IReadOnlyDictionary<string, GameFile> ProcessIndex(bool caseInsensitive)
         {
+
             if (!HasDirectoryIndex || TocResource.DirectoryIndexBuffer == null) throw new ParserException("No directory index");
             var directoryIndex = new FByteArchive(Path, DecryptIfEncrypted(TocResource.DirectoryIndexBuffer));
 

@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Readers;
 using Newtonsoft.Json;
+using TModel;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
@@ -18,6 +20,11 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public EMobileSpecularMask MobileSpecularMask = EMobileSpecularMask.MSM_Constant;
         public UTexture? MobileMaskTexture;
         public List<FMaterialResource> LoadedMaterialResources = new();
+
+        public override ImageSource GetPreviewIcon()
+        {
+            return ObjectIcons.Material;
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
