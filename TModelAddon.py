@@ -2132,9 +2132,9 @@ def main(context):
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
                 Emissive = ReadTexture()
-                Metallic = ReadTexture()
+                # Metallic = ReadTexture()
 
-                SkinBoostColor = ReadVector()
+                # SkinBoostColor = ReadVector()
 
                 try:
                     CurrentMat = bpy.data.materials[MatName]
@@ -2167,11 +2167,22 @@ def main(context):
                         NormalsImage.image = GetImage(Normals)
                         NormalsImage.image.colorspace_settings.name = 'Non-Color'
                         NormalMap = CurrentMat.node_tree.nodes.new('ShaderNodeNormalMap')
+                        NormalsSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                        NormalsCombiner = CurrentMat.node_tree.nodes.new('ShaderNodeCombineRGB')
+                        NormalsMathNode = CurrentMat.node_tree.nodes.new('ShaderNodeMath')
                         CurrentMat.node_tree.links.new(bsdf.inputs['Normal'], NormalMap.outputs[0]) # normal map output -> Normal input on BSDF
-                        CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsImage.outputs[0])
+                        CurrentMat.node_tree.links.new(NormalMap.inputs['Color'], NormalsCombiner.outputs[0])
+                        NormalsMathNode.inputs[0].default_value = 1.0
+                        NormalsMathNode.operation = 'SUBTRACT'
+                        CurrentMat.node_tree.links.new(NormalsCombiner.inputs[1], NormalsMathNode.outputs[0])
+                        CurrentMat.node_tree.links.new(NormalsCombiner.inputs[0], NormalsSeperator.outputs[0])
+                        CurrentMat.node_tree.links.new(NormalsCombiner.inputs[2], NormalsSeperator.outputs[2])
+                        
+                        CurrentMat.node_tree.links.new(NormalsMathNode.inputs[1], NormalsSeperator.outputs[1])
+                        CurrentMat.node_tree.links.new(NormalsSeperator.inputs[0], NormalsImage.outputs["Color"])
 
                     # Emissive
-                    if Diffuse is not None:
+                    if Emissive is not None:
                         EmissiveImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
                         EmissiveImage.image = GetImage(Emissive)
                         CurrentMat.node_tree.links.new(bsdf.inputs['Emission'], EmissiveImage.outputs[0])
