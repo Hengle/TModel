@@ -57,11 +57,15 @@ namespace TModel.Export.Materials
                 if (texture != null)
                 {
                     bool Successful = texture.Save(out string TexturePath);
-                    Writer.Write((bool)(Successful));
+                    Writer.Write(Successful);
                     if (Successful)
                     {
                         Writer.Write(TexturePath);
                     }
+                }
+                else
+                {
+                    Writer.Write(false);
                 }
             }
 
