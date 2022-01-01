@@ -1,23 +1,18 @@
-﻿using System;
+﻿// #define GENERATE_MODULES
+
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Ink;
 using TModel.Modules;
 using System.IO;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Versions;
 using System.Windows.Threading;
-using CUE4Parse.UE4.Objects.Core.Misc;
-using CUE4Parse.Encryption.Aes;
-using Newtonsoft.Json;
-using System.Net;
-using CUE4Parse.UE4.Assets.Exports;
-using System.Collections.Generic;
-using System.Windows.Controls.Primitives;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.FN.Exports.FortniteGame;
 using TModel.MainFrame.Modules;
+using static TModel.ColorConverters;
+using Serilog;
+using Serilog.Configuration;
 
 namespace TModel
 {
@@ -28,19 +23,21 @@ namespace TModel
         {
             Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
         }
+#if GENERATE_MODULES
+        static ModulePanel modulePanel = new ModulePanel();
+#endif
 
-        static ModulePanel ModulePanel = new ModulePanel();
+        public static Window Window { get; } = new Window();
 
         public static DefaultFileProvider FileProvider { set; get; } = null;
 
         // Trys to find the type of module, if found then selects it
         public static void ShowModule<T>()
         {
-            ModulePanel.TryShowModule<T>();
+#if GENERATE_MODULES
+            modulePanel.TryShowModule<T>();
+#endif
         }
-
-        public static void LogMessage(string message, MessageLevel level = MessageLevel.Info) => LoggerModule.Message(message, level);
-
         public static bool IsValidGameDirectory(string? path)
         {
             return path != null && Directory.Exists(path);
@@ -49,6 +46,12 @@ namespace TModel
         [STAThread]
         public static void Main()
         {
+#if GENERATE_MODULES
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.MySink()
+                .CreateLogger();
+
             Preferences.Read();
 
             if (IsValidGameDirectory(Preferences.GameDirectory))
@@ -56,24 +59,23 @@ namespace TModel
                 FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
                 App.FileProvider.Initialize();
             }
-
+#endif
             // Makes sure the storage folder exists
             Directory.CreateDirectory(Preferences.StorageFolder);
-
+#if GENERATE_MODULES
 #if false
             ModuleContainer Module_Left = new ModuleContainer(new DirectoryModule(), ModulePanel);
 #else
-            ModuleContainer Module_Left = new ModuleContainer(new GameContentModule(), ModulePanel);
+            ModuleContainer Module_Left = new ModuleContainer(new GameContentModule(), modulePanel);
 #endif
-            ModuleContainer Module_Right = new ModuleContainer(new FileManagerModule(), ModulePanel);
-
+            ModuleContainer Module_Right = new ModuleContainer(new FileManagerModule(), modulePanel);
+#endif
             ObjectTypeRegistry.RegisterEngine(typeof(UFortItemDefinition).Assembly);
 
 #if false // Preload data
             FileManagerModule.LoadGame();
 #endif
             // FileProvider.GetFilesInPath(@"FortniteGame/Content/Athena/Items");
-            Window Window = new Window();
 
             var app = new App();
             Window.Title = "TModel";
@@ -81,12 +83,15 @@ namespace TModel
             Window.ResizeMode = ResizeMode.CanResize;
             Window.MinWidth = 400;
             Window.MinHeight = 200;
-            Window.Background = Brushes.DarkSlateGray;
+            Window.Background = HexBrush("#15162a");
+#if GENERATE_MODULES
+            Window.Content = modulePanel;
+#else
+            Window.Content = new ItemPreviewModule();
+#endif
             app.MainWindow = Window;
-
-            Window.Content = ModulePanel;
-
             Window.Show();
+#if GENERATE_MODULES
 #if false
             Module_Right.AddModule(new ObjectViewerModule());
 #endif
@@ -94,12 +99,25 @@ namespace TModel
             // Module_Right.AddModule(new SearchModule());
             Module_Right.AddModule(new HexEditorModule());
             Module_Right.AddModule(new ItemPreviewModule());
-            Module_Right.AddModule(new LoggerModule());
 
-            ModulePanel.AddModule(Module_Left);
-            ModulePanel.AddModule(Module_Right);
 
+            modulePanel.AddModule(Module_Left);
+            modulePanel.AddModule(Module_Right);
+
+            modulePanel.MakeSeperator(Module_Right, new ModuleContainer(new LoggerModule(), false), new GridLength(100, GridUnitType.Pixel));
+#endif
             app.Run();
+        }
+    }
+
+
+    public static class MySinkExtensions
+    {
+        public static LoggerConfiguration MySink(
+                  this LoggerSinkConfiguration loggerConfiguration,
+                  IFormatProvider formatProvider = null)
+        {
+            return loggerConfiguration.Sink(new LoggerSink(formatProvider));
         }
     }
 }

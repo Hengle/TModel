@@ -2156,6 +2156,7 @@ def main(context):
                         SpecularSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
                         MasksImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
                         MasksImage.image = GetImage(SpecularMasks)
+                        MasksImage.image.colorspace_settings.name = 'Linear'
                         CurrentMat.node_tree.links.new(SpecularSeperator.outputs['R'], bsdf.inputs["Specular"]) # Red -> Specular
                         CurrentMat.node_tree.links.new(SpecularSeperator.outputs['G'], bsdf.inputs["Metallic"]) # Green -> Metallic
                         CurrentMat.node_tree.links.new(SpecularSeperator.outputs['B'], bsdf.inputs["Roughness"]) # Blue -> Roughness

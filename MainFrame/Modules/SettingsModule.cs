@@ -1,4 +1,5 @@
 ﻿using CUE4Parse.UE4.Versions;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using TModel.MainFrame.Widgets;
+using TModel.Modules;
 using static TModel.ColorConverters;
 
 namespace TModel.MainFrame.Modules
@@ -29,6 +31,8 @@ namespace TModel.MainFrame.Modules
             VerticalAlignment = VerticalAlignment.Center,
             RenderTransform = new ScaleTransform(1.8,1.8),
         };
+
+        CButton UpdateData = new CButton("Update");
 
         public SettingsModule() : base()
         {
@@ -59,6 +63,16 @@ namespace TModel.MainFrame.Modules
 
             AddOption("Game Directory", GameDirectoryText);
             AddOption("Auto Load Upon Startup", AutoLoadOnStartup);
+            AddOption("Update AES and Mappings", UpdateData);
+
+            UpdateData.Click += () =>
+            {
+                Log.Information("Loading Mappings");
+                App.FileProvider.LoadMappings();
+                Log.Information("Loading AES keys");
+                FileManagerModule.LoadAES(true);
+                Log.Information("Finished Updating");
+            };
 
             ReadSettings += () =>
             {

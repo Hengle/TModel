@@ -43,7 +43,7 @@ namespace TModel.Modules
             ButtonPanel.HorizontalAlignment = HorizontalAlignment.Center;
             ButtonPanel.VerticalAlignment = VerticalAlignment.Center;
 
-            ScrollViewer FilePanelScroller = new ScrollViewer();
+            CScrollViewer FilePanelScroller = new CScrollViewer();
             FilePanelScroller.Content = FilesPanel;
             Grid.SetRow(ButtonPanel, 0);
             Grid.SetRow(FilePanelScroller, 1);
@@ -106,7 +106,7 @@ namespace TModel.Modules
                 }
                 else
                 {
-                    App.LogMessage(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)", MessageLevel.Error);
+                    // App.LogMessage(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)", MessageLevel.Error);
                 }
             }
             ).GetAwaiter().OnCompleted(() =>
@@ -126,11 +126,18 @@ namespace TModel.Modules
 
         public static void InitilizeGame()
         {
+            App.FileProvider.LoadMappings();
+
+            LoadAES();
+        }
+
+        public static void LoadAES(bool force = false)
+        {
             // Submits AES keys
             AesKeys AesKeys;
             string JsonString = "";
             string AesKeysFile = Path.Combine(Preferences.StorageFolder, "AesKeys.json");
-            if (File.Exists(AesKeysFile))
+            if (File.Exists(AesKeysFile) && !force)
             {
                 // Load aes keys from file
                 JsonString = File.ReadAllText(AesKeysFile);
@@ -149,8 +156,6 @@ namespace TModel.Modules
             // Dynamic keys
             foreach (DynamicAesKey key in AesKeys.dynamicKeys)
                 App.FileProvider.SubmitKey(new FGuid(key.pakGuid), new FAesKey(key.key));
-
-            App.FileProvider.LoadMappings();
         }
 
         struct MainAesKeys

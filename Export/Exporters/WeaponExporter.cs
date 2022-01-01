@@ -68,12 +68,12 @@ namespace TModel.Export.Exporters
                     }
                     catch (Exception e)
                     {
-                        App.LogMessage("Can't Export Weapon"
-#if DEBUG
-                            + "\n\n" + e.ToString());
-#else
-                            );
-#endif
+                       // pp.LogMessage("Can't Export Weapon"
+#if DEBUG              // 
+                       //    + "\n\n" + e.ToString());
+#else                  // 
+                       //    );
+#endif                 // 
                     }
 
                 }

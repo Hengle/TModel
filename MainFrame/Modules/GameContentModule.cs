@@ -25,9 +25,9 @@ namespace TModel.Modules
         // be shown at once to increase peformance.
         private static readonly int PageSize = 100;
 
-        public static Action<ItemTileInfo> SelectionChanged;
+        public static Action<ExportPreviewInfo> SelectionChanged;
 
-        ScrollViewer ItemPanelScroller = new ScrollViewer();
+        CScrollViewer ItemPanelScroller = new CScrollViewer();
         public static GameContentItem? SelectedItem { get; private set; }
 
         int PageNum = 1;
@@ -43,13 +43,13 @@ namespace TModel.Modules
             VerticalAlignment = VerticalAlignment.Stretch,
         };
 
-        CTextBlock PageNumberText = new CTextBlock("Page Number") 
+        CTextBlock PageNumberText = new CTextBlock("") 
         { 
             Margin = new Thickness(20, 0, 0, 0),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center
         };
-        CTextBlock LoadedCountText = new CTextBlock("Loaded Count") 
+        CTextBlock LoadedCountText = new CTextBlock("") 
         { 
             Margin = new Thickness(0, 0, 20, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
@@ -213,10 +213,12 @@ namespace TModel.Modules
         {
             foreach (string name in Enum.GetNames(typeof(EItemFilterType)))
             {
-                CRadioButton radioButton = new CRadioButton()
+                RadioButton radioButton = new RadioButton()
                 {
-                    Content = new CTextBlock(name, 20),
-                    Margin = new Thickness(4)
+                    Margin = new Thickness(4),
+                    Content = name,
+                    FontSize = 16,
+                    Foreground = Brushes.White,
                 };
                 radioButton.Tag = name;
                 radioButton.IsChecked = Filter.ToString() == name.ToString();
@@ -228,7 +230,7 @@ namespace TModel.Modules
                     cTokenSource.Token.Register(() =>
                     {
                         cTokenSource = new CancellationTokenSource();
-                        string Name = (string)((CRadioButton)sender).Tag;
+                        string Name = (string)((RadioButton)sender).Tag;
                         EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
                         Filter = FilterType;
                         CurrentExporter = FortUtils.Exporters[FilterType];
@@ -242,7 +244,7 @@ namespace TModel.Modules
             }
         }
 
-        void UpdatePageCount() => PageNumberText.Text = $"{PageNum}/{TotalPages = (CurrentExporter.LoadedPreviews.Count / PageSize) + 1}";
+        void UpdatePageCount() => PageNumberText.Text = $"Page {PageNum}/{TotalPages = (CurrentExporter.LoadedPreviews.Count / PageSize) + 1}";
 
         void LoadFilterType()
         {
@@ -266,7 +268,7 @@ namespace TModel.Modules
                                     App.Refresh(() =>
                                     {
                                         UpdatePageCount();
-                                        LoadedCountText.Text = $"{CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
+                                        LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
                                         if (PageNum == TotalPages)
                                         {
                                             ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
@@ -352,7 +354,7 @@ namespace TModel.Modules
                 if (SelectionChanged is not null)
                 {
                     App.ShowModule<ItemPreviewModule>();
-                    SelectionChanged(Info);
+                    SelectionChanged(CurrentExporter.GetExportPreviewInfo(Info.Package));
                 }
                 BackBorder.BorderBrush = Theme.BorderSelected;
             }

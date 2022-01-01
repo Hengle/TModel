@@ -10,6 +10,7 @@ using System.Windows.Input;
 using TModel.Modules;
 using TModel.MainFrame.Modules;
 using static TModel.ColorConverters;
+using TModel.MainFrame.Widgets;
 
 namespace TModel
 {
@@ -18,11 +19,11 @@ namespace TModel
     /// </summary>
     public sealed class ModuleContainer : ContentControl
     {
-        private TabControl TabBar = new TabControl() 
+        private TabControl TabBar = new TabControl()
         {
-            Background = Brushes.Black,
+            Background = Theme.BackDark,
             Margin = new Thickness(0),
-            Padding = new Thickness(5),
+            Padding = new Thickness(2),
             BorderThickness = new Thickness(0),
         };
 
@@ -49,22 +50,34 @@ namespace TModel
 #endif
         }
 
+        public ModuleContainer(ModuleBase Base, bool UseTabBar)
+        {
+            if (!UseTabBar)
+            {
+                Content = Base;
+            }
+            else
+            {
+                ParentPanel = null;
+                AddModule(Base);
+                Modules.Add(Base);
+                OverlayPanel.Children.Add(TabBar);
+                Content = OverlayPanel;
+            }
+#if false // Splits container upon right clicking
+            MouseRightButtonDown += (sender, args) =>
+            {
+                ModuleContainer NewContainer = (ModulaeContainer)Activator.CreateInstance(typeof(ModuleContainer), new ItemPreviewModule(), null)!;
+                if (ParentPanel != null)
+                    ParentPanel.MakeSeperator(this, NewContainer);
+            };
+#endif
+        }
+
         public void AddModule(ModuleBase module)
         {
             Modules.Add(module);
-            TabBar.Items.Add(new TabItem() 
-            { 
-                Header = new TextBlock() 
-                { 
-                    FontSize = 18, 
-                    FontFamily = new FontFamily("Microsoft Sans Serif"), 
-                    Foreground = Brushes.Black, 
-                    Text = module.ModuleName 
-                },
-                Content = module,
-                Padding = new Thickness(4),
-                Margin = new Thickness(0),
-            });
+            TabBar.Items.Add(new TabItem() { Header = new TextBlock() { Text = module.ModuleName, FontSize = 20 }, Content = module });
         }
 
         public bool TryShowModule<T>()
@@ -73,7 +86,7 @@ namespace TModel
             {
                 if (typeof(T) == Modules[i].GetType())
                 {
-                    TabBar.SelectedIndex = i - 1;
+                    // TabBar.SelectedIndex = i - 1;
                     return true;
                 }
             }

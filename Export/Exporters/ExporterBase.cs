@@ -26,7 +26,6 @@ namespace TModel.Export.Exporters
         {
             // Should never be called.
 #if DEBUG
-            App.LogMessage("GetBlenderExportInfo() called on ExporterBase", MessageLevel.Error);
 #endif
             return null;
         }

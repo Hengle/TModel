@@ -11,6 +11,7 @@ using System.Windows.Documents;
 using static TModel.ColorConverters;
 using TModel;
 using TModel.MainFrame.Modules;
+using TModel.MainFrame.Widgets;
 
 namespace TModel.MainFrame.Modules
 {
@@ -18,7 +19,7 @@ namespace TModel.MainFrame.Modules
     {
         public override string ModuleName => "Hex Editor";
 
-        ScrollViewer scrollViewer = new ScrollViewer();
+        CScrollViewer scrollViewer = new CScrollViewer();
 
         public StackPanel MasterPanel = new StackPanel();
 

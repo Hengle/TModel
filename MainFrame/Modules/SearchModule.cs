@@ -11,6 +11,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using TModel.Modules;
+using TModel.MainFrame.Widgets;
 
 namespace TModel.MainFrame.Modules
 {
@@ -43,7 +44,7 @@ namespace TModel.MainFrame.Modules
                 Padding = new Thickness(5),
             };
 
-            ScrollViewer scrollViewer = new ScrollViewer() { Background = HexBrush("#000318") };
+            CScrollViewer scrollViewer = new CScrollViewer() { Background = HexBrush("#000318") };
 
             StackPanel ResultsPanel = new StackPanel();
 

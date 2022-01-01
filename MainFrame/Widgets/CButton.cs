@@ -19,7 +19,6 @@ namespace TModel.MainFrame.Widgets
             NormalBrush = normal ?? NormalBrush;
             HoverBrush = hover ?? HoverBrush;
             ClickBrush = click ?? ClickBrush;
-
             Background = NormalBrush;
             BorderBrush = HexBrush("#18469c");
             BorderThickness = new System.Windows.Thickness(2);
@@ -60,10 +59,19 @@ namespace TModel.MainFrame.Widgets
                 Click += clickEvent;
             CTextBlock = new CTextBlock(text, size)
             {
+                TextAlignment = TextAlignment.Center,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             };
             Child = CTextBlock;
+        }
+
+        public CButton(UIElement element, Action clickEvent = null)
+        {
+            Padding = new Thickness(5);
+            if (clickEvent != null)
+                Click += clickEvent;
+            Child = element;
         }
 
         public CButton(string text, Action? clickEvent) : this(text)

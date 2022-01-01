@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
+using TModel.MainFrame.Widgets;
 using static CUE4Parse.Utils.StringUtils;
 
 namespace TModel.Modules
@@ -15,7 +16,7 @@ namespace TModel.Modules
 
         public ObjectViewerModule() : base()
         {
-            ScrollViewer Scroller = new ScrollViewer();
+            CScrollViewer Scroller = new CScrollViewer();
             StackPanel ObjectPanel = new StackPanel();
 
             Scroller.Background = Theme.BackDark;

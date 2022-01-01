@@ -24,7 +24,7 @@ namespace TModel
 
         // Replaces the ContainerToReplace with a new ModulePanel of the OppositeDirection
         // containing the module that was there before and the NewModule.
-        public void MakeSeperator(ModuleContainer ContainerToReplace, ModuleContainer NewModule)
+        public void MakeSeperator(ModuleContainer ContainerToReplace, ModuleContainer NewModule, GridLength? length = null)
         {
             if (Containers.IndexOf(ContainerToReplace) == -1) throw new ArgumentException("Module does not exist in panel", nameof(ContainerToReplace));
             int Index = Children.IndexOf(ContainerToReplace);
@@ -38,6 +38,13 @@ namespace TModel
             else
                 SetRow(NewModulePanel, Index);
             Children.Add(NewModulePanel);
+            if (length is GridLength ValidLength)
+            {
+                if (Direction == Orientation.Horizontal)
+                    NewModulePanel.RowDefinitions[NewModulePanel.RowDefinitions.Count - 1].Height = ValidLength;
+                else
+                    NewModulePanel.ColumnDefinitions[NewModulePanel.ColumnDefinitions.Count - 1].Width = ValidLength;
+            }
         }
 
         public bool TryShowModule<T>()
@@ -54,9 +61,9 @@ namespace TModel
             {
                 GridSplitter gridSplitter = new GridSplitter()
                 {
-                    VerticalAlignment = System.Windows.VerticalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                    Background = HexBrush("#353535"),
+                    Background = HexBrush("#2d2d2d"),
                     ResizeBehavior = GridResizeBehavior.PreviousAndNext
                 };
                 if (Direction == Orientation.Horizontal)
