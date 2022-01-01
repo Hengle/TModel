@@ -21,7 +21,10 @@ namespace TModel.MainFrame.Modules
 
         public override string ModuleName => "Settings";
 
-        Grid SettingsPanel = new Grid() { Background = HexBrush("#242d76") };
+        Grid SettingsPanel = new Grid()
+        {
+            Background = HexBrush("#242d76"),
+        };
 
         // Options
         CTextBox GameDirectoryText = new CTextBox();
@@ -39,7 +42,10 @@ namespace TModel.MainFrame.Modules
             SettingsPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             SettingsPanel.ColumnDefinitions.Add(new ColumnDefinition());
 
-            Grid Root = new Grid() { Background = HexBrush("#010744") };
+            Grid Root = new Grid()
+            {
+                Background = HexBrush("#010744"),
+            };
             Root.RowDefinitions.Add(new RowDefinition());
             Root.RowDefinitions.Add(new RowDefinition() { Height = new System.Windows.GridLength(100) });
 

@@ -19,7 +19,7 @@ namespace TModel.Modules
     {
         public override string ModuleName => "Item Preview";
 
-        public static ImageSource IconImage = new BitmapImage(new Uri(@"C:\Users\bigho\Desktop\Frozen Peely.png"));
+        public static BitmapImage IconImage = new BitmapImage(new Uri(@"C:\Users\bigho\Desktop\Frozen Peely.png"));
 
         public ItemPreviewModule()
         {
@@ -45,19 +45,50 @@ namespace TModel.Modules
             CScrollViewer StylesScroller = new CScrollViewer();
             StackPanel StylesPanel = new StackPanel()
             {
-                Margin = new Thickness(0,100,0,0)
+                Margin = new Thickness(0,60,0,0)
             };
             StylesScroller.Content = StylesPanel;
             LowerRightPanel.Children.Add(StylesScroller);
 
             for (int i = 0; i < 5; i++)
             {
-                Grid StyleSetPanel = new Grid() { Background = HexBrush("#282682") };
+                Grid StyleSetPanel = new Grid()
+                {
+                    Background = HexBrush("#282682"),
+                };
                 Border StyleSetNameBorder = new Border()
                 {
                     Background = HexBrush("#1a1956"),
-                    Margin = new Thickness(0, -100, 0, 0),
+                    Margin = new Thickness(0, -30, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    HorizontalAlignment = HorizontalAlignment.Center
                 };
+
+                WrapPanel StyleSetOptionsPanel = new WrapPanel()
+                {
+                    Orientation = Orientation.Horizontal,
+                    Margin = new Thickness(0, 10, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                };
+                StyleSetPanel.Children.Add(StyleSetOptionsPanel);
+
+                for (int j = 0; j < 20; j++)
+                {
+                    Border StyleOptionBorder = new Border() 
+                    {
+                        Background = HexBrush("#3d3d59"),
+                        BorderBrush = HexBrush("#5957a3"),
+                        BorderThickness = new Thickness(2),
+                        Width = 60,
+                        Height = 60,
+                        Margin = new Thickness(3),
+                    };
+                    StyleOptionBorder.ToolTip = new CTooltip("Name");
+                    Image StyleOptionImage = new Image() { Source = IconImage };
+                    StyleOptionBorder.Child = StyleOptionImage;
+                    StyleSetOptionsPanel.Children.Add(StyleOptionBorder);
+                }
 
                 StyleSetNameBorder.Width = 150;
                 StyleSetNameBorder.Height = 40;
@@ -69,9 +100,9 @@ namespace TModel.Modules
                 };
                 StyleSetNameBorder.Child = StyleSetNameText;
                 StyleSetPanel.Children.Add(StyleSetNameBorder);
-                StyleSetPanel.Margin = new Thickness(0,0,0,100);
-                StyleSetPanel.Width = 400;
+                StyleSetPanel.Margin = new Thickness(20,0,20,60);
                 StyleSetPanel.MinHeight = 100;
+                StyleSetPanel.HorizontalAlignment = HorizontalAlignment.Center;
                 StylesPanel.Children.Add(StyleSetPanel); 
             }
 

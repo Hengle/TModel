@@ -160,8 +160,7 @@ namespace TModel.Modules
             {
                 // Automaticlly loads items once File Manager is done loading files
                 // TODO: make this optional in settings
-                if (Filter != null)
-                    LoadFilterType();
+                LoadFilterType();
             };
 
             B_RightPage.Click += () =>

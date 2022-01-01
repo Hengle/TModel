@@ -10,7 +10,7 @@ namespace TModel.Export.Exporters
     {
         public bool bHasGameFiles => GameFiles != null && GameFiles.Count > 0;
 
-        public bool bHasLoadedAllPreviews => GameFiles.Count == LoadedPreviews.Count;
+        public bool bHasLoadedAllPreviews => GameFiles.Count == LoadedPreviews.Count && GameFiles.Count > 0;
 
         public List<GameFile> GameFiles { set; get; }
 

@@ -1,4 +1,4 @@
-﻿// #define GENERATE_MODULES
+﻿#define GENERATE_MODULES
 
 using System;
 using System.Windows;
@@ -84,11 +84,14 @@ namespace TModel
             Window.MinWidth = 400;
             Window.MinHeight = 200;
             Window.Background = HexBrush("#15162a");
+            Window.Loaded += (sender, args) =>
+            {
 #if GENERATE_MODULES
-            Window.Content = modulePanel;
+                Window.Content = modulePanel;
 #else
-            Window.Content = new ItemPreviewModule();
+                Window.Content = new ItemPreviewModule();
 #endif
+            };
             app.MainWindow = Window;
             Window.Show();
 #if GENERATE_MODULES

@@ -63,9 +63,3 @@ namespace TModel.MainFrame.Modules
         }
     }
 }
-
-public enum MessageLevel
-{
-    Info,
-    Error
-}

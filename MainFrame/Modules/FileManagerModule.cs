@@ -106,7 +106,7 @@ namespace TModel.Modules
                 }
                 else
                 {
-                    // App.LogMessage(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)", MessageLevel.Error);
+                    Log.Warning(string.IsNullOrEmpty(Preferences.GameDirectory) ? "Please set the Game Directory in settings" : $"\'{Preferences.GameDirectory}\' is not a valid directory (Change this in settings)");
                 }
             }
             ).GetAwaiter().OnCompleted(() =>
@@ -126,9 +126,8 @@ namespace TModel.Modules
 
         public static void InitilizeGame()
         {
-            App.FileProvider.LoadMappings();
-
             LoadAES();
+            App.FileProvider.LoadMappings();
         }
 
         public static void LoadAES(bool force = false)
