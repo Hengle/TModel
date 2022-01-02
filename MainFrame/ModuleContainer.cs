@@ -86,7 +86,7 @@ namespace TModel
             {
                 if (typeof(T) == Modules[i].GetType())
                 {
-                    // TabBar.SelectedIndex = i - 1;
+                    TabBar.SelectedIndex = i - 1;
                     return true;
                 }
             }

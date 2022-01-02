@@ -10,7 +10,7 @@ public static class Theme
     public static Brush BackDark = HexBrush("0f1721");
 
     // Background
-    public static Brush BackNormal = HexBrush("#1e2936");
+    public static Brush BackNormal = HexBrush("#1a232d");
     public static Brush BackHover = HexBrush("#1e64a5");
     public static Brush BackSelected = HexBrush("#448af6");
 

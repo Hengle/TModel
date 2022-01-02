@@ -2,6 +2,7 @@
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
+using System.Collections.Generic;
 using TModel.Modules;
 
 namespace TModel.Export.Exporters
@@ -14,14 +15,31 @@ namespace TModel.Export.Exporters
         {
             if (package.Base is UAthenaCharacterItemDefinition Character)
             {
+                Character.DeepDeserialize();
                 TextureRef previewIcon = null;
                 if (Character.HeroDefinition is UFortHeroType HeroDefinition)
                     if (HeroDefinition.LargePreviewImage is FSoftObjectPath IconImagePath)
                         previewIcon = new TextureRef(IconImagePath.Load<UTexture2D>());
+
+                List<ExportPreviewSet>? Styles = null;
+
+                if (Character.ItemVariants is FPackageIndex[] Variants)
+                {
+                    Styles = new();
+                    foreach (var variant in Variants)
+                    {
+                        UFortCosmeticVariant CosmeticVariant = variant.Load<UFortCosmeticVariant>();
+                        ExportPreviewSet PreviewSet = new ExportPreviewSet();
+                        CosmeticVariant.GetPreviewStyle(PreviewSet);
+                        Styles.Add(PreviewSet);
+                    }
+                }
+
                 return new ExportPreviewInfo()
                 {
                     Name = Character.DisplayName,
                     PreviewIcon = previewIcon,
+                    Styles = Styles
                 };
             }
             return null;

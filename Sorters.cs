@@ -1,4 +1,5 @@
-﻿using CUE4Parse.UE4.Vfs;
+﻿using CUE4Parse.FileProvider;
+using CUE4Parse.UE4.Vfs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using TModel.Modules;
 
 namespace TModel.Sorters
 {
-    public class NameSort : IComparer<IAesVfsReader>, IComparer<DirectoryModule.AssetItem>, IComparer<DirectoryModule.FolderItem>
+    public class NameSort : IComparer<IAesVfsReader>, IComparer<DirectoryModule.AssetItem>, IComparer<DirectoryModule.FolderItem>, IComparer<GameFile>
     {
         public int Compare(IAesVfsReader? x, IAesVfsReader? y)
         {
@@ -21,6 +22,11 @@ namespace TModel.Sorters
         }
 
         public int Compare(DirectoryModule.FolderItem? x, DirectoryModule.FolderItem? y)
+        {
+            return x.Name.CompareTo(y.Name);
+        }
+
+        public int Compare(GameFile? x, GameFile? y)
         {
             return x.Name.CompareTo(y.Name);
         }

@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using TModel.Export;
 using TModel.Export.Exporters;
 using TModel.MainFrame.Widgets;
+using TModel.Sorters;
 using static TModel.ColorConverters;
 
 namespace TModel.Modules
@@ -64,7 +65,6 @@ namespace TModel.Modules
         public static readonly double MinItemSize = 50;
 
         CancellationTokenSource cTokenSource = new CancellationTokenSource();
-
         CTextBox SearchBox = new CTextBox() { MinHeight = 40 };
 
         WrapPanel FilterTypesPanel = new WrapPanel()
@@ -72,6 +72,8 @@ namespace TModel.Modules
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
+
+        Grid TopPanel = new Grid();
 
         Grid ButtonPanel = new Grid();
 
@@ -105,7 +107,6 @@ namespace TModel.Modules
             ButtonPanel.Children.Add(LoadedCountText);
 
             Grid.SetColumn(OpenExportsButton, 1);
-            ButtonPanel.Children.Add(OpenExportsButton);
 
             Grid.SetColumn(B_LeftPage, 0);
             Grid.SetColumn(B_RightPage, 1);
@@ -116,14 +117,19 @@ namespace TModel.Modules
             PageButtonsPanel.Children.Add(B_LeftPage);
             PageButtonsPanel.Children.Add(B_RightPage);
 
+            TopPanel.ColumnDefinitions.Add(new ColumnDefinition());
+            TopPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-            Grid.SetRow(SearchBox, 0);
+            TopPanel.Children.Add(SearchBox);
+            TopPanel.Children.Add(OpenExportsButton);
+
+            Grid.SetRow(TopPanel, 0);
             Grid.SetRow(ButtonPanel, 1);
             Grid.SetRow(FilterTypesPanel, 2);
             Grid.SetRow(ItemPanelScroller, 3);
             Grid.SetRow(PageButtonsPanel, 4);
 
-            Root.Children.Add(SearchBox);
+            Root.Children.Add(TopPanel);
             Root.Children.Add(ButtonPanel);
             Root.Children.Add(FilterTypesPanel);
             Root.Children.Add(ItemPanelScroller);
@@ -248,8 +254,12 @@ namespace TModel.Modules
         void LoadFilterType()
         {
             if (!CurrentExporter.bHasGameFiles)
+            {
                 CurrentExporter.GameFiles = FortUtils.GetPossibleFiles(Filter);
-
+                CurrentExporter.GameFiles.Sort(new NameSort());
+                CurrentExporter.GameFiles.Reverse();
+            }
+            // gamefile.Name.Contains("cowgirl", StringComparison.OrdinalIgnoreCase) && 
             Task.Run(() =>
             {
                 if (!CurrentExporter.bHasLoadedAllPreviews)
@@ -259,7 +269,12 @@ namespace TModel.Modules
                         cTokenSource.Token.ThrowIfCancellationRequested();
                         try
                         {
-                            if (FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
+                            if(
+                            !gamefile.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
+                            !gamefile.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
+                            !gamefile.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
+                            // gamefile.Name.Contains("cowgirl", StringComparison.OrdinalIgnoreCase) &&
+                            FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
                             {
                                 if (!gamefile.IsItemLoaded)
                                 {
@@ -267,7 +282,7 @@ namespace TModel.Modules
                                     App.Refresh(() =>
                                     {
                                         UpdatePageCount();
-                                        LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count + 1}/{CurrentExporter.GameFiles.Count}";
+                                        LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
                                         if (PageNum == TotalPages)
                                         {
                                             ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
@@ -400,8 +415,13 @@ namespace TModel.Modules
     // Holds information to be displayed in ItemPreviewModule
     public class ExportPreviewInfo
     {
-        public string Name { set; get; } = "";
+        public string Name { set; get; } = string.Empty;
+
+        public string Description { set; get; } = string.Empty;
+
         public TextureRef? PreviewIcon { set; get; } = null;
+
+        public List<ExportPreviewSet>? Styles { set; get; } = null;
 
         public ExportPreviewInfo()
         {
@@ -409,15 +429,17 @@ namespace TModel.Modules
         }
     }
 
-    public class ExportPreviewStyle
-    {
-        public string Name { set; get; } = string.Empty;
-        public List<ExportPreviewSet> Options = new List<ExportPreviewSet>();
-    }
-
     public class ExportPreviewSet
     {
         public string Name { set; get; } = string.Empty;
-        public TextureRef Icon;
+
+        public List<ExportPreviewOption> Options { get; } = new List<ExportPreviewOption>();
+    }
+
+    public class ExportPreviewOption
+    {
+        public string Name { set; get; } = string.Empty;
+
+        public TextureRef? Icon { set; get; }
     }
 }

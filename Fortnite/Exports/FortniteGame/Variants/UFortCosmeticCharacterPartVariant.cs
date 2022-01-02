@@ -1,31 +1,42 @@
 using CUE4Parse.FN.Exports.FortniteGame.NoProperties;
+using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Assets.Utils;
+using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.UObject;
+using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
     public class UFortCosmeticCharacterPartVariant : UFortCosmeticVariant
     {
-        public PartVariantDef[]? PartOptions;
+        public StyleOptionBase[]? PartOptions;
+
+        public override void GetPreviewStyle(ExportPreviewSet style)
+        {
+            base.GetPreviewStyle(style);
+            SetOptions(style, PartOptions);
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
 
-            PartOptions = GetOrDefault<PartVariantDef[]>(nameof(PartOptions));
+            PartOptions = GetOrDefault<StyleOptionBase[]>(nameof(PartOptions));
         }
     }
 
     [StructFallback]
-    public class PartVariantDef : MaterialVariantDef
+    public class StyleOptionBase
     {
-        public FSoftObjectPath[] VariantParts;
+        public FText VariantName;
+        public FSoftObjectPath PreviewImage;
 
-        public PartVariantDef(FStructFallback fallback) : base(fallback)
+        public StyleOptionBase(FStructFallback fallback)
         {
-            VariantParts = fallback.GetOrDefault<FSoftObjectPath[]>(nameof(VariantParts));
+            VariantName = fallback.GetOrDefault<FText>(nameof(VariantName));
+            PreviewImage = fallback.GetOrDefault<FSoftObjectPath>(nameof(PreviewImage));
         }
     }
 }

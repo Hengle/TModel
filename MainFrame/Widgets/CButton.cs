@@ -30,6 +30,7 @@ namespace TModel.MainFrame.Widgets
                 if (IsEnabled)
                 {
                     Background = ClickBrush;
+                    BorderBrush = HexBrush("#5e84c9");
                     Click?.Invoke();
                 }
             };
@@ -37,6 +38,7 @@ namespace TModel.MainFrame.Widgets
             MouseLeftButtonUp += (sender, args) =>
             {
                 Background = HoverBrush;
+                BorderBrush = HexBrush("#18469c");
             };
 
             MouseEnter += (sender,args) => 

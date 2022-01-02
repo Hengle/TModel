@@ -7,29 +7,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TModel.Modules;
 
 namespace CUE4Parse.FN.Exports.FortniteGame
 {
     class UFortCosmeticMaterialVariant : UFortCosmeticVariant
     {
-        public MaterialVariantDef[] MaterialOptions;
+        public StyleOptionBase[] MaterialOptions;
+
+        public override void GetPreviewStyle(ExportPreviewSet style)
+        {
+            base.GetPreviewStyle(style);
+
+            SetOptions(style, MaterialOptions);
+        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
 
-            MaterialOptions = GetOrDefault<MaterialVariantDef[]>(nameof(MaterialOptions), Array.Empty<MaterialVariantDef>());
-        }
-    }
-
-    [StructFallback]
-    public class MaterialVariantDef
-    {
-        public MaterialVariant[] VariantMaterials;
-
-        public MaterialVariantDef(FStructFallback fallback)
-        {
-            VariantMaterials = fallback.GetOrDefault<MaterialVariant[]>(nameof(VariantMaterials));
+            MaterialOptions = GetOrDefault<StyleOptionBase[]>(nameof(MaterialOptions), Array.Empty<StyleOptionBase>());
         }
     }
 
