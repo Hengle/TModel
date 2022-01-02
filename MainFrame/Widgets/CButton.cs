@@ -52,20 +52,22 @@ namespace TModel.MainFrame.Widgets
             };
         }
 
-        CTextBlock? CTextBlock;
+        CTextBlock? cTextBlock;
 
         public CButton(string text, double size = 20, Action clickEvent = null) : this()
         {
             Padding = new Thickness(5);
             if (clickEvent != null)
                 Click += clickEvent;
-            CTextBlock = new CTextBlock(text, size)
+            Viewbox TextViewBox = new Viewbox() { Stretch = Stretch.Uniform };
+            cTextBlock = new CTextBlock(text, size)
             {
                 TextAlignment = TextAlignment.Center,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
             };
-            Child = CTextBlock;
+            TextViewBox.Child = cTextBlock;
+            Child = TextViewBox;
         }
 
         public CButton(UIElement element, Action clickEvent = null)
@@ -84,8 +86,8 @@ namespace TModel.MainFrame.Widgets
 
         public void SetText(string newText)
         {
-            if (CTextBlock != null)
-                CTextBlock.Text = newText;
+            if (cTextBlock != null)
+                cTextBlock.Text = newText;
         }
     }
 }

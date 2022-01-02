@@ -107,7 +107,7 @@ namespace TModel
             modulePanel.AddModule(Module_Left);
             modulePanel.AddModule(Module_Right);
 
-            modulePanel.MakeSeperator(Module_Right, new ModuleContainer(new LoggerModule(), false), new GridLength(100, GridUnitType.Pixel));
+            modulePanel.MakeSeperator(Module_Right, new ModuleContainer(new LoggerModule(), false), new GridLength(150, GridUnitType.Pixel));
 #endif
             app.Run();
         }

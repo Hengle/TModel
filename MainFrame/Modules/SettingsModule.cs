@@ -23,11 +23,15 @@ namespace TModel.MainFrame.Modules
 
         Grid SettingsPanel = new Grid()
         {
-            Background = HexBrush("#242d76"),
+            
+            Margin = new Thickness(20)
         };
 
         // Options
-        CTextBox GameDirectoryText = new CTextBox();
+        CTextBox GameDirectoryText = new CTextBox()
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         CheckBox AutoLoadOnStartup = new CheckBox()
         {
             HorizontalAlignment = HorizontalAlignment.Left,
@@ -35,19 +39,31 @@ namespace TModel.MainFrame.Modules
             RenderTransform = new ScaleTransform(1.8,1.8),
         };
 
-        CButton UpdateData = new CButton("Update");
+        CButton UpdateData = new CButton("Update")
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
 
         public SettingsModule() : base()
         {
             SettingsPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             SettingsPanel.ColumnDefinitions.Add(new ColumnDefinition());
-
+            // 
             Grid Root = new Grid()
             {
-                Background = HexBrush("#010744"),
+                Background = Theme.BackDark,
             };
             Root.RowDefinitions.Add(new RowDefinition());
             Root.RowDefinitions.Add(new RowDefinition() { Height = new System.Windows.GridLength(100) });
+
+            Border ButtonPanelBorder = new Border()
+            {
+                Background = HexBrush("#1d1d25"),
+                Padding = new Thickness(10),
+                BorderThickness = new Thickness(0,3,0,0),
+                BorderBrush = HexBrush("#3b3b3b")
+            };
 
             StackPanel ButtonPanel = new StackPanel()
             {
@@ -55,14 +71,15 @@ namespace TModel.MainFrame.Modules
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Bottom,
             };
-            Grid.SetRow(ButtonPanel, 1);
-            Root.Children.Add(ButtonPanel);
-
+            Grid.SetRow(ButtonPanelBorder, 1);
+            Root.Children.Add(ButtonPanelBorder);
+            ButtonPanelBorder.Child = ButtonPanel;
             CButton SaveButton = new CButton("Save", 60, () =>
             {
                 Preferences.GameDirectory = GameDirectoryText.Text;
                 Preferences.AutoLoad = AutoLoadOnStartup.IsChecked ?? false;
                 Preferences.Save();
+                Log.Information("Saved Settings (Restart if changed 'Game Directory')");
             });
 
             ButtonPanel.Children.Add(SaveButton);
@@ -73,11 +90,10 @@ namespace TModel.MainFrame.Modules
 
             UpdateData.Click += () =>
             {
-                Log.Information("Loading Mappings");
+                Log.Information("Updated Mappings");
                 App.FileProvider.LoadMappings();
-                Log.Information("Loading AES keys");
+                Log.Information("Updated AES keys");
                 FileManagerModule.LoadAES(true);
-                Log.Information("Finished Updating");
             };
 
             ReadSettings += () =>
@@ -106,7 +122,7 @@ namespace TModel.MainFrame.Modules
 
             SettingsPanel.Children.Add(NameText);
             SettingsPanel.Children.Add(input);
-            SettingsPanel.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
+            SettingsPanel.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(50, GridUnitType.Pixel) });
         }
     }
 }

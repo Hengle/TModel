@@ -36,6 +36,8 @@ namespace TModel.Export.Exporters
                 return new ExportPreviewInfo()
                 {
                     Name = Prop.DisplayName,
+                    Description = Prop.Description,
+                    Package = package,
                     PreviewIcon = previewIcon
                 };
             }
@@ -49,10 +51,10 @@ namespace TModel.Export.Exporters
             return null;
         }
 
-        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package, int[]? styles = null)
         {
             BlenderExportInfo ExportInfo = new BlenderExportInfo();
-
+            ExportInfo.Name = package.Name;
             if (package.Base is UFortPlaysetPropItemDefinition Prop)
             {
                 foreach (KeyValuePair<string, CUE4Parse.FileProvider.GameFile> file in App.FileProvider.Files)

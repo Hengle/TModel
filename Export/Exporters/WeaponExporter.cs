@@ -31,6 +31,7 @@ namespace TModel.Export.Exporters
                 return new ExportPreviewInfo()
                 {
                     Name = Weapon.DisplayName,
+                    Package = package,
                     PreviewIcon = SmallImageRef
                 };
             }
@@ -48,10 +49,10 @@ namespace TModel.Export.Exporters
             return null;
         }
 
-        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package, int[]? styles = null)
         {
             BlenderExportInfo ExportInfo = new BlenderExportInfo();
-
+            ExportInfo.Name = package.Name;
             if (package.Base is UFortWeaponItemDefinition WeaponDef)
             {
                 WeaponDef.DeepDeserialize();

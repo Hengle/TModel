@@ -10,8 +10,7 @@ namespace TModel
     // Specifies filter options for files
     public class SearchTerm
     {
-        // ************Search Terms***********
-        // CheckName() returns true if ANY of the following fields are valid.
+        // ************ Search Terms ***********
 
         // Strings that the file name should NOT start with.
         // EXAMPLE: use 'WID' for FileNameStart

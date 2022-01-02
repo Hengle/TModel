@@ -211,13 +211,14 @@ namespace CUE4Parse.FileProvider
         /// </summary>
         /// <param name="path">The package file path</param>
         /// <returns>The parsed package content if it could be parsed; default otherwise</returns>
-        public Task<IPackage?> TryLoadPackageAsync(string path);
+        public IPackage? TryLoadPackageAsync(string path);
         /// <summary>
         /// Asynchronously attempts to loads and parse a Package for the passed file. 
         /// </summary>
         /// <param name="file">The package file</param>
         /// <returns>The parsed package content if it could be parsed; default otherwise</returns>
         public Task<IPackage?> TryLoadPackageAsync(GameFile file);
+
         /// <summary>
         /// Loads all parts of the Package at the passed path. 
         /// Can throw various exceptions

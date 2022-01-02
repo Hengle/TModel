@@ -7,6 +7,7 @@ using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
+using Serilog;
 using System;
 using TModel.Export;
 using TModel.Export.Materials;
@@ -99,10 +100,19 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 
             foreach (var overrideMaterial in MaterialOverrides)
             {
-                if (overrideMaterial.OverrideMaterial.Load() is UMaterialInstanceConstant InstanceMat)
+                UObject LoadedOverriedMaterial;
+                try
                 {
-                    model.Materials[overrideMaterial.MaterialOverrideIndex] = CMaterial.CreateReader(InstanceMat);
+                    LoadedOverriedMaterial = overrideMaterial.OverrideMaterial.Load();
+                    if (LoadedOverriedMaterial is UMaterialInstanceConstant InstanceMat)
+                    {
+                        model.Materials[overrideMaterial.MaterialOverrideIndex] = CMaterial.CreateReader(InstanceMat);
+                    }
                 }
+                catch
+                {
+                    Log.Error("Failed to load override material");
+                };
             }
 
             return model;

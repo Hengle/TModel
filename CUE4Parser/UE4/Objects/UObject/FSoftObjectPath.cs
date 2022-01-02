@@ -8,6 +8,7 @@ using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 using TModel;
+using static CUE4Parse.Utils.StringUtils;
 using UExport = CUE4Parse.UE4.Assets.Exports.UObject;
 
 namespace CUE4Parse.UE4.Objects.UObject
@@ -37,6 +38,10 @@ namespace CUE4Parse.UE4.Objects.UObject
             AssetPathName = Ar.ReadFName();
             SubPathString = Ar.ReadFString();
             Owner = Ar.Owner;
+            if (Owner.Name == "/Game/Athena/Items/Cosmetics/Characters/CID_A_324_Athena_Commando_F_InnovatorFestive_3FUPH")
+            {
+
+            }
         }
 
         public FSoftObjectPath(FName assetPathName, string subPathString, IPackage? owner = null)
@@ -110,6 +115,12 @@ namespace CUE4Parse.UE4.Objects.UObject
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryLoad<T>(IFileProvider provider, out T export) where T : UExport
         {
+            if (AssetPathName.IsNone) 
+            {
+                export = null;
+                return false;
+            }
+
             if (!TryLoad(provider, out var genericExport) || !(genericExport is T cast))
             {
                 export = default;
@@ -128,20 +139,46 @@ namespace CUE4Parse.UE4.Objects.UObject
         public async Task<T?> TryLoadAsync<T>(IFileProvider provider) where T : UExport => await TryLoadAsync(provider) as T;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UExport Load(IFileProvider provider) => provider.LoadObject(AssetPathName.Text);
+        public UExport Load(IFileProvider provider) 
+        {
+            if (!AssetPathName.IsNone)
+                return provider.LoadObject(AssetPathName.Text);
+            return null;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryLoad(IFileProvider provider, out UExport export) =>
-            provider.TryLoadObject(AssetPathName.Text, out export);
+        public bool TryLoad(IFileProvider provider, out UExport export) 
+        {
+            if (!AssetPathName.IsNone)
+                return provider.TryLoadObject(AssetPathName.Text, out export);
+            export = null;
+            return false;
+        }
+            
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UExport> LoadAsync(IFileProvider provider) => await provider.LoadObjectAsync(AssetPathName.Text);
+        public async Task<UExport> LoadAsync(IFileProvider provider) 
+        {
+            if (!AssetPathName.IsNone)
+                await provider.LoadObjectAsync(AssetPathName.Text);
+            return null;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<UExport?> TryLoadAsync(IFileProvider provider) =>
             await provider.TryLoadObjectAsync(AssetPathName.Text);
         
         #endregion
+
+        public static bool operator ==(CUE4Parse.UE4.Assets.Exports.UObject uObject, FSoftObjectPath fSoftObjectPath)
+        {
+            return uObject.Owner.Name.SubstringBeforeLast('.') == fSoftObjectPath.AssetPathName.Text.SubstringBeforeLast('.');
+        }
+
+        public static bool operator !=(CUE4Parse.UE4.Assets.Exports.UObject uObject, FSoftObjectPath fSoftObjectPath)
+        {
+            return uObject.Owner.Name != fSoftObjectPath.Owner.Name;
+        }
 
         public override string ToString() => $"Name: {AssetPathName}\n SubPath: {SubPathString}\n Type: {ObjectType ?? "NONE"}\n Owner: {Owner?.Name ?? "NONE"}";
     }

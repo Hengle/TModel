@@ -31,6 +31,7 @@ namespace TModel.Export.Exporters
                 return new ExportPreviewInfo()
                 {
                     Name = Playset.DisplayName,
+                    Package = package,
                     PreviewIcon = previewIcon
                 };
             }

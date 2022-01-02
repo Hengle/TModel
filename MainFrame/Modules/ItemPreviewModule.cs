@@ -1,15 +1,10 @@
-﻿using CUE4Parse.UE4.Assets;
+﻿using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TModel.Export;
-using TModel.MainFrame.Modules;
 using TModel.MainFrame.Widgets;
 using static TModel.ColorConverters;
 
@@ -19,7 +14,9 @@ namespace TModel.Modules
     {
         public override string ModuleName => "Item Preview";
 
-        public static BitmapImage IconImage = new BitmapImage(new Uri(@"C:\Users\bigho\Desktop\Frozen Peely.png"));
+        ExportPreviewInfo Item;
+
+        public static int[]? SelectedStyles = null;
 
         public ItemPreviewModule()
         {
@@ -31,13 +28,19 @@ namespace TModel.Modules
             Grid LowerPanel = new Grid();
             Grid.SetRow(LowerPanel, 1);
             Root.Children.Add(LowerPanel);
+#if SHOW_RELATED_COSMETICS
             LowerPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(80, GridUnitType.Pixel)});
+#endif
             LowerPanel.ColumnDefinitions.Add(new ColumnDefinition());
 
             Grid LowerRightPanel = new Grid() { Background = Theme.BackDark };
             LowerRightPanel.RowDefinitions.Add(new RowDefinition());
-            LowerRightPanel.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(100, GridUnitType.Pixel) });
+            LowerRightPanel.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+#if SHOW_RELATED_COSMETICS
             Grid.SetColumn(LowerRightPanel, 1);
+#else
+            Grid.SetColumn(LowerRightPanel, 0);
+#endif
             LowerPanel.Children.Add(LowerRightPanel);
 
             StackPanel StyleSetNamesPanel = new StackPanel() 
@@ -54,7 +57,8 @@ namespace TModel.Modules
             };
             StylesScroller.Content = StylesPanel;
             CScrollViewer StylePickerScroller = new CScrollViewer();
-            Grid StylePickerPanel = new Grid();
+            Grid StylePickerPanel = new Grid() { VerticalAlignment = VerticalAlignment.Top };
+            StylePickerPanel.Margin = new Thickness(20, 0, 0, 0);
             StylePickerScroller.Content = StylePickerPanel;
             StylePickerPanel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             StylePickerPanel.ColumnDefinitions.Add(new ColumnDefinition());
@@ -68,36 +72,71 @@ namespace TModel.Modules
                 Background = HexBrush("#222228"),
                 BorderBrush = HexBrush("#595959"),
                 BorderThickness = new Thickness(0,2,0,0),
+                MaxHeight = 80,
+                MinHeight = 60,
+                MinWidth = 120
             };
             Grid ButtonsGrid = new Grid();
+#if SHOW_ALL_BUTTONS
             ButtonsGrid.ColumnDefinitions.Add(new ColumnDefinition());
             ButtonsGrid.ColumnDefinitions.Add(new ColumnDefinition());
+#endif
             ButtonsGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
             Grid ButtonsRowGrid = new Grid();
             ButtonsRowGrid.RowDefinitions.Add(new RowDefinition());
             ButtonsRowGrid.RowDefinitions.Add(new RowDefinition());
-
+#if SHOW_ALL_BUTTONS
             CButton SaveButton = new CButton("Save to Library", 20) { Margin = new Thickness(6, 6, 2, 2) };
             CButton DirectoryButton = new CButton("Show in Directory", 20) { Margin = new Thickness(6, 2, 2, 6) };
-            CButton ExportButton = new CButton("Export", 50) { Margin = new Thickness(4, 6, 2, 6) };
+#endif
+            CButton ExportButton = new CButton("Export", 50, () =>
+            {
+                if (Item != null)
+                {
+#if !DEBUG
+                    try
+                    {
+#endif
+                        GameContentModule.CurrentExporter.GetBlenderExportInfo(Item.Package, SelectedStyles).Save();
+#if !DEBUG
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warning("Failed to export:\n" + e.ToString());
+                    }
+#endif
+                }
+                else
+                {
+                    Log.Warning("No item selected");
+                }
+            }) { Margin = new Thickness(2, 6, 2, 6) };
+#if SHOW_ALL_BUTTONS
             CButton ShowModelButton = new CButton("Show in\nModel Viewer", 20) { Margin = new Thickness(2, 6, 6, 6) };
-
+#endif
+#if SHOW_ALL_BUTTONS
             Grid.SetRow(SaveButton, 0);
             Grid.SetRow(DirectoryButton, 1);
             ButtonsRowGrid.Children.Add(SaveButton);
             ButtonsRowGrid.Children.Add(DirectoryButton);
 
-            Grid.SetColumn(ExportButton, 1);
             Grid.SetColumn(ShowModelButton, 2);
-            ButtonsGrid.Children.Add(ExportButton);
             ButtonsGrid.Children.Add(ShowModelButton);
+#endif
+
+            Grid.SetColumn(ExportButton, 1);
+            ButtonsGrid.Children.Add(ExportButton);
+
+
 
             ButtonsGrid.Children.Add(ButtonsRowGrid);
             ButtonsBorder.Child = ButtonsGrid;
 
             Grid.SetRow(ButtonsBorder, 1);
             LowerRightPanel.Children.Add(ButtonsBorder);
+
+#if SHOW_RELATED_COSMETICS
             Border RelatedCosmeticsBorder = new Border();
             RelatedCosmeticsBorder.Background = HexBrush("#27282d");
             RelatedCosmeticsBorder.BorderBrush = HexBrush("#515156");
@@ -109,7 +148,6 @@ namespace TModel.Modules
             RelatedCosmeticsScroller.Content = RelatedCosmeticsStack;
             RelatedCosmeticsBorder.Child = RelatedCosmeticsScroller;
             RelatedCosmeticsStack.Margin = new Thickness(1);
-
 
             for (int i = 0; i < 20; i++)
             {
@@ -129,7 +167,7 @@ namespace TModel.Modules
 
                 RelatedCosmeticsStack.Children.Add(CosmeticBorder);
             }
-
+#endif
             Border TopBorder = new Border();
 
             Grid TopGrid = new Grid();
@@ -141,11 +179,18 @@ namespace TModel.Modules
             TopGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(140, GridUnitType.Pixel) });
             TopGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-            CTextBlock DisplayName = new CTextBlock("Frozen Peely", 40) 
+            Viewbox DisplayNameViewBox = new Viewbox()
+            {
+                Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            CTextBlock DisplayName = new CTextBlock("", 40) 
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
             };
+            DisplayNameViewBox.Child = DisplayName;
 
             Grid TopRightGrid = new Grid();
 
@@ -155,58 +200,74 @@ namespace TModel.Modules
             TopLowerRightGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             Grid.SetRow(TopLowerRightGrid, 1);
             TopRightGrid.Children.Add(TopLowerRightGrid);
-
-            CTextBlock Description = new CTextBlock("Ice cold banana", 20);
-            CTextBlock Introduced = new CTextBlock("Chapter 3, Season 1", 20);
-            Grid.SetColumn(Introduced, 1);
-
-            TopLowerRightGrid.Children.Add(Description);
-            TopLowerRightGrid.Children.Add(Introduced);
+            Viewbox DescriptionViewBox = new Viewbox()
+            {
+                Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment= VerticalAlignment.Center,
+                MaxHeight = 20
+            };
+            CTextBlock Description = new CTextBlock("", 20) { TextWrapping = TextWrapping.Wrap };
+            // CTextBlock Introduced = new CTextBlock("Chapter 3, Season 1", 20);
+            // Grid.SetColumn(Introduced, 1);
+            DescriptionViewBox.Child = Description;
+            TopLowerRightGrid.Children.Add(DescriptionViewBox);
+            // TopLowerRightGrid.Children.Add(Introduced);
 
             TopRightGrid.RowDefinitions.Add(new RowDefinition());
-            TopRightGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-            TopRightGrid.Children.Add(DisplayName);
+            TopRightGrid.RowDefinitions.Add(new RowDefinition());
+            TopRightGrid.Children.Add(DisplayNameViewBox);
             TopRightGrid.Margin = new Thickness(0,0,10,10);
             Grid.SetColumn(TopRightGrid, 1);
             TopGrid.Children.Add(TopRightGrid);
-            Image PreviewIcon = new Image() { Source = IconImage };
+            Image PreviewIcon = new Image();
 
             Root.Children.Add(TopBorder);
             TopGrid.Children.Add(PreviewIcon);
             Content = Root;
 
-            GameContentModule.SelectionChanged += (ExportPreviewInfo Item) =>
+            GameContentModule.SelectionChanged += (ExportPreviewInfo item) =>
             {
+                Item = item;
                 StylePickerPanel.Children.Clear();
 
-                DisplayName.Text = Item.Name;
-                if (Item.PreviewIcon.TryGet_BitmapImage(out BitmapImage Source))
+                DisplayName.Text = item.Name;
+                Description.Text = item.Description;
+                if (item.PreviewIcon.TryGet_BitmapImage(out BitmapImage Source))
                 {
                     PreviewIcon.Source = Source;
                 }
-
-                for (int i = 0; i < Item.Styles.Count; i++)
+                if (item.Styles != null)
                 {
-                    ExportPreviewSet style = Item.Styles[i];
-                    Grid StyleSetPanel = new Grid();
-                    Border StyleSetNameBorder = new Border()
+                    SelectedStyles = new int[item.Styles.Count];
+
+                    for (int i = 0; i < item.Styles.Count; i++)
                     {
-                        Padding = new Thickness(5),
+                        ExportPreviewSet style = item.Styles[i];
+                        CTextBlock NameText = new CTextBlock(style.Name, 20)
+                        {
+                            VerticalAlignment = VerticalAlignment.Center,
+                            HorizontalAlignment = HorizontalAlignment.Left,
+                        };
+
+                        StylePickerPanel.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+                        Grid.SetRow(NameText, i);
+                        StylePickerPanel.Children.Add(NameText);
+
+
+                        StyleSetWidget SetWidget = new StyleSetWidget(style, i);
+                        Grid.SetRow(SetWidget, i);
+                        Grid.SetColumn(SetWidget, 1);
+                        StylePickerPanel.Children.Add(SetWidget);
+                    }
+                }
+                else
+                {
+                    StylePickerPanel.Children.Add(new CTextBlock("NO STYLES", 40)
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                    };
-                    StyleSetNameBorder.Child = new CTextBlock(style.Name, 20);
-
-
-                    StylePickerPanel.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-                    Grid.SetRow(StyleSetNameBorder, i);
-                    StylePickerPanel.Children.Add(StyleSetNameBorder);
-                    StyleSetPanel.HorizontalAlignment = HorizontalAlignment.Left;
-
-                    StyleSetWidget SetWidget = new StyleSetWidget(style);
-                    Grid.SetRow(SetWidget, i);
-                    Grid.SetColumn(SetWidget, 1);
-                    StylePickerPanel.Children.Add(SetWidget);
+                    });
                 }
             };
         }
@@ -216,7 +277,7 @@ namespace TModel.Modules
         {
             public StyleOptionWidget SelectedOption;
 
-            public StyleSetWidget(ExportPreviewSet style)
+            public StyleSetWidget(ExportPreviewSet style, int index)
             {
                 WrapPanel StyleSetOptionsPanel = new WrapPanel()
                 {
@@ -229,7 +290,7 @@ namespace TModel.Modules
 
                 for (int i = 0; i < style.Options.Count; i++)
                 {
-                    StyleOptionWidget OptionWidget = new StyleOptionWidget(style.Options[i], this);
+                    StyleOptionWidget OptionWidget = new StyleOptionWidget(style.Options[i], this, index, i);
                     if (i == 0)
                     {
                         SelectedOption = OptionWidget;
@@ -243,7 +304,11 @@ namespace TModel.Modules
         public class StyleOptionWidget : ContentControl
         {
             public StyleSetWidget Owner;
+
             public bool IsSelected => Owner.SelectedOption == this;
+
+            int InnerIndex;
+            int OuterIndex;
 
             Border StyleOptionBorder = new Border()
             {
@@ -252,12 +317,16 @@ namespace TModel.Modules
                 BorderThickness = new Thickness(3),
                 Width = 80,
                 Height = 80,
-                Margin = new Thickness(5),
+                Margin = new Thickness(5,20,5,5),
             };
 
-            public StyleOptionWidget(ExportPreviewOption option, StyleSetWidget owner)
+
+
+            public StyleOptionWidget(ExportPreviewOption option, StyleSetWidget owner, int outerIndex, int innerIndex)
             {
                 Owner = owner;
+                OuterIndex = outerIndex;
+                InnerIndex = innerIndex;
 
                 // Hover FX
                 MouseEnter += (sender, args) => StyleOptionBorder.BorderBrush = IsSelected ? Theme.BorderSelected : Theme.BorderHover;
@@ -274,6 +343,13 @@ namespace TModel.Modules
                         StyleOptionBorder.Child = StyleOptionImage;
                     }
                 }
+                else
+                {
+                    Viewbox viewbox = new Viewbox() { Margin = new Thickness(5) };
+                    CTextBlock cTextBlock = new CTextBlock(option.Name);
+                    viewbox.Child = cTextBlock;
+                    StyleOptionBorder.Child = viewbox;
+                }
 
                 Content = StyleOptionBorder;
             }
@@ -281,6 +357,7 @@ namespace TModel.Modules
             public void Select()
             {
                 Owner.SelectedOption.Deselect();
+                SelectedStyles[OuterIndex] = InnerIndex;
                 Owner.SelectedOption = this;
                 StyleOptionBorder.BorderBrush = Theme.BorderSelected;
             }

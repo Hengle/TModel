@@ -5,6 +5,7 @@ using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,11 +36,14 @@ namespace TModel.Export.Materials
 
         protected CMaterial(UMaterialInstanceConstant material)
         {
+            Log.Information("       Material: " + material.Name);
             Material = material;
         }
 
         public void SaveAndWriteBinary(CBinaryWriter Writer)
         {
+            Log.Information("Writing material: " + Material.Name);
+
             ReadParameters();
 
             Writer.Write(Name);

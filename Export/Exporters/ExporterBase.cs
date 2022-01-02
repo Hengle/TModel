@@ -22,7 +22,7 @@ namespace TModel.Export.Exporters
 
         public abstract ExportPreviewInfo GetExportPreviewInfo(IPackage package);
 
-        public virtual BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        public virtual BlenderExportInfo GetBlenderExportInfo(IPackage package, int[]? styles = null)
         {
             // Should never be called.
 #if DEBUG

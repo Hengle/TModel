@@ -28,6 +28,8 @@ namespace TModel.Export.Exporters
                 return new ExportPreviewInfo()
                 {
                     Name = Pickaxe.DisplayName,
+                    Description = Pickaxe.Description,
+                    Package = package,
                     PreviewIcon = previewIcon
                 };
             }
@@ -41,10 +43,10 @@ namespace TModel.Export.Exporters
             return null;
         }
 
-        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package, int[]? styles = null)
         {
             BlenderExportInfo ExportInfo = new BlenderExportInfo();
-
+            ExportInfo.Name = package.Name;
             if (package.Base is UAthenaPickaxeItemDefinition Pickaxe)
             {
                 Pickaxe.DeepDeserialize();

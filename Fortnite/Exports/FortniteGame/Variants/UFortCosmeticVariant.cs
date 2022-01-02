@@ -4,6 +4,7 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.UObject;
+using Serilog;
 using TModel.Export;
 using TModel.Modules;
 
@@ -19,6 +20,11 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public virtual void GetPreviewStyle(ExportPreviewSet style)
         {
             style.Name = VariantChannelName;
+        }
+
+        public virtual UCustomCharacterPart ApplyVariant(UCustomCharacterPart part, int index)
+        {
+            return null;
         }
 
         protected void SetOptions(ExportPreviewSet style, StyleOptionBase[] options)

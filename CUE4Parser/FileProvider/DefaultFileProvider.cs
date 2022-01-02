@@ -187,8 +187,8 @@ namespace CUE4Parse.FileProvider
 
             // In .uproject mode, we must recursively look for files
             option = uproject != null ? SearchOption.AllDirectories : option;
-
-            foreach (var file in directory.EnumerateFiles("*.*", option))
+            IEnumerable<FileInfo> FoundFiles = directory.EnumerateFiles("*.*", option);
+            foreach (var file in FoundFiles)
             {
                 var ext = file.Extension.SubstringAfter('.');
                 if (!file.Exists || string.IsNullOrEmpty(ext)) continue;

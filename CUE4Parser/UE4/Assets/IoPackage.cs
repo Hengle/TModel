@@ -31,6 +31,9 @@ namespace CUE4Parse.UE4.Assets
 
         public readonly Lazy<IoPackage?[]> ImportedPackages;
         public override Lazy<UObject>[] ExportsLazy { get; }
+
+        public List<string> ObjectTypes = new List<string>();
+
         public override bool IsFullyLoaded { get; }
 
         public IoPackage(
@@ -186,13 +189,14 @@ namespace CUE4Parse.UE4.Assets
                     var entry = exportBundleEntries[exportBundle.FirstEntryIndex + i];
                     if (entry.CommandType == EExportCommandType.ExportCommandType_Serialize)
                     {
-                        var localExportIndex = entry.LocalExportIndex;
-                        var export = ExportMap[localExportIndex];
-                        var localExportDataOffset = currentExportDataOffset;
+                        uint localExportIndex = entry.LocalExportIndex;
+                        FExportMapEntry export = ExportMap[localExportIndex];
+                        int localExportDataOffset = currentExportDataOffset;
+                        ObjectTypes.Add(CreateFNameFromMappedName(export.ObjectName).Text);
                         ExportsLazy[localExportIndex] = new Lazy<UObject>(() =>
                         {
                             // Create
-                            var obj = ConstructObject(ResolveObjectIndex(export.ClassIndex)?.Object?.Value as UStruct);
+                            UObject obj = ConstructObject(ResolveObjectIndex(export.ClassIndex)?.Object?.Value as UStruct);
                             obj.Name = CreateFNameFromMappedName(export.ObjectName).Text;
                             obj.Outer = (ResolveObjectIndex(export.OuterIndex) as ResolvedExportObject)?.ExportObject.Value ?? this;
                             obj.Super = ResolveObjectIndex(export.SuperIndex) as ResolvedExportObject;

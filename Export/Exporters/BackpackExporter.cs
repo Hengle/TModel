@@ -23,6 +23,8 @@ namespace TModel.Exporters
                 return new ExportPreviewInfo() 
                 { 
                     Name = Backpack.DisplayName,
+                    Description = Backpack.Description,
+                    Package = package,
                     PreviewIcon = previewIcon 
                 };
             }
@@ -36,10 +38,10 @@ namespace TModel.Exporters
             return null;
         }
 
-        public override BlenderExportInfo GetBlenderExportInfo(IPackage package)
+        public override BlenderExportInfo GetBlenderExportInfo(IPackage package, int[]? styles = null)
         {
             BlenderExportInfo ExportInfo = new BlenderExportInfo();
-
+            ExportInfo.Name = package.Name;
             if (package.Base is UAthenaBackpackItemDefinition Backpack)
             {
                 Backpack.DeepDeserialize();

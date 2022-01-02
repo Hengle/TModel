@@ -32,7 +32,6 @@ namespace TModel.MainFrame.Modules
         {
             Background = HexBrush("#092041");
             scrollViewer.Content = LogPanel;
-            Root.Children.Add(scrollViewer);
             Root.Children.Add(new CTextBlock("LOGGER")
             {
                 Opacity = .2,
@@ -42,6 +41,7 @@ namespace TModel.MainFrame.Modules
                 FontFamily = new FontFamily("Segoe UI Bold"),
                 Margin = new Thickness(5,5,10,5),
             });
+            Root.Children.Add(scrollViewer);
             Content = Root;
         }
     }
@@ -50,6 +50,14 @@ namespace TModel.MainFrame.Modules
     {
         private readonly IFormatProvider _formatProvider;
 
+        Dictionary<LogEventLevel, Brush> LevelColors = new Dictionary<LogEventLevel, Brush>()
+        {
+            [LogEventLevel.Warning] = HexBrush("#ff6262"),
+            [LogEventLevel.Error] = HexBrush("#a80707"),
+            [LogEventLevel.Information] = HexBrush("#a4ebff"),
+            [LogEventLevel.Debug] = HexBrush("#2cdfa5"),
+        };
+
         public LoggerSink(IFormatProvider formatProvider)
         {
             _formatProvider = formatProvider;
@@ -57,9 +65,19 @@ namespace TModel.MainFrame.Modules
 
         public void Emit(LogEvent logEvent)
         {
+            Brush FinalColor = Brushes.White;
+            if (LevelColors.TryGetValue(logEvent.Level, out Brush foundColor))
+                FinalColor = foundColor;
             var message = logEvent.RenderMessage(_formatProvider);
-            LoggerModule.LogPanel.Children.Add(new ReadonlyText(message));
-            LoggerModule.scrollViewer.ScrollToEnd();
+            App.Refresh(() =>
+            {
+                LoggerModule.LogPanel.Children.Add(new ReadonlyText(message)
+                {
+                    Foreground = FinalColor,
+                    TextWrapping = TextWrapping.Wrap
+                });
+                LoggerModule.scrollViewer.ScrollToEnd();
+            });
         }
     }
 }

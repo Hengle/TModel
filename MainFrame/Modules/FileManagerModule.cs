@@ -28,6 +28,9 @@ namespace TModel.Modules
 
         StackPanel FilesPanel = new StackPanel();
 
+        public static bool HasLoaded;
+        public static bool IsLoading;
+
         bool FirstTimeShown = true;
 
         public static Action FilesLoaded;
@@ -52,9 +55,25 @@ namespace TModel.Modules
             Root.Children.Add(FilePanelScroller);
 
             Root.Background = Theme.BackDark;
-
             CButton LoadButton = new CButton("Load", 40);
-            LoadButton.Click += () => LoadGameFiles();
+            LoadButton.Click += () => 
+            {
+                if (!IsLoading)
+                {
+                    if (!HasLoaded)
+                    {
+                        LoadGameFiles();
+                    }
+                    else
+                    {
+                        Log.Information("Won't load again, Already loaded.");
+                    }
+                }
+                else
+                {
+                    Log.Information("Already loading files.");
+                }
+            };
 
             LoadButton.Height = 90;
             LoadButton.Width = 180;
@@ -92,6 +111,7 @@ namespace TModel.Modules
 
         public void LoadGameFiles()
         {
+            IsLoading = true;
             Log.Information("Loading files");
             Task.Run(() =>
             {
@@ -120,6 +140,8 @@ namespace TModel.Modules
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);
                     FilesLoaded();
+                    HasLoaded = true;
+                    IsLoading = false;
                 }
             });
         }

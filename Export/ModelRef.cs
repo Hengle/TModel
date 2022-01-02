@@ -3,6 +3,7 @@ using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse_Conversion.Meshes;
+using Serilog;
 using System.Collections.Generic;
 using System.IO;
 using TModel.Export.Materials;
@@ -19,15 +20,23 @@ namespace TModel.Export
 
         public ModelRef(USkeletalMesh skeletalMesh)
         {
+            Log.Information("Skeletal Mesh: " + skeletalMesh.Name);
             SkeletalMesh = skeletalMesh;
             if (SkeletalMesh.Materials is not null)
             {
                 foreach (var item in SkeletalMesh.Materials)
                 {
-                    UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
-                    if (Material is UMaterialInstanceConstant InstanceConstant)
+                    if (item.Material != null)
                     {
-                        Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                        UMaterialInterface Material = item.Material.Load<UMaterialInterface>();
+                        if (Material is UMaterialInstanceConstant InstanceConstant)
+                        {
+                            Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                        }
+                    }
+                    else
+                    {
+                        Log.Warning($"Material is null | Slot Name: {item.MaterialSlotName.PlainText ?? "NULL"}");
                     }
                 }
             }
@@ -35,6 +44,7 @@ namespace TModel.Export
 
         public ModelRef(UStaticMesh staticMesh)
         {
+            Log.Information("Static Mesh: " + staticMesh.Name);
             StaticMesh = staticMesh;
             if (staticMesh is not null)
             {
@@ -52,6 +62,8 @@ namespace TModel.Export
         // This saves the model as a .psk(x) to the Storage Folder defined in Preferences
         public void SaveMesh(CBinaryWriter writer)
         {
+            Log.Information("Wring Mesh: " + SkeletalMesh?.Name ?? StaticMesh.Name);
+
             MeshExporter meshExporter = null;
             if (SkeletalMesh is USkeletalMesh skeletalMesh)
             {

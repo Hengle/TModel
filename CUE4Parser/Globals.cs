@@ -6,7 +6,7 @@ namespace CUE4Parse
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     public static class Globals
     {
-        public static bool LogVfsMounts = true;
+        public static bool LogVfsMounts = false;
         public static bool FatalObjectSerializationErrors = false;
     }
 }

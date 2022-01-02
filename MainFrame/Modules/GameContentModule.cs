@@ -1,4 +1,5 @@
 ﻿using CUE4Parse.UE4.Assets;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -73,6 +74,10 @@ namespace TModel.Modules
             VerticalAlignment = VerticalAlignment.Center,
         };
 
+        List<ItemTileInfo> VisiblePreviews = new List<ItemTileInfo>();
+
+        string? SearchTerm = null;
+
         Grid TopPanel = new Grid();
 
         Grid ButtonPanel = new Grid();
@@ -139,17 +144,29 @@ namespace TModel.Modules
 
             SearchBox.TextChanged += (sender, args) =>
             {
-                string SearchTerm = SearchBox.Text.Normalize().Trim();
-                ItemTileInfo[] ItemTiles = CurrentExporter.LoadedPreviews.ToArray();
-                List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
-                foreach (var item in ItemTiles)
+                SearchTerm = SearchBox.Text.Normalize().Trim();
+                if (string.IsNullOrWhiteSpace(SearchTerm)) SearchTerm = null;
+                List<ItemTileInfo> ItemTiles = CurrentExporter.LoadedPreviews;
+                if (SearchTerm != null)
                 {
-                    if (item.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                    List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
+                    foreach (var item in ItemTiles)
                     {
-                        MatchingPreviews.Add(item);
+                        if (item.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                        {
+                            MatchingPreviews.Add(item);
+                        }
                     }
+                    VisiblePreviews = MatchingPreviews;
+                    LoadPages();
                 }
-                LoadPages(MatchingPreviews);
+                else
+                {
+                    VisiblePreviews = ItemTiles;
+                    LoadPages();
+                }
+                PageNum = 1;
+                UpdatePageCount();
             };
 
             B_LeftPage.Click += () =>
@@ -158,7 +175,7 @@ namespace TModel.Modules
                 {
                     PageNum--;
                     UpdatePageCount();
-                    LoadPages(CurrentExporter.LoadedPreviews.ToArray());
+                    LoadPages();
                 }
             };
 
@@ -175,7 +192,7 @@ namespace TModel.Modules
                 {
                     PageNum++;
                     UpdatePageCount();
-                    LoadPages(CurrentExporter.LoadedPreviews.ToArray());
+                    LoadPages();
                 }
             };
 
@@ -231,25 +248,29 @@ namespace TModel.Modules
 
                 radioButton.Click += (sender, args) =>
                 {
-                    ItemsPanel.Children.Clear();
-                    cTokenSource.Token.Register(() =>
+                    cTokenSource = new CancellationTokenSource();
+                    string Name = (string)((RadioButton)sender).Tag;
+                    EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
+                    Filter = FilterType;
+                    CurrentExporter = FortUtils.Exporters[FilterType];
+                    PageNum = 1;
+                    if (FileManagerModule.HasLoaded)
                     {
-                        cTokenSource = new CancellationTokenSource();
-                        string Name = (string)((RadioButton)sender).Tag;
-                        EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
-                        Filter = FilterType;
-                        CurrentExporter = FortUtils.Exporters[FilterType];
-                        PageNum = 1;
-                        LoadPages(CurrentExporter.LoadedPreviews.ToArray());
-                        LoadFilterType();
-                        UpdatePageCount();
-                    });
-                    cTokenSource.Cancel();
+                        ItemsPanel.Children.Clear();
+                        cTokenSource.Token.Register(() =>
+                        {
+                            VisiblePreviews = CurrentExporter.LoadedPreviews;
+                            LoadPages();
+                            LoadFilterType();
+                            UpdatePageCount();
+                        });
+                        cTokenSource.Cancel();
+                    }
                 };
             }
         }
 
-        void UpdatePageCount() => PageNumberText.Text = $"Page {PageNum}/{TotalPages = (CurrentExporter.LoadedPreviews.Count / PageSize) + 1}";
+        void UpdatePageCount() => PageNumberText.Text = $"Page {PageNum}/{TotalPages = (VisiblePreviews.Count / PageSize) + 1}";
 
         void LoadFilterType()
         {
@@ -273,7 +294,6 @@ namespace TModel.Modules
                             !gamefile.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
                             !gamefile.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
                             !gamefile.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
-                            // gamefile.Name.Contains("cowgirl", StringComparison.OrdinalIgnoreCase) &&
                             FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
                             {
                                 if (!gamefile.IsItemLoaded)
@@ -283,8 +303,10 @@ namespace TModel.Modules
                                     {
                                         UpdatePageCount();
                                         LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
-                                        if (PageNum == TotalPages)
+                                        if (SearchTerm == null && PageNum == TotalPages ||
+                                        SearchTerm != null && itemPreviewInfo.Name.Contains(SearchTerm)) // On same page
                                         {
+                                            VisiblePreviews.Add(itemPreviewInfo);
                                             ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
                                         }
                                     });
@@ -308,15 +330,15 @@ namespace TModel.Modules
             });
         }
 
-        void LoadPages(IList<ItemTileInfo> Previews)
+        void LoadPages()
         {
             ItemsPanel.Children.Clear();
 
-            int FinalSize = (PageSize * PageNum) > Previews.Count ? Previews.Count : (PageSize * PageNum);
+            int FinalSize = (PageSize * PageNum) > VisiblePreviews.Count ? VisiblePreviews.Count : (PageSize * PageNum);
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
-                ItemsPanel.Children.Add(new GameContentItem(Previews[i]));
+                ItemsPanel.Children.Add(new GameContentItem(VisiblePreviews[i]));
             }
         }
 
@@ -415,6 +437,8 @@ namespace TModel.Modules
     // Holds information to be displayed in ItemPreviewModule
     public class ExportPreviewInfo
     {
+        public IPackage Package { set; get; }
+
         public string Name { set; get; } = string.Empty;
 
         public string Description { set; get; } = string.Empty;

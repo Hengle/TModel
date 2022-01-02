@@ -445,14 +445,14 @@ namespace CUE4Parse.FileProvider
             return new IoPackage(uassetTask, vfsFileProvider.GlobalData, containerHeader, ubulkTask, uptnlTask, this, MappingsForThisGame);
         }
 
-        public virtual async Task<IPackage?> TryLoadPackageAsync(string path)
+        public virtual IPackage? TryLoadPackageAsync(string path)
         {
             if (!TryFindGameFile(path, out var file))
             {
                 return null;
             }
 
-            return await TryLoadPackageAsync(file).ConfigureAwait(false);
+            return TryLoadPackageAsync(file).Result;
         }
 
         public virtual async Task<IPackage?> TryLoadPackageAsync(GameFile file)
@@ -646,7 +646,7 @@ namespace CUE4Parse.FileProvider
                 packagePath = packagePath.Substring(0, dotIndex);
             }
 
-            var pkg = await TryLoadPackageAsync(packagePath);
+            var pkg = TryLoadPackageAsync(packagePath);
             return pkg?.GetExportOrNull(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
 

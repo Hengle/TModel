@@ -2132,9 +2132,9 @@ def main(context):
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
                 Emissive = ReadTexture()
-                # Metallic = ReadTexture()
+                Metallic = ReadTexture()
 
-                # SkinBoostColor = ReadVector()
+                SkinBoostColor = ReadVector()
 
                 try:
                     CurrentMat = bpy.data.materials[MatName]
@@ -2188,20 +2188,22 @@ def main(context):
                         EmissiveImage.image = GetImage(Emissive)
                         CurrentMat.node_tree.links.new(bsdf.inputs['Emission'], EmissiveImage.outputs[0])
 
-                    # if Metallic is not None:
-                    #     MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                    #     MetallicImage.image = GetImage(Metallic)
-                    #     MetallicSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
-                    #     MultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
-                    #     SecondMultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
-                    #     SecondMultiplyNode.blend_type = 'MULTIPLY'
-                    #     SecondMultiplyNode.inputs[1].default_value = SkinBoostColor
-                    #     SecondMultiplyNode.inputs[2].default_value = (SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3])
-                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[1], DiffuseImage.outputs[0])
-                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[2], SecondMultiplyNode.outputs[0])
-                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[0], MetallicSeperator.outputs["B"])
-                    #     CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], MultiplyNode.outputs[0])
-                    #     CurrentMat.node_tree.links.new(MetallicSeperator.inputs[0], MetallicImage.outputs["Color"])
+                    if Metallic is not None:
+                        MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        MetallicImage.image = GetImage(Metallic)
+                        MetallicSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                        MultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
+                        MultiplyNode.blend_type = 'MULTIPLY'
+                        SecondMultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
+                        SecondMultiplyNode.blend_type = 'MULTIPLY'
+                        SecondMultiplyNode.inputs[0].default_value = 1.0
+                        SecondMultiplyNode.inputs[1].default_value = (SkinBoostColor[0], SkinBoostColor[1], SkinBoostColor[2], 1.0)
+                        SecondMultiplyNode.inputs[2].default_value = (SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3])
+                        CurrentMat.node_tree.links.new(MultiplyNode.inputs[1], DiffuseImage.outputs[0])
+                        CurrentMat.node_tree.links.new(MultiplyNode.inputs[2], SecondMultiplyNode.outputs[0])
+                        CurrentMat.node_tree.links.new(MultiplyNode.inputs[0], MetallicSeperator.outputs["B"])
+                        CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], MultiplyNode.outputs[0])
+                        CurrentMat.node_tree.links.new(MetallicSeperator.inputs[0], MetallicImage.outputs["Color"])
 
                 except Exception as e:
                     print(e)

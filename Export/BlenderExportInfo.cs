@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,8 @@ namespace TModel.Export
 {
     public class BlenderExportInfo
     {
+        public string Name { get; set; }
+
         public List<ModelRef> Models { get; } = new List<ModelRef>();
 
 
@@ -18,22 +21,22 @@ namespace TModel.Export
         // more than once)
         public List<CMaterial> GetMaterials()
         {
-            List<CMaterial> Final = new List<CMaterial>();
+            List<CMaterial> Result = new List<CMaterial>();
             foreach (var model in Models)
             {
                 foreach (var material in model.Materials)
                 {
-                    foreach (var item in Final)
+                    foreach (var item in Result)
                     {
                         if (item.Name == material.Name)
                         {
                             break;
                         }
                     }
-                    Final.Add(material);
+                    Result.Add(material);
                 }
             }
-            return Final;
+            return Result;
         }
 
         public void Save()
@@ -55,6 +58,7 @@ namespace TModel.Export
             }
 
             Writer.Close();
+            Log.Information("Finished!");
         }
     }
 }
