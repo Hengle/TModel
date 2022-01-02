@@ -340,13 +340,6 @@ namespace CUE4Parse.FileProvider
             return file.TryRead(out data);
         }
 
-        public virtual async Task<byte[]> SaveAssetAsync(string path) => await Task.Run(() => SaveAsset(path));
-        public virtual async Task<byte[]?> TrySaveAssetAsync(string path) => await Task.Run(() =>
-        {
-            TrySaveAsset(path, out var data);
-            return data;
-        });
-
         #endregion
 
         #region CreateReader Methods
@@ -366,13 +359,6 @@ namespace CUE4Parse.FileProvider
             return file.TryCreateReader(out reader);
         }
 
-        public virtual async Task<FArchive> CreateReaderAsync(string path) => await Task.Run(() => CreateReader(path));
-        public virtual async Task<FArchive?> TryCreateReaderAsync(string path) => await Task.Run(() =>
-        {
-            TryCreateReader(path, out var reader);
-            return reader;
-        });
-
         #endregion
 
         #region LoadPackage Methods
@@ -381,7 +367,7 @@ namespace CUE4Parse.FileProvider
         public virtual IPackage LoadPackage(string path) => LoadPackage(this[path]);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual IPackage LoadPackage(GameFile file) => LoadPackageAsync(file).Result;
+        public virtual IPackage LoadPackage(GameFile file) => LoadPackageAsync(file);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual IoPackage LoadPackage(FPackageId id) => (IoPackage)LoadPackage(FilesById[id]);
@@ -419,8 +405,8 @@ namespace CUE4Parse.FileProvider
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual async Task<IPackage> LoadPackageAsync(string path) => await LoadPackageAsync(this[path]);
-        public virtual async Task<IPackage> LoadPackageAsync(GameFile file)
+        public virtual IPackage LoadPackageAsync(string path) => LoadPackageAsync(this[path]);
+        public virtual IPackage LoadPackageAsync(GameFile file)
         {
             if (!file.IsUE4Package) throw new ArgumentException("File must be a package to be a loaded as one", nameof(file));
             Files.TryGetValue(file.PathWithoutExtension + ".uexp", out var uexpFile);
@@ -499,7 +485,7 @@ namespace CUE4Parse.FileProvider
 
         public virtual IReadOnlyDictionary<string, byte[]> SavePackage(string path) => SavePackage(this[path]);
 
-        public virtual IReadOnlyDictionary<string, byte[]> SavePackage(GameFile file) => SavePackageAsync(file).Result;
+        public virtual IReadOnlyDictionary<string, byte[]> SavePackage(GameFile file) => SavePackageAsync(file);
 
         public virtual bool TrySavePackage(string path, out IReadOnlyDictionary<string, byte[]> package)
         {
@@ -514,29 +500,29 @@ namespace CUE4Parse.FileProvider
 
         public virtual bool TrySavePackage(GameFile file, out IReadOnlyDictionary<string, byte[]> package)
         {
-            package = TrySavePackageAsync(file).Result;
+            package = TrySavePackageAsync(file);
             return package != null;
         }
 
-        public virtual async Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(string path) =>
-            await SavePackageAsync(this[path]);
+        public virtual IReadOnlyDictionary<string, byte[]> SavePackageAsync(string path) =>
+            SavePackageAsync(this[path]);
 
-        public virtual async Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(GameFile file)
+        public virtual IReadOnlyDictionary<string, byte[]> SavePackageAsync(GameFile file)
         {
             Files.TryGetValue(file.PathWithoutExtension + ".uexp", out var uexpFile);
             Files.TryGetValue(file.PathWithoutExtension + ".ubulk", out var ubulkFile);
             Files.TryGetValue(file.PathWithoutExtension + ".uptnl", out var uptnlFile);
-            var uassetTask = file.ReadAsync();
-            var uexpTask = uexpFile?.ReadAsync();
-            var ubulkTask = ubulkFile?.ReadAsync();
-            var uptnlTask = uptnlFile?.ReadAsync();
+            byte[] uassetTask = file.Read();
+            byte[] uexpTask = uexpFile?.Read();
+            byte[] ubulkTask = ubulkFile?.Read();
+            byte[] uptnlTask = uptnlFile?.Read();
             var dict = new Dictionary<string, byte[]>
             {
-                { file.Path, await uassetTask }
+                { file.Path, uassetTask }
             };
-            var uexp = uexpTask != null ? await uexpTask : null;
-            var ubulk = ubulkTask != null ? await ubulkTask : null;
-            var uptnl = uptnlTask != null ? await uptnlTask : null;
+            var uexp = uexpTask != null ? uexpTask : null;
+            var ubulk = ubulkTask != null ? ubulkTask : null;
+            var uptnl = uptnlTask != null ? uptnlTask : null;
             if (uexpFile != null && uexp != null)
                 dict[uexpFile.Path] = uexp;
             if (ubulkFile != null && ubulk != null)
@@ -546,32 +532,32 @@ namespace CUE4Parse.FileProvider
             return dict;
         }
 
-        public virtual async Task<IReadOnlyDictionary<string, byte[]>?> TrySavePackageAsync(string path)
+        public virtual IReadOnlyDictionary<string, byte[]> TrySavePackageAsync(string path)
         {
             if (!TryFindGameFile(path, out var file))
             {
                 return null;
             }
 
-            return await TrySavePackageAsync(file).ConfigureAwait(false);
+            return TrySavePackageAsync(file);
         }
 
-        public virtual async Task<IReadOnlyDictionary<string, byte[]>?> TrySavePackageAsync(GameFile file)
+        public virtual IReadOnlyDictionary<string, byte[]>? TrySavePackageAsync(GameFile file)
         {
             Files.TryGetValue(file.PathWithoutExtension + ".uexp", out var uexpFile);
             Files.TryGetValue(file.PathWithoutExtension + ".ubulk", out var ubulkFile);
             Files.TryGetValue(file.PathWithoutExtension + ".uptnl", out var uptnlFile);
-            var uassetTask = file.TryReadAsync().ConfigureAwait(false);
-            var uexpTask = uexpFile?.TryReadAsync().ConfigureAwait(false);
-            var ubulkTask = ubulkFile?.TryReadAsync().ConfigureAwait(false);
-            var uptnlTask = uptnlFile?.TryReadAsync().ConfigureAwait(false);
+            byte[] uassetTask = file.Read();
+            byte[] uexpTask = uexpFile?.Read();
+            byte[] ubulkTask = ubulkFile?.Read();
+            byte[] uptnlTask = uptnlFile?.Read();
 
-            var uasset = await uassetTask;
+            byte[] uasset = uassetTask;
             if (uasset == null)
                 return null;
-            var uexp = uexpTask != null ? await uexpTask.Value : null;
-            var ubulk = ubulkTask != null ? await ubulkTask.Value : null;
-            var uptnl = uptnlTask != null ? await uptnlTask.Value : null;
+            byte[] uexp = uexpTask != null ? uexpTask: null;
+            byte[] ubulk = ubulkTask != null ? ubulkTask: null;
+            byte[] uptnl = uptnlTask != null ? uptnlTask : null;
 
             var dict = new Dictionary<string, byte[]>
             {
@@ -591,26 +577,26 @@ namespace CUE4Parse.FileProvider
         #region LoadObject Methods
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual UObject LoadObject(string? objectPath) => LoadObjectAsync(objectPath).Result;
+        public virtual UObject LoadObject(string? objectPath) => LoadObjectAsync(objectPath);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual bool TryLoadObject(string? objectPath, out UObject export)
         {
-            export = TryLoadObjectAsync(objectPath).Result;
+            export = TryLoadObjectAsync(objectPath);
             return export != null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual T LoadObject<T>(string? objectPath) where T : UObject => LoadObjectAsync<T>(objectPath).Result;
+        public virtual T LoadObject<T>(string? objectPath) where T : UObject => LoadObjectAsync<T>(objectPath);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual bool TryLoadObject<T>(string? objectPath, out T export) where T : UObject
         {
-            export = TryLoadObjectAsync<T>(objectPath).Result;
+            export = TryLoadObjectAsync<T>(objectPath);
             return export != null;
         }
 
-        public virtual async Task<UObject> LoadObjectAsync(string? objectPath)
+        public virtual UObject LoadObjectAsync(string? objectPath)
         {
             if (objectPath == null) throw new ArgumentException("ObjectPath can't be null", nameof(objectPath));
             var packagePath = objectPath;
@@ -626,11 +612,11 @@ namespace CUE4Parse.FileProvider
                 packagePath = packagePath.Substring(0, dotIndex);
             }
 
-            var pkg = await LoadPackageAsync(packagePath);
+            var pkg = LoadPackageAsync(packagePath);
             return pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
 
-        public virtual async Task<UObject?> TryLoadObjectAsync(string? objectPath)
+        public virtual UObject? TryLoadObjectAsync(string? objectPath)
         {
             if (objectPath == null || objectPath.Equals("None", IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) return null;
             var packagePath = objectPath;
@@ -651,13 +637,13 @@ namespace CUE4Parse.FileProvider
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual async Task<T> LoadObjectAsync<T>(string? objectPath) where T : UObject =>
-            await LoadObjectAsync(objectPath) as T ??
+        public virtual T LoadObjectAsync<T>(string? objectPath) where T : UObject =>
+            LoadObjectAsync(objectPath) as T ??
             throw new ParserException("Loaded object but it was of wrong type");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual async Task<T?> TryLoadObjectAsync<T>(string? objectPath) where T : UObject =>
-            await TryLoadObjectAsync(objectPath) as T;
+        public virtual T? TryLoadObjectAsync<T>(string? objectPath) where T : UObject =>
+            TryLoadObjectAsync(objectPath) as T;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual IEnumerable<UObject> LoadObjectExports(string? objectPath)

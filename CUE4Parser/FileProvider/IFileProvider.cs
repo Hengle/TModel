@@ -109,19 +109,6 @@ namespace CUE4Parse.FileProvider
         /// <param name="data">The asset data if it was successfully loaded; otherwise default</param>
         /// <returns>true if the asset could be loaded; false otherwise</returns>
         public bool TrySaveAsset(string path, out byte[] data);
-        /// <summary>
-        /// Asynchronously loads asset data of the file with the passed path into byte[]. 
-        /// Can throw various exceptions
-        /// </summary>
-        /// <param name="path">The file path</param>
-        /// <returns>The asset data</returns>
-        public Task<byte[]> SaveAssetAsync(string path);
-        /// <summary>
-        /// Asynchronously attempts to load asset data of the file with the passed path into byte[]. 
-        /// </summary>
-        /// <param name="path">The file path</param>
-        /// <returns>The asset data if it was successfully loaded; null otherwise</returns>
-        public Task<byte[]?> TrySaveAssetAsync(string path);
         
         /// <summary>
         /// Creates a reader for the file with the passed path. 
@@ -137,19 +124,6 @@ namespace CUE4Parse.FileProvider
         /// <param name="reader">The reader if it was successfully created; otherwise default</param>
         /// <returns>true if the reader could be created; false otherwise</returns>
         public bool TryCreateReader(string path, out FArchive reader);
-        /// <summary>
-        /// Asynchronously creates a reader for the file with the passed path. 
-        /// Can throw various exceptions
-        /// </summary>
-        /// <param name="path">The file path</param>
-        /// <returns>The reader</returns>
-        public Task<FArchive> CreateReaderAsync(string path);
-        /// <summary>
-        /// Asynchronously attempts to create a reader for the file with the passed path. 
-        /// </summary>
-        /// <param name="path">The file path</param>
-        /// <returns>The reader if it could be created; null otherwise</returns>
-        public Task<FArchive?> TryCreateReaderAsync(string path);
         /// <summary>
         /// Loads and parses a Package at the passed path. 
         /// Can throw various exceptions
@@ -192,32 +166,6 @@ namespace CUE4Parse.FileProvider
         /// <param name="package">The parsed package content if it could be parsed; default otherwise</param>
         /// <returns>true if the package could be parsed; false otherwise</returns>
         public bool TryLoadPackage(FPackageId id, out IoPackage package);
-        /// <summary>
-        /// Asynchronously loads and parses a Package at the passed path. 
-        /// Can throw various exceptions
-        /// </summary>
-        /// <param name="path">The package file path</param>
-        /// <returns>The parsed package content</returns>
-        public Task<IPackage> LoadPackageAsync(string path);
-        /// <summary>
-        /// Asynchronously loads and parses a Package from the passed file. 
-        /// Can throw various exceptions
-        /// </summary>
-        /// <param name="file">The package file</param>
-        /// <returns>The parsed package content</returns>
-        public Task<IPackage> LoadPackageAsync(GameFile file);
-        /// <summary>
-        /// Asynchronously attempts to loads and parse a Package at the passed path. 
-        /// </summary>
-        /// <param name="path">The package file path</param>
-        /// <returns>The parsed package content if it could be parsed; default otherwise</returns>
-        public IPackage? TryLoadPackageAsync(string path);
-        /// <summary>
-        /// Asynchronously attempts to loads and parse a Package for the passed file. 
-        /// </summary>
-        /// <param name="file">The package file</param>
-        /// <returns>The parsed package content if it could be parsed; default otherwise</returns>
-        public Task<IPackage?> TryLoadPackageAsync(GameFile file);
 
         /// <summary>
         /// Loads all parts of the Package at the passed path. 
@@ -247,32 +195,6 @@ namespace CUE4Parse.FileProvider
         /// <param name="package">The package parts in a Dictionary with their name as keys if successfully loaded; default otherwise</param>
         /// <returns>true if the package parts could be successfully loaded; false otherwise</returns>
         public bool TrySavePackage(GameFile file, out IReadOnlyDictionary<string, byte[]> package);
-        /// <summary>
-        /// Asynchronously loads all parts of the Package at the passed path. 
-        /// Can throw various exceptions
-        /// </summary>
-        /// <param name="path">The package file path</param>
-        /// <returns>The package parts in a Dictionary with their name as keys</returns>
-        public Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(string path);
-        /// <summary>
-        /// Asynchronously loads all parts of the Package in the passed file. 
-        /// Can throw various exceptions
-        /// </summary>
-        /// <param name="file">The package file</param>
-        /// <returns>The package parts in a Dictionary with their name as keys</returns>
-        public Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(GameFile file);
-        /// <summary>
-        /// Asynchronously attempts to load all parts of the Package at the passed path. 
-        /// </summary>
-        /// <param name="path">The package file path</param>
-        /// <returns>The package parts in a Dictionary with their name as keys if successfully loaded; null otherwise</returns>
-        public Task<IReadOnlyDictionary<string, byte[]>?> TrySavePackageAsync(string path);
-        /// <summary>
-        /// Asynchronously attempts to load all parts of the Package in the passed file. 
-        /// </summary>
-        /// <param name="file">The package file</param>
-        /// <returns>The package parts in a Dictionary with their name as keys if successfully loaded; null otherwise</returns>
-        public Task<IReadOnlyDictionary<string, byte[]>?> TrySavePackageAsync(GameFile file);
 
         /// <summary>
         /// Loads an object from the Package at the passed path
@@ -300,30 +222,6 @@ namespace CUE4Parse.FileProvider
         /// <param name="export">The loaded object if loaded successfully and of correct type; default otherwise</param>
         /// <returns>true if object was loaded and of correct type; false otherwise</returns>
         public bool TryLoadObject<T>(string? objectPath, out T export) where T : UObject;
-        /// <summary>
-        /// Asynchronously loads an object from the Package at the passed path
-        /// </summary>
-        /// <param name="objectPath">The object path</param>
-        /// <returns>The loaded object</returns>
-        public Task<UObject> LoadObjectAsync(string? objectPath);
-        /// <summary>
-        /// Asynchronously attempts to load an object from the Package at the passed path
-        /// </summary>
-        /// <param name="objectPath">The object path</param>
-        /// <returns>The loaded object if loaded successfully; null otherwise</returns>
-        public Task<UObject?> TryLoadObjectAsync(string? objectPath);
-        /// <summary>
-        /// Asynchronously loads an object from the Package at the passed path with type T
-        /// </summary>
-        /// <param name="objectPath">The object path</param>
-        /// <returns>The loaded object of type T</returns>
-        public Task<T> LoadObjectAsync<T>(string? objectPath) where T : UObject;
-        /// <summary>
-        /// Asynchronously attempts to load an object from the Package at the passed path with type T
-        /// </summary>
-        /// <param name="objectPath">The object path</param>
-        /// <returns>The loaded object if loaded successfully and of correct type; null otherwise</returns>
-        public Task<T?> TryLoadObjectAsync<T>(string? objectPath) where T : UObject;
         
         /// <summary>
         /// Loads an object from the Package at the passed path

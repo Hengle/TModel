@@ -85,28 +85,6 @@ namespace CUE4Parse.UE4.Objects.UObject
             }
             return TryLoad(provider, out export);
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UExport> LoadAsync() => await LoadAsync(Owner?.Provider ?? throw new ParserException("Package was loaded without a IFileProvider"));
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UExport?> TryLoadAsync()
-        {
-            var provider = Owner?.Provider;
-            if (provider == null) return null;
-            return await TryLoadAsync(provider).ConfigureAwait(false);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T> LoadAsync<T>() where T : UExport => await LoadAsync<T>(Owner?.Provider ?? throw new ParserException("Package was loaded without a IFileProvider"));
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T?> TryLoadAsync<T>() where T : UExport
-        {
-            var provider = Owner?.Provider;
-            if (provider == null) return null;
-            return await TryLoadAsync<T>(provider).ConfigureAwait(false);
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Load<T>(IFileProvider provider) where T : UExport =>
@@ -132,13 +110,6 @@ namespace CUE4Parse.UE4.Objects.UObject
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T> LoadAsync<T>(IFileProvider provider) where T : UExport => await LoadAsync(provider) as T ??
-            throw new ParserException("Loaded SoftObjectProperty but it was of wrong type");
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T?> TryLoadAsync<T>(IFileProvider provider) where T : UExport => await TryLoadAsync(provider) as T;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UExport Load(IFileProvider provider) 
         {
             if (!AssetPathName.IsNone)
@@ -155,18 +126,6 @@ namespace CUE4Parse.UE4.Objects.UObject
             return false;
         }
             
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UExport> LoadAsync(IFileProvider provider) 
-        {
-            if (!AssetPathName.IsNone)
-                await provider.LoadObjectAsync(AssetPathName.Text);
-            return null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UExport?> TryLoadAsync(IFileProvider provider) =>
-            await provider.TryLoadObjectAsync(AssetPathName.Text);
         
         #endregion
 
