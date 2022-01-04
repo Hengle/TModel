@@ -1,4 +1,5 @@
-﻿using CUE4Parse.UE4.Assets;
+﻿using CUE4Parse.FileProvider;
+using CUE4Parse.UE4.Assets;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ using TModel.Export;
 using TModel.Export.Exporters;
 using TModel.MainFrame.Widgets;
 using TModel.Sorters;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using static TModel.ColorConverters;
 
 namespace TModel.Modules
@@ -93,6 +97,7 @@ namespace TModel.Modules
 
         public GameContentModule() : base()
         {
+
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // SearchBar
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Buttons panel
             Root.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Filter options
@@ -146,23 +151,26 @@ namespace TModel.Modules
             {
                 SearchTerm = SearchBox.Text.Normalize().Trim();
                 if (string.IsNullOrWhiteSpace(SearchTerm)) SearchTerm = null;
-                List<ItemTileInfo> ItemTiles = CurrentExporter.LoadedPreviews;
+                ItemTileInfo[] ItemTiles = CurrentExporter.LoadedPreviews.ToArray();
                 if (SearchTerm != null)
                 {
                     List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
                     foreach (var item in ItemTiles)
                     {
-                        if (item.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                        if (item.Name.Replace(" ", "").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
                         {
                             MatchingPreviews.Add(item);
                         }
                     }
-                    VisiblePreviews = MatchingPreviews;
-                    LoadPages();
+                    if (VisiblePreviews.Count != MatchingPreviews.Count) // Something changed
+                    {
+                        VisiblePreviews = MatchingPreviews.ToArray().ToList();
+                        LoadPages();
+                    }
                 }
-                else
+                else // Nothing typed in search bar
                 {
-                    VisiblePreviews = ItemTiles;
+                    VisiblePreviews = CurrentExporter.LoadedPreviews.ToArray().ToList(); // Show all loaded items
                     LoadPages();
                 }
                 PageNum = 1;
@@ -253,16 +261,18 @@ namespace TModel.Modules
                     EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
                     Filter = FilterType;
                     CurrentExporter = FortUtils.Exporters[FilterType];
+                    VisiblePreviews = CurrentExporter.LoadedPreviews.ToArray().ToList();
                     PageNum = 1;
                     if (FileManagerModule.HasLoaded)
                     {
                         ItemsPanel.Children.Clear();
                         cTokenSource.Token.Register(() =>
                         {
-                            VisiblePreviews = CurrentExporter.LoadedPreviews;
                             LoadPages();
                             LoadFilterType();
                             UpdatePageCount();
+                            UpdateLoadedCount();
+                            cTokenSource = new CancellationTokenSource();
                         });
                         cTokenSource.Cancel();
                     }
@@ -272,6 +282,8 @@ namespace TModel.Modules
 
         void UpdatePageCount() => PageNumberText.Text = $"Page {PageNum}/{TotalPages = (VisiblePreviews.Count / PageSize) + 1}";
 
+        void UpdateLoadedCount() => LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
+
         void LoadFilterType()
         {
             if (!CurrentExporter.bHasGameFiles)
@@ -280,41 +292,45 @@ namespace TModel.Modules
                 CurrentExporter.GameFiles.Sort(new NameSort());
                 CurrentExporter.GameFiles.Reverse();
             }
-            // gamefile.Name.Contains("cowgirl", StringComparison.OrdinalIgnoreCase) && 
+
             Task.Run(() =>
             {
                 if (!CurrentExporter.bHasLoadedAllPreviews)
                 {
-                    foreach (var gamefile in CurrentExporter.GameFiles)
+                    GameFile[] Files = CurrentExporter.GameFiles.ToArray();
+                    foreach (var file in Files)
                     {
                         cTokenSource.Token.ThrowIfCancellationRequested();
                         try
                         {
-                            if(
-                            !gamefile.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
-                            !gamefile.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
-                            !gamefile.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
-                            FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
+                            if (!file.IsItemLoaded)
                             {
-                                if (!gamefile.IsItemLoaded)
+                                if (
+                                     // !file.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
+                                     // !file.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
+                                     // !file.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
+                                     // file.Name.Contains("StrawberryPilot", StringComparison.OrdinalIgnoreCase) &&
+FortUtils.TryLoadItemPreviewInfo(Filter, file, out ItemTileInfo itemPreviewInfo))
                                 {
                                     CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
                                     App.Refresh(() =>
                                     {
                                         UpdatePageCount();
-                                        LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
-                                        if (SearchTerm == null && PageNum == TotalPages ||
-                                        SearchTerm != null && itemPreviewInfo.Name.Contains(SearchTerm)) // On same page
+                                        UpdateLoadedCount();
+                                        if (SearchTerm == null && PageNum == TotalPages) // On same page
                                         {
-                                            VisiblePreviews.Add(itemPreviewInfo);
                                             ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
                                         }
+                                        VisiblePreviews.Add(itemPreviewInfo);
                                     });
-                                    gamefile.IsItemLoaded = true;
                                 }
+                                file.IsItemLoaded = true;
                             }
                         }
-                        catch { }
+                        catch
+                        {
+                            file.IsItemLoaded = true; // Don't try to load again
+                        }
                     }
                 }
                 else
@@ -390,7 +406,15 @@ namespace TModel.Modules
                 if (SelectionChanged is not null)
                 {
                     App.ShowModule<ItemPreviewModule>();
-                    SelectionChanged(CurrentExporter.GetExportPreviewInfo(Info.Package));
+                    try
+                    {
+                        SelectionChanged(CurrentExporter.GetExportPreviewInfo(Info.Package));
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("Could not select item: \n" + e.ToString());
+                    }
+
                 }
                 BackBorder.BorderBrush = Theme.BorderSelected;
             }

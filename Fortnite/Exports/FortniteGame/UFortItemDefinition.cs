@@ -77,6 +77,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 
         public virtual void DeepDeserialize()
         {
+#if false
             ItemType = GetOrDefault<EFortItemType>(nameof(ItemType));
             PrimaryAssetIdItemTypeOverride = GetOrDefault<EFortItemType>(nameof(PrimaryAssetIdItemTypeOverride));
             FilterOverride = GetOrDefault<EFortInventoryFilter>(nameof(FilterOverride));
@@ -113,6 +114,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             FrontendPreviewInitialRotation = GetOrDefault<FRotator>(nameof(FrontendPreviewInitialRotation));
             FrontendPreviewMeshOverride = GetOrDefault<UStaticMesh>(nameof(FrontendPreviewMeshOverride));
             FrontendPreviewSkeletalMeshOverride = GetOrDefault<USkeletalMesh>(nameof(FrontendPreviewSkeletalMeshOverride));
+#endif
         }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)

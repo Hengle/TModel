@@ -2132,7 +2132,18 @@ def main(context):
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
                 Emissive = ReadTexture()
+                SkinFX_Mask = ReadTexture()
                 Metallic = ReadTexture()
+
+                UseGradientLayers = ReadBool()
+                if(UseGradientLayers):
+                    LayerMask = ReadTexture()
+                    Layer1_Gradient = ReadTexture()
+                    Layer2_Gradient = ReadTexture()
+                    Layer3_Gradient = ReadTexture()
+                    Layer4_Gradient = ReadTexture()
+                    Layer5_Gradient = ReadTexture()
+
 
                 SkinBoostColor = ReadVector()
 
@@ -2150,6 +2161,7 @@ def main(context):
                         DiffuseImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
                         DiffuseImage.image = GetImage(Diffuse)
                         CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], DiffuseImage.outputs[0])
+                        DiffuseOut = DiffuseImage.outputs[0]
 
                     # SpecularMasks
                     if SpecularMasks is not None:
@@ -2201,9 +2213,16 @@ def main(context):
                         SecondMultiplyNode.inputs[2].default_value = (SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3])
                         CurrentMat.node_tree.links.new(MultiplyNode.inputs[1], DiffuseImage.outputs[0])
                         CurrentMat.node_tree.links.new(MultiplyNode.inputs[2], SecondMultiplyNode.outputs[0])
+                        DiffuseOut = SecondMultiplyNode.outputs[0]
                         CurrentMat.node_tree.links.new(MultiplyNode.inputs[0], MetallicSeperator.outputs["B"])
                         CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], MultiplyNode.outputs[0])
                         CurrentMat.node_tree.links.new(MetallicSeperator.inputs[0], MetallicImage.outputs["Color"])
+
+                    if SkinFX_Mask is not None:
+                        SkinFXImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                        SkinFXImage.image = GetImage(SkinFX_Mask)
+                        SkinFXSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                        CurrentMat.node_tree.links.new(SkinFXSeperator.inputs[0], SkinFXImage.outputs[0])
 
                 except Exception as e:
                     print(e)

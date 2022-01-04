@@ -13,7 +13,7 @@ namespace TModel.Export
     // Supported formats are: UTexture2D, BitmapImage, and SKImage.
     public class TextureRef
     {
-        private string Name;
+        public string Name;
 
         private UTexture2D? _UTexture2D;
 
@@ -89,9 +89,8 @@ namespace TModel.Export
             return _SKImage != null;
         }
 
-        public bool Save(out string SavePath)
+        public bool Save(string SavePath)
         {
-            SavePath = Path.Combine(Preferences.ExportsPath, Name + ".png");
             if (TryGet_BitmapImage(out _))
             {
                 using (var fs = new FileStream(SavePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))

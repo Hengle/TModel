@@ -4,6 +4,7 @@ using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,10 @@ namespace TModel.Export.Exporters
             {
                 TextureRef SmallImageRef = null;
                 if (Weapon.LargePreviewImage is FSoftObjectPath ImagePath)
-                    SmallImageRef = new TextureRef(ImagePath.Load<UTexture2D>());
+                    if (!ImagePath.AssetPathName.IsNone)
+                        SmallImageRef = new TextureRef(ImagePath.Load<UTexture2D>());
+
+
                 return new ExportPreviewInfo()
                 {
                     Name = Weapon.DisplayName,
