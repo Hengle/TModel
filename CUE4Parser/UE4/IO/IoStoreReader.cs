@@ -211,8 +211,6 @@ namespace CUE4Parse.UE4.IO
             var compressedBuffer = Array.Empty<byte>();
             var uncompressedBuffer = Array.Empty<byte>();
 
-            var clonedReaders = new FArchive?[ContainerStreams.Count];
-
             for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
             {
                 ref var compressionBlock = ref TocResource.CompressionBlocks[blockIndex];
@@ -231,11 +229,13 @@ namespace CUE4Parse.UE4.IO
                     uncompressedBuffer = new byte[uncompressedSize];
                 }
 
+                // Index of container stream to use
                 var partitionIndex = (int) ((ulong) compressionBlock.Offset / TocResource.Header.PartitionSize);
                 var partitionOffset = (long) ((ulong) compressionBlock.Offset % TocResource.Header.PartitionSize);
                 FArchive reader;
                 if (IsConcurrent)
                 {
+                    var clonedReaders = new FArchive?[ContainerStreams.Count];
                     ref var clone = ref clonedReaders[partitionIndex];
                     clone ??= (FArchive) ContainerStreams[partitionIndex].Clone();
                     reader = clone;

@@ -17,7 +17,7 @@ using Serilog;
 namespace CUE4Parse.UE4.Assets
 {
     [SkipObjectRegistration]
-    public sealed class Package : AbstractUePackage
+    public sealed class LEGACY_Package : AbstractUePackage
     {
         public override FPackageFileSummary Summary { get; }
         public override FNameEntrySerialized[] NameMap { get; }
@@ -29,7 +29,7 @@ namespace CUE4Parse.UE4.Assets
         public override bool IsFullyLoaded { get; } = false;
         private ExportLoader[] _exportLoaders; // Nonnull if useLazySerialization is false
 
-        public Package(FArchive uasset, FArchive? uexp, Lazy<FArchive?>? ubulk = null, Lazy<FArchive?>? uptnl = null, IFileProvider? provider = null, TypeMappings? mappings = null, bool useLazySerialization = true)
+        public LEGACY_Package(FArchive uasset, FArchive? uexp, Lazy<FArchive?>? ubulk = null, Lazy<FArchive?>? uptnl = null, IFileProvider? provider = null, TypeMappings? mappings = null, bool useLazySerialization = true)
             : base(uasset.Name.SubstringBeforeLast("."), provider, mappings)
         {
             // We clone the version container because it can be modified with package specific versions when reading the summary
@@ -113,12 +113,12 @@ namespace CUE4Parse.UE4.Assets
             IsFullyLoaded = true;
         }
 
-        public Package(FArchive uasset, FArchive? uexp, FArchive? ubulk = null, FArchive? uptnl = null,
+        public LEGACY_Package(FArchive uasset, FArchive? uexp, FArchive? ubulk = null, FArchive? uptnl = null,
             IFileProvider? provider = null, TypeMappings? mappings = null, bool useLazySerialization = true)
             : this(uasset, uexp, ubulk != null ? new Lazy<FArchive?>(() => ubulk) : null,
                 uptnl != null ? new Lazy<FArchive?>(() => uptnl) : null, provider, mappings, useLazySerialization) { }
 
-        public Package(string name, byte[] uasset, byte[]? uexp, byte[]? ubulk = null, byte[]? uptnl = null, IFileProvider? provider = null, bool useLazySerialization = true)
+        public LEGACY_Package(string name, byte[] uasset, byte[]? uexp, byte[]? ubulk = null, byte[]? uptnl = null, IFileProvider? provider = null, bool useLazySerialization = true)
             : this(new FByteArchive($"{name}.uasset", uasset), uexp != null ? new FByteArchive($"{name}.uexp", uexp) : null,
                 ubulk != null ? new FByteArchive($"{name}.ubulk", ubulk) : null,
                 uptnl != null ? new FByteArchive($"{name}.uptnl", uptnl) : null, provider, null, useLazySerialization) { }
@@ -171,9 +171,9 @@ namespace CUE4Parse.UE4.Assets
 
             if (Provider == null)
                 return null;
-            Package? importPackage = null;
+            LEGACY_Package? importPackage = null;
             if (Provider.TryLoadPackage(outerMostImport.ObjectName.Text, out var package))
-                importPackage = package as Package;
+                importPackage = package as LEGACY_Package;
             if (importPackage == null)
             {
                 Log.Error("Missing native package ({0}) for import of {1} in {2}.", outerMostImport.ObjectName, import.ObjectName, Name);
@@ -210,7 +210,7 @@ namespace CUE4Parse.UE4.Assets
         {
             private readonly FObjectExport _export;
 
-            public ResolvedExportObject(int exportIndex, Package package) : base(package, exportIndex)
+            public ResolvedExportObject(int exportIndex, LEGACY_Package package) : base(package, exportIndex)
             {
                 _export = package.ExportMap[exportIndex];
             }
@@ -227,7 +227,7 @@ namespace CUE4Parse.UE4.Assets
         {
             private readonly FObjectImport _import;
 
-            public ResolvedImportObject(FObjectImport import, Package package) : base(package)
+            public ResolvedImportObject(FObjectImport import, LEGACY_Package package) : base(package)
             {
                 _import = import;
             }
@@ -240,7 +240,7 @@ namespace CUE4Parse.UE4.Assets
 
         private class ExportLoader
         {
-            private Package _package;
+            private LEGACY_Package _package;
             private FObjectExport _export;
             private FAssetArchive _archive;
             private UObject _object;
@@ -248,7 +248,7 @@ namespace CUE4Parse.UE4.Assets
             private LoadPhase _phase = LoadPhase.Create;
             public Lazy<UObject> Lazy;
 
-            public ExportLoader(Package package, FObjectExport export, FAssetArchive archive)
+            public ExportLoader(LEGACY_Package package, FObjectExport export, FAssetArchive archive)
             {
                 _package = package;
                 _export = export;

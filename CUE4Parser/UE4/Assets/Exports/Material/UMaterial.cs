@@ -79,7 +79,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
                     }
                     break;
                 }
-                case Package pak:
+                case LEGACY_Package pak:
                 {
                     foreach (var import in pak.ImportMap)
                     {

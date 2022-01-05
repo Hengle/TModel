@@ -1,4 +1,6 @@
-﻿#define GENERATE_MODULES
+﻿// ONLY FOR DEBUGGING
+#define GENERATE_MODULES // When false window only shows ItemPreviewModule    default: true
+#define NO_WINDOW // True if there should NOT be a window                     defualt: false
 
 using System;
 using System.Windows;
@@ -24,7 +26,7 @@ namespace TModel
             if (Current != null)
                 Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
         }
-#if GENERATE_MODULES
+#if GENERATE_MODULES && !NO_WINDOW
         static ModulePanel modulePanel = new ModulePanel();
 #endif
 
@@ -35,7 +37,7 @@ namespace TModel
         // Trys to find the type of module, if found then selects it
         public static void ShowModule<T>()
         {
-#if GENERATE_MODULES
+#if GENERATE_MODULES && !NO_WINDOW
             modulePanel.TryShowModule<T>();
 #endif
         }
@@ -47,23 +49,28 @@ namespace TModel
         [STAThread]
         public static void Main()
         {
-#if GENERATE_MODULES
+#if GENERATE_MODULES && !NO_WINDOW
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .WriteTo.MySink()
                 .CreateLogger();
-
+#endif
             Preferences.Read();
-
+#if NO_WINDOW
+            DebugTools.DirectLoad();
+#endif
+#if GENERATE_MODULES && !NO_WINDOW
             if (IsValidGameDirectory(Preferences.GameDirectory))
             {
                 FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
                 App.FileProvider.Initialize();
             }
 #endif
+#if NO_WINDOW
             // Makes sure the storage folder exists
             Directory.CreateDirectory(Preferences.StorageFolder);
-#if GENERATE_MODULES
+#endif
+#if GENERATE_MODULES && !NO_WINDOW
 #if false
             ModuleContainer Module_Left = new ModuleContainer(new DirectoryModule(), ModulePanel);
 #else
@@ -71,14 +78,16 @@ namespace TModel
 #endif
             ModuleContainer Module_Right = new ModuleContainer(new FileManagerModule(), modulePanel);
 #endif
+#if !NO_WINDOW
             ObjectTypeRegistry.RegisterEngine(typeof(UFortItemDefinition).Assembly);
+#endif
 
 #if false // Preload data
             FileManagerModule.LoadGame();
 #endif
-            // FileProvider.GetFilesInPath(@"FortniteGame/Content/Athena/Items");
-
+// FileProvider.GetFilesInPath(@"FortniteGame/Content/Athena/Items");
             var app = new App();
+#if !NO_WINDOW
             Window.Title = "TModel";
             Window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             Window.ResizeMode = ResizeMode.CanResize;
@@ -87,15 +96,20 @@ namespace TModel
             Window.Background = HexBrush("#15162a");
             Window.Loaded += (sender, args) =>
             {
-#if GENERATE_MODULES
+#endif
+#if GENERATE_MODULES && !NO_WINDOW
                 Window.Content = modulePanel;
 #else
+#if !NO_WINDOW
                 Window.Content = new ItemPreviewModule();
 #endif
-            };
+#endif
+#if !NO_WINDOW
+        };
             app.MainWindow = Window;
             Window.Show();
-#if GENERATE_MODULES
+#endif
+#if GENERATE_MODULES && !NO_WINDOW
 #if false
             Module_Right.AddModule(new ObjectViewerModule());
 #endif
@@ -108,12 +122,12 @@ namespace TModel
             modulePanel.AddModule(Module_Right);
 
             modulePanel.MakeSeperator(Module_Right, new ModuleContainer(new LoggerModule(), false), new GridLength(150, GridUnitType.Pixel));
-#endif
             app.Run();
+#endif
         }
     }
 
-
+#if !NO_WINDOW
     public static class MySinkExtensions
     {
         public static LoggerConfiguration MySink(
@@ -123,4 +137,5 @@ namespace TModel
             return loggerConfiguration.Sink(new LoggerSink(formatProvider));
         }
     }
+#endif
 }

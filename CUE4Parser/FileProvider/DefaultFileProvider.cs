@@ -15,9 +15,9 @@ namespace CUE4Parse.FileProvider
 {
     public class DefaultFileProvider : AbstractVfsFileProvider
     {
-        private DirectoryInfo _workingDirectory;
-        private readonly SearchOption _searchOption;
-        private readonly List<DirectoryInfo> _extraDirectories;
+        public DirectoryInfo _workingDirectory;
+        public SearchOption _searchOption;
+        public List<DirectoryInfo> _extraDirectories;
 
         public DefaultFileProvider(string directory, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer? versions = null)
             : this(new DirectoryInfo(directory), searchOption, isCaseInsensitive, versions) { }
@@ -54,7 +54,7 @@ namespace CUE4Parse.FileProvider
             }
         }
 
-        private void RegisterFile(string file, Stream[] stream = null!)
+        public void RegisterFile(string file, Stream[] stream = null!)
         {
             var ext = file.SubstringAfterLast('.');
             if (ext.Equals("pak", StringComparison.OrdinalIgnoreCase))
@@ -91,7 +91,7 @@ namespace CUE4Parse.FileProvider
             }
         }
 
-        private void RegisterFile(FileInfo file)
+        public void RegisterFile(FileInfo file)
         {
             var ext = file.FullName.SubstringAfterLast('.');
             if (ext.Equals("pak", StringComparison.OrdinalIgnoreCase))
@@ -168,7 +168,7 @@ namespace CUE4Parse.FileProvider
             }
         }
 
-        private Dictionary<string, GameFile> IterateFiles(DirectoryInfo directory, SearchOption option)
+        public Dictionary<string, GameFile> IterateFiles(DirectoryInfo directory, SearchOption option)
         {
             // Look for .uproject file to get the correct mount point
             var uproject = directory.GetFiles("*.uproject", SearchOption.TopDirectoryOnly).FirstOrDefault();
@@ -188,7 +188,7 @@ namespace CUE4Parse.FileProvider
             // In .uproject mode, we must recursively look for files
             option = uproject != null ? SearchOption.AllDirectories : option;
             IEnumerable<FileInfo> FoundFiles = directory.EnumerateFiles("*.*", option);
-            foreach (var file in FoundFiles)
+            foreach (FileInfo file in FoundFiles)
             {
                 var ext = file.Extension.SubstringAfter('.');
                 if (!file.Exists || string.IsNullOrEmpty(ext)) continue;

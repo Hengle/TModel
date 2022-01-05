@@ -423,7 +423,7 @@ namespace CUE4Parse.FileProvider
 
             if (file is FPakEntry)
             {
-                return new Package(uassetTask, uexpTask, ubulkTask, uptnlTask, this, MappingsForThisGame, UseLazySerialization);
+                return new LEGACY_Package(uassetTask, uexpTask, ubulkTask, uptnlTask, this, MappingsForThisGame, UseLazySerialization);
             }
 
             if (this is not IVfsFileProvider vfsFileProvider || vfsFileProvider.GlobalData == null)
@@ -465,13 +465,13 @@ namespace CUE4Parse.FileProvider
             {
                 if (file is FPakEntry or OsGameFile)
                 {
-                    return new Package(uasset, uexp, lazyUbulk, lazyUptnl, this, MappingsForThisGame, UseLazySerialization);
+                    return new LEGACY_Package(uasset, uexp, lazyUbulk, lazyUptnl, this, MappingsForThisGame, UseLazySerialization);
                 }
 
                 if (file is FIoStoreEntry ioStoreEntry)
                 {
                     var globalData = ((IVfsFileProvider)this).GlobalData;
-                    return globalData != null ? new IoPackage(uasset, globalData, ioStoreEntry.IoStoreReader.ContainerHeader, lazyUbulk, lazyUptnl, this, MappingsForThisGame) : null;
+                    // return globalData != null ? new IoPackage(uasset, globalData, ioStoreEntry.IoStoreReader.ContainerHeader, lazyUbulk, lazyUptnl, this, MappingsForThisGame) : null;
                 }
 
                 return null;

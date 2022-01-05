@@ -19,21 +19,21 @@ namespace CUE4Parse.FileProvider.Vfs
 {
     public abstract class AbstractVfsFileProvider : AbstractFileProvider, IVfsFileProvider
     {
-        protected FileProviderDictionary _files;
+        public FileProviderDictionary _files;
         public override IReadOnlyDictionary<string, GameFile> Files => _files;
         public override IReadOnlyDictionary<FPackageId, GameFile> FilesById => _files.byId;
 
-        public readonly ConcurrentDictionary<IAesVfsReader, object?> UnloadedVFS = new ();
+        public ConcurrentDictionary<IAesVfsReader, object?> UnloadedVFS = new ();
 
-        private readonly ConcurrentDictionary<IAesVfsReader, object?> _mountedVfs = new ();
+        public ConcurrentDictionary<IAesVfsReader, object?> _mountedVfs = new ();
         public IReadOnlyCollection<IAesVfsReader> MountedVfs => (IReadOnlyCollection<IAesVfsReader>) _mountedVfs.Keys;
 
-        public readonly ConcurrentDictionary<FGuid, FAesKey> _workingKeys = new ();
+        public ConcurrentDictionary<FGuid, FAesKey> _workingKeys = new ();
         
-        protected readonly ConcurrentDictionary<FGuid, object?> _requiredKeys = new ();
+        public ConcurrentDictionary<FGuid, object?> _requiredKeys = new ();
         public IReadOnlyCollection<FGuid> RequiredKeys => (IReadOnlyCollection<FGuid>) _requiredKeys.Keys;
         
-        public IoGlobalData? GlobalData { get; private set; }
+        public IoGlobalData? GlobalData { get; set; }
         
         public IAesVfsReader.CustomEncryptionDelegate? CustomEncryption { get; set; }
 
