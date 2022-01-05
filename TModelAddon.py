@@ -2136,9 +2136,15 @@ def main(context):
                         bpy.ops.object.posemode_toggle()
 
                         MainSkeleton.data.bones.active = None
-                        Bone_Duplicate.bone.select = False
+                        Bone_Duplicate.bone.select = True
                         Bone_Origin.bone.select = False
                         
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.armature.delete()
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.object.posemode_toggle()
+
+                        bpy.ops.pose.select_all(action='DESELECT')
                         
 
             def ReadTexture():
