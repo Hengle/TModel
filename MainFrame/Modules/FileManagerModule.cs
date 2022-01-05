@@ -103,7 +103,11 @@ namespace TModel.Modules
                 if (FirstTimeShown)
                 {
                     if (Preferences.AutoLoad ?? false && App.FileProvider != null)
+                    {
+                        Log.Information("Auto loading on startup");
                         LoadGameFiles();
+                    }
+                        
                     FirstTimeShown = false;
                 }
             };
@@ -112,7 +116,6 @@ namespace TModel.Modules
         public void LoadGameFiles()
         {
             IsLoading = true;
-            Log.Information("Loading files");
             Task.Run(() =>
             {
                 if (App.IsValidGameDirectory(Preferences.GameDirectory))
@@ -142,12 +145,14 @@ namespace TModel.Modules
                     FilesLoaded();
                     HasLoaded = true;
                     IsLoading = false;
+                    Log.Information("Finished loading");
                 }
             });
         }
 
         public static void InitilizeGame()
         {
+            Log.Information("Submitting keys");
             LoadAES();
             App.FileProvider.LoadMappings();
         }

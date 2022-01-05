@@ -467,7 +467,7 @@ namespace CUE4Parse.FileProvider
                 if (file is FIoStoreEntry ioStoreEntry)
                 {
                     var globalData = ((IVfsFileProvider)this).GlobalData;
-                    // return globalData != null ? new IoPackage(uasset, globalData, ioStoreEntry.IoStoreReader.ContainerHeader, lazyUbulk, lazyUptnl, this, MappingsForThisGame) : null;
+                    return globalData != null ? new IoPackage(uasset, globalData, ioStoreEntry.IoStoreReader.ContainerHeader, lazyUbulk, lazyUptnl, this, MappingsForThisGame) : null;
                 }
 
                 return null;

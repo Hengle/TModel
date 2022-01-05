@@ -260,9 +260,11 @@ namespace TModel.Modules
                         cTokenSource.Token.Register(() =>
                         {
                             VisiblePreviews = CurrentExporter.LoadedPreviews;
-                            LoadPages();
-                            LoadFilterType();
+                            LoadPages(); // Show items that have already been loaded
+                            LoadFilterType(); // Load rest of items
                             UpdatePageCount();
+                            UpdateLoadedCount();
+                            cTokenSource = new CancellationTokenSource();
                         });
                         cTokenSource.Cancel();
                     }
@@ -271,6 +273,8 @@ namespace TModel.Modules
         }
 
         void UpdatePageCount() => PageNumberText.Text = $"Page {PageNum}/{TotalPages = (VisiblePreviews.Count / PageSize) + 1}";
+
+        void UpdateLoadedCount() => LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
 
         void LoadFilterType()
         {
@@ -291,9 +295,9 @@ namespace TModel.Modules
                         try
                         {
                             if(
-                            !gamefile.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
-                            !gamefile.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
-                            !gamefile.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
+                            // !gamefile.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
+                            // !gamefile.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
+                            // !gamefile.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
                             FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
                             {
                                 if (!gamefile.IsItemLoaded)
@@ -302,7 +306,7 @@ namespace TModel.Modules
                                     App.Refresh(() =>
                                     {
                                         UpdatePageCount();
-                                        LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
+                                        UpdateLoadedCount();
                                         if (SearchTerm == null && PageNum == TotalPages ||
                                         SearchTerm != null && itemPreviewInfo.Name.Contains(SearchTerm)) // On same page
                                         {

@@ -1,6 +1,6 @@
 ﻿// ONLY FOR DEBUGGING
 #define GENERATE_MODULES // When false window only shows ItemPreviewModule    default: true
-#define NO_WINDOW // True if there should NOT be a window                     defualt: false
+// #define NO_WINDOW // True if there should NOT be a window                     defualt: false
 
 using System;
 using System.Windows;
@@ -23,7 +23,8 @@ namespace TModel
         // Runs the given action on the UI thread.
         public static void Refresh(Action action)
         {
-            Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
+            if (Current != null)
+                Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
         }
 #if GENERATE_MODULES && !NO_WINDOW
         static ModulePanel modulePanel = new ModulePanel();

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -9,25 +8,26 @@ using Serilog;
 
 namespace CUE4Parse.MappingsProvider
 {
-    // Retrieves mappings for Fortnite
-    public class FortniteMappingsProvider : UsmapTypeMappingsProvider
+    public class BenBotMappingsProvider : UsmapTypeMappingsProvider
     {
+        static string MappingsFile = Path.Combine(TModel.Preferences.StorageFolder, "BenbotMappings.usmap");
+
         private readonly string? _specificVersion;
         private readonly string _gameName;
         private readonly bool _isWindows64Bit;
 
-        public FortniteMappingsProvider(string gameName, string? specificVersion = null)
+        public BenBotMappingsProvider(string gameName, string? specificVersion = null)
         {
             _specificVersion = specificVersion;
             _gameName = gameName;
             _isWindows64Bit = Environment.Is64BitOperatingSystem && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             Reload();
         }
-        
+
         public const string BenMappingsEndpoint = "https://benbot.app/api/v1/mappings";
-        
-        private readonly HttpClient _client = new HttpClient { Timeout = TimeSpan.FromSeconds(2), DefaultRequestHeaders = { { "User-Agent", "CUE4Parse" } }};
-        
+
+        private readonly HttpClient _client = new HttpClient { Timeout = TimeSpan.FromSeconds(2), DefaultRequestHeaders = { { "User-Agent", "CUE4Parse" } } };
+
         public sealed override bool Reload()
         {
             return ReloadAsync().GetAwaiter().GetResult();
@@ -35,34 +35,33 @@ namespace CUE4Parse.MappingsProvider
 
         public sealed override async Task<bool> ReloadAsync()
         {
+
+
             byte[] usmapBytes = Array.Empty<byte>();
             string? usmapUrl = null;
             string? usmapName = null;
 
             try
             {
-                string MappingsFile = Path.Combine(TModel.Preferences.StorageFolder, "BenbotMappings.usmap");
-
                 if (!File.Exists(MappingsFile))
                 {
-#if true
+                    Log.Information("Downloading mappings from Benbot");
                     var jsonText = _specificVersion != null
-    ? LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
-    : LoadEndpoint(BenMappingsEndpoint);
+    ? await LoadEndpoint(BenMappingsEndpoint + $"?version={_specificVersion}")
+    : await LoadEndpoint(BenMappingsEndpoint);
                     if (jsonText == null)
                     {
                         Log.Warning("Failed to get BenBot Mappings Endpoint");
                         return false;
                     }
-                    JArray json = JArray.Parse(jsonText);
-                    string preferredCompression = _isWindows64Bit ? "Oodle" : "Brotli";
+                    var json = JArray.Parse(jsonText);
+                    var preferredCompression = _isWindows64Bit ? "Oodle" : "Brotli";
 
                     if (!json.HasValues)
                     {
                         Log.Warning("Couldn't reload mappings, json array was empty");
                         return false;
                     }
-
                     foreach (var arrayEntry in json)
                     {
                         var method = arrayEntry["meta"]?["compressionMethod"]?.ToString();
@@ -79,10 +78,8 @@ namespace CUE4Parse.MappingsProvider
                         usmapUrl = json[0]["url"]?.ToString()!;
                         usmapName = json[0]["fileName"]?.ToString()!;
                     }
+
                     usmapBytes = await LoadEndpointBytes(usmapUrl);
-#else
-                    usmapBytes = await LoadEndpointBytes(@"https://benbot.app/api/v1/mappings/++Fortnite+Release-19.01-CL-18489740-Windows_oo.usmap");
-#endif
                     if (usmapBytes == null)
                     {
                         Log.Warning("Failed to download usmap");
@@ -93,10 +90,11 @@ namespace CUE4Parse.MappingsProvider
                 }
                 else
                 {
+                    Log.Information("Loading Mappings from existing file");
                     usmapBytes = File.ReadAllBytes(MappingsFile);
                 }
 
-                AddUsmap(usmapBytes, _gameName);
+                AddUsmap(usmapBytes, _gameName, usmapName!);
                 return true;
             }
             catch (Exception e)
@@ -105,13 +103,21 @@ namespace CUE4Parse.MappingsProvider
                 return false;
             }
         }
-        
-        private string LoadEndpoint(string url)
+
+        private async Task<string?> LoadEndpoint(string url)
         {
-            WebClient client = new WebClient();
-            return client.DownloadString(url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            try
+            {
+                var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                return null;
+            }
         }
-        
+
         private async Task<byte[]?> LoadEndpointBytes(string url)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);

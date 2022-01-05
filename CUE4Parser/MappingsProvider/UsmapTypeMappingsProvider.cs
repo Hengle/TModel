@@ -21,15 +21,17 @@ namespace CUE4Parse.MappingsProvider
     public static class UsmapParser
     {
         public const ushort FileMagic = 0x30C4;
-        
-        public enum Version : byte {
+
+        public enum Version : byte
+        {
             INITIAL,
 
             LATEST_PLUS_ONE,
             LATEST = LATEST_PLUS_ONE - 1
         }
-        
-        public enum ECompressionMethod : byte {
+
+        public enum ECompressionMethod : byte
+        {
             None,
             Oodle,
             Brotli,
@@ -46,7 +48,7 @@ namespace CUE4Parse.MappingsProvider
         {
             return Parse(new FByteArchive(name, data));
         }
-        
+
         public static TypeMappings Parse(FArchive Ar)
         {
             var magic = Ar.Read<ushort>();
@@ -55,23 +57,23 @@ namespace CUE4Parse.MappingsProvider
 
             var version = Ar.Read<Version>();
             if (version < 0 || version > Version.LATEST)
-                throw new ParserException($".usmap has an invalid version {(byte) version}");
+                throw new ParserException($".usmap has an invalid version {(byte)version}");
 
             var compression = Ar.Read<ECompressionMethod>();
 
             var compSize = Ar.Read<uint>();
             var decompSize = Ar.Read<uint>();
-            
+
             var data = new byte[decompSize];
             switch (compression)
             {
                 case ECompressionMethod.None:
                     if (compSize != decompSize)
                         throw new ParserException("No compression: Compression size must be equal to decompression size");
-                    Ar.Read(data, 0, (int) compSize);
+                    Ar.Read(data, 0, (int)compSize);
                     break;
                 case ECompressionMethod.Oodle:
-                    Oodle.Decompress(Ar.ReadBytes((int) compSize), 0, (int) compSize, data, 0, (int) decompSize);
+                    Oodle.Decompress(Ar.ReadBytes((int)compSize), 0, (int)compSize, data, 0, (int)decompSize);
                     break;
                 case ECompressionMethod.Brotli:
                     throw new NotImplementedException();
@@ -81,7 +83,7 @@ namespace CUE4Parse.MappingsProvider
 
             Ar = new FByteArchive(Ar.Name, data);
             var nameSize = Ar.Read<uint>();
-            var nameLut = new List<String>((int) nameSize);
+            var nameLut = new List<String>((int)nameSize);
             for (int i = 0; i < nameSize; i++)
             {
                 var nameLength = Ar.Read<byte>();
@@ -89,7 +91,7 @@ namespace CUE4Parse.MappingsProvider
             }
 
             var enumCount = Ar.Read<uint>();
-            var enums = new Dictionary<string, Dictionary<int, string>>((int) enumCount);
+            var enums = new Dictionary<string, Dictionary<int, string>>((int)enumCount);
             for (int i = 0; i < enumCount; i++)
             {
                 var enumName = Ar.ReadName(nameLut)!;
@@ -101,21 +103,21 @@ namespace CUE4Parse.MappingsProvider
                     var value = Ar.ReadName(nameLut)!;
                     enumNames[j] = value;
                 }
-                
+
                 enums.Add(enumName, enumNames);
             }
 
             var structCount = Ar.Read<uint>();
             var structs = new Dictionary<string, Struct>();
-            
+
             var mappings = new TypeMappings(structs, enums);
-            
+
             for (int i = 0; i < structCount; i++)
             {
                 var s = ParseStruct(mappings, Ar, nameLut);
                 structs[s.Name] = s;
             }
-            
+
             return mappings;
         }
 
@@ -198,11 +200,12 @@ namespace CUE4Parse.MappingsProvider
         {
             var nameBytes = stackalloc byte[nameLength];
             Ar.Serialize(nameBytes, nameLength);
-            return new string((sbyte*) nameBytes, 0, nameLength);
+            return new string((sbyte*)nameBytes, 0, nameLength);
         }
     }
-    
-    enum EPropertyType : byte {
+
+    enum EPropertyType : byte
+    {
         ByteProperty,
         BoolProperty,
         IntProperty,

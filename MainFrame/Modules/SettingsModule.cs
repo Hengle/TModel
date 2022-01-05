@@ -79,7 +79,7 @@ namespace TModel.MainFrame.Modules
                 Preferences.GameDirectory = GameDirectoryText.Text;
                 Preferences.AutoLoad = AutoLoadOnStartup.IsChecked ?? false;
                 Preferences.Save();
-                Log.Information("Saved Settings (Restart if changed 'Game Directory')");
+                Log.Information("Restart required for changes to take affect");
             });
 
             ButtonPanel.Children.Add(SaveButton);
