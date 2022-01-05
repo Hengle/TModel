@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,9 +37,6 @@ namespace CUE4Parse.FileProvider
         public virtual bool IsCaseInsensitive { get; } // fabian? is this reversed?
         public bool ReadScriptData { get; set; } = false;
         public virtual bool UseLazySerialization { get; set; } = true;
-
-        // Bad of objects that have already been loaded
-        public static List<UObject> UObjectCache { get; } = new List<UObject>();
 
         protected AbstractFileProvider(bool isCaseInsensitive = false, VersionContainer? versions = null)
         {
@@ -602,15 +598,6 @@ namespace CUE4Parse.FileProvider
 
         public virtual UObject LoadObjectAsync(string? objectPath)
         {
-            UObject[] Cached = UObjectCache.ToArray();
-            foreach (UObject item in Cached)
-            {
-                if (item.Owner.Name == objectPath.SubstringBeforeLast('.'))
-                {
-                    return item;
-                }
-            }
-
             if (objectPath == null) throw new ArgumentException("ObjectPath can't be null", nameof(objectPath));
             var packagePath = objectPath;
             string objectName;
@@ -626,9 +613,7 @@ namespace CUE4Parse.FileProvider
             }
 
             var pkg = LoadPackageAsync(packagePath);
-            UObject Export = pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-            UObjectCache.Add(Export);
-            return Export;
+            return pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
 
         public virtual UObject? TryLoadObjectAsync(string? objectPath)

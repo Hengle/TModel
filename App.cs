@@ -23,8 +23,7 @@ namespace TModel
         // Runs the given action on the UI thread.
         public static void Refresh(Action action)
         {
-            if (Current != null)
-                Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
+            Current.Dispatcher.Invoke(action, DispatcherPriority.Background);
         }
 #if GENERATE_MODULES && !NO_WINDOW
         static ModulePanel modulePanel = new ModulePanel();
@@ -115,6 +114,7 @@ namespace TModel
 #endif
             Module_Left.AddModule(new SettingsModule());
             // Module_Right.AddModule(new SearchModule());
+            Module_Right.AddModule(new HexEditorModule());
             Module_Right.AddModule(new ItemPreviewModule());
 
 

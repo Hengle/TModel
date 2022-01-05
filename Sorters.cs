@@ -9,19 +9,13 @@ using TModel.Modules;
 
 namespace TModel.Sorters
 {
-    public class NameSort : 
-        IComparer<IAesVfsReader>,
-#if !RELEASE
-        IComparer<DirectoryModule.AssetItem>
-        IComparer<DirectoryModule.FolderItem>,
-#endif
-        IComparer<GameFile>
+    public class NameSort : IComparer<IAesVfsReader>, IComparer<DirectoryModule.AssetItem>, IComparer<DirectoryModule.FolderItem>, IComparer<GameFile>
     {
         public int Compare(IAesVfsReader? x, IAesVfsReader? y)
         {
             return x.Name.CompareTo(y.Name);
         }
-#if !RELEASE
+
         public int Compare(DirectoryModule.AssetItem? x, DirectoryModule.AssetItem? y)
         {
             return x.Name.CompareTo(y.Name);
@@ -31,7 +25,7 @@ namespace TModel.Sorters
         {
             return x.Name.CompareTo(y.Name);
         }
-#endif
+
         public int Compare(GameFile? x, GameFile? y)
         {
             return x.Name.CompareTo(y.Name);

@@ -5,7 +5,6 @@ using CUE4Parse.UE4.Assets.Utils;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
@@ -17,11 +16,6 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public FStaticParameterSet? StaticParameters;
         public FStructFallback? CachedData;
 
-        public Dictionary<string, bool> StaticSwitchParameterValues { get; } = new();
-        public Dictionary<string, (bool R, bool G, bool B, bool A)> StaticComponentMaskParameterValues { get; } = new();
-        public Dictionary<string, (int WeightmapIndex, bool bWeightBasedBlend)> TerrainLayerWeightParameterValues { get; } = new();
-        public Dictionary<string, FMaterialLayersFunctions> MaterialLayersParameterValues { get; } = new();
-
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
@@ -29,17 +23,6 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
             bHasStaticPermutationResource = GetOrDefault<bool>("bHasStaticPermutationResource");
             BasePropertyOverrides = GetOrDefault<FMaterialInstanceBasePropertyOverrides>(nameof(BasePropertyOverrides));
             StaticParameters = GetOrDefault<FStaticParameterSet>(nameof(StaticParameters));
-
-            if (StaticParameters.StaticSwitchParameters != null)
-                foreach (FStaticSwitchParameter staticSwitch in StaticParameters.StaticSwitchParameters)
-                    StaticSwitchParameterValues.Add(staticSwitch.ParameterInfo.Name, staticSwitch.Value);
-
-            if (StaticParameters.StaticComponentMaskParameters != null)
-                foreach (FStaticComponentMaskParameter componentMask in StaticParameters.StaticComponentMaskParameters)
-                    StaticComponentMaskParameterValues.Add(componentMask.ParameterInfo.Name, (componentMask.R, componentMask.G, componentMask.B, componentMask.A));
-
-
-            // TODO: parse TerrainLayerWeightParameterValues and MaterialLayersParameterValues
 
             var bSavedCachedData = FUE5MainStreamObjectVersion.Get(Ar) >= FUE5MainStreamObjectVersion.Type.MaterialSavedCachedData && Ar.ReadBoolean();
             if (bSavedCachedData)

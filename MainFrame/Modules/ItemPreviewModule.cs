@@ -1,6 +1,5 @@
 ﻿using Serilog;
 using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,8 +17,6 @@ namespace TModel.Modules
         ExportPreviewInfo Item;
 
         public static int[]? SelectedStyles = null;
-
-        public static bool IsExporting;
 
         public ItemPreviewModule()
         {
@@ -101,19 +98,7 @@ namespace TModel.Modules
                     try
                     {
 #endif
-                    if (!IsExporting)
-                    {
-                        Task.Run(() =>
-                        {
-                            IsExporting = true;
-                            GameContentModule.CurrentExporter.GetBlenderExportInfo(Item.Package, SelectedStyles).Save();
-                        }).GetAwaiter().OnCompleted(() => IsExporting = false);
-                    }
-                    else
-                    {
-                        Log.Warning("Wait for export to finish to export again.");
-                    }
-
+                        GameContentModule.CurrentExporter.GetBlenderExportInfo(Item.Package, SelectedStyles).Save();
 #if !DEBUG
                     }
                     catch (Exception e)
@@ -246,51 +231,43 @@ namespace TModel.Modules
                 Item = item;
                 StylePickerPanel.Children.Clear();
 
-                DisplayName.Text = item?.Name ?? string.Empty;
-                Description.Text = item?.Description ?? string.Empty;
-
-                if (item != null)
+                DisplayName.Text = item.Name;
+                Description.Text = item.Description;
+                if (item.PreviewIcon.TryGet_BitmapImage(out BitmapImage Source))
                 {
-                    if (item.PreviewIcon.TryGet_BitmapImage(out BitmapImage Source))
-                    {
-                        PreviewIcon.Source = Source;
-                    }
-                    if (item.Styles != null)
-                    {
-                        SelectedStyles = new int[item.Styles.Count];
+                    PreviewIcon.Source = Source;
+                }
+                if (item.Styles != null)
+                {
+                    SelectedStyles = new int[item.Styles.Count];
 
-                        for (int i = 0; i < item.Styles.Count; i++)
+                    for (int i = 0; i < item.Styles.Count; i++)
+                    {
+                        ExportPreviewSet style = item.Styles[i];
+                        CTextBlock NameText = new CTextBlock(style.Name, 20)
                         {
-                            ExportPreviewSet style = item.Styles[i];
-                            CTextBlock NameText = new CTextBlock(style.Name, 20)
-                            {
-                                VerticalAlignment = VerticalAlignment.Center,
-                                HorizontalAlignment = HorizontalAlignment.Left,
-                            };
-
-                            StylePickerPanel.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-                            Grid.SetRow(NameText, i);
-                            StylePickerPanel.Children.Add(NameText);
-
-
-                            StyleSetWidget SetWidget = new StyleSetWidget(style, i);
-                            Grid.SetRow(SetWidget, i);
-                            Grid.SetColumn(SetWidget, 1);
-                            StylePickerPanel.Children.Add(SetWidget);
-                        }
-                    }
-                    else
-                    {
-                        StylePickerPanel.Children.Add(new CTextBlock("NO STYLES", 40)
-                        {
-                            HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
-                        });
+                            HorizontalAlignment = HorizontalAlignment.Left,
+                        };
+
+                        StylePickerPanel.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+                        Grid.SetRow(NameText, i);
+                        StylePickerPanel.Children.Add(NameText);
+
+
+                        StyleSetWidget SetWidget = new StyleSetWidget(style, i);
+                        Grid.SetRow(SetWidget, i);
+                        Grid.SetColumn(SetWidget, 1);
+                        StylePickerPanel.Children.Add(SetWidget);
                     }
                 }
                 else
                 {
-                    PreviewIcon.Source = null;
+                    StylePickerPanel.Children.Add(new CTextBlock("NO STYLES", 40)
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                    });
                 }
             };
         }

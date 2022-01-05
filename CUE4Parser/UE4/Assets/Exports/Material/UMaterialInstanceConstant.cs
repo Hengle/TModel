@@ -23,8 +23,6 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
-            UMaterialInstanceConstant Me = this;
-
             base.Deserialize(Ar, validPos);
             FScalarParameterValue[] _ScalarParameterValues = GetOrDefault(nameof(ScalarParameterValues), Array.Empty<FScalarParameterValue>());
             foreach (var scaler in _ScalarParameterValues)
