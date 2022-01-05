@@ -2102,6 +2102,7 @@ def main(context):
 
                     bpy.ops.object.select_all(action='DESELECT')
 
+            # Merges all skeletons and makes all meshes use MainSkeleton
             if IsSkeleton:
                 for skeleton in Skeletons:
                     skeleton.select_set(True)
@@ -2109,6 +2110,36 @@ def main(context):
                 MainSkeleton = bpy.context.selected_objects[0]
                 for mesh in Meshes:
                     mesh.modifiers[0].object = MainSkeleton
+
+
+
+            if IsSkeleton:
+                bpy.ops.object.posemode_toggle()
+
+                # Gets a bone from the name
+                def GetBone(SearchName):
+                    for possibleBone in bpy.context.visible_pose_bones:
+                        if possibleBone.name == SearchName:
+                            return possibleBone
+                    return None
+
+                for PoseBone in bpy.context.visible_pose_bones:
+                    if PoseBone.name.__contains__('.'):
+                        Bone_Duplicate = PoseBone
+                        Bone_Origin = GetBone(Bone_Duplicate.name[0:Bone_Duplicate.name.index('.')])
+                        MainSkeleton.data.bones.active = Bone_Origin.bone
+                        Bone_Duplicate.bone.select = True
+
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.armature.parent_set(type='OFFSET')
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.object.posemode_toggle()
+
+                        MainSkeleton.data.bones.active = None
+                        Bone_Duplicate.bone.select = False
+                        Bone_Origin.bone.select = False
+                        
+                        
 
             def ReadTexture():
                 isValidTexture = ReadBool()
