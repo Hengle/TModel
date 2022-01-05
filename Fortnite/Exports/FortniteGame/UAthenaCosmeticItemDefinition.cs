@@ -62,10 +62,12 @@ namespace CUE4Parse.FN.Exports.FortniteGame
 
         public override ItemTileInfo? GetPreviewInfo()
         {
-            UTexture2D SmallImage = null;
+            TextureRef? SmallImage = null;
             if (SmallPreviewImage != null)
-                SmallImage = SmallPreviewImage?.Load<UTexture2D>();
-            return new ItemTileInfo() { PreviewIcon = new TextureRef(SmallImage), Name = DisplayName };
+                if (!SmallPreviewImage?.AssetPathName.IsNone ?? false)
+                    SmallImage = new TextureRef(SmallPreviewImage?.Load<UTexture2D>());
+
+            return new ItemTileInfo() { PreviewIcon = SmallImage, Name = DisplayName };
         }
 
         public override void DeepDeserialize()

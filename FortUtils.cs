@@ -34,36 +34,34 @@ namespace TModel
 #endif
         };
 
-        // Gets all paths that could be a possible valid export for the given type
-        public static List<GameFile> GetPossibleFiles(EItemFilterType type)
+        // Gets all paths that could be a possible valid export (using the SearchTerm) for the given exporter
+        public static IEnumerable<GameFile> GetGameFiles(ExporterBase exporter)
         {
-            List<GameFile> Result = new();
-            if (Exporters.TryGetValue(type, out ExporterBase Exporter))
-            {
-                foreach (var path in App.FileProvider.Files)
-                    if (Exporter.SearchTerm.CheckName(path.Key))
-                        Result.Add(path.Value);
-            }
-            else
-                throw new Exception($"Unsupported type: {type}");
-            return Result;
+            foreach (var path in App.FileProvider.Files)
+                if (exporter.SearchTerm.CheckName(path.Key))
+                    yield return path.Value;
         }
 
-        public static bool TryLoadItemPreviewInfo(EItemFilterType type, GameFile gameFile, out ItemTileInfo itemPreviewInfo)
+        public static bool TryLoadItemPreviewInfo(ExporterBase exporter, GameFile gameFile, out ItemTileInfo itemPreviewInfo)
         {
             itemPreviewInfo = null;
             if (App.FileProvider.TryLoadPackage(gameFile, out IPackage package))
-                if (Exporters.TryGetValue(type, out ExporterBase Exporter))
-                    if (package.Base is UFortItemDefinition FortItem)
-                    {
-                        itemPreviewInfo = Exporter.GetTileInfo(package);
-                        if (itemPreviewInfo != null)
-                            itemPreviewInfo.Package = package;
-                    }
+            {
+                itemPreviewInfo = exporter.GetTileInfo(package);
+                if (itemPreviewInfo != null)
+                    itemPreviewInfo.Package = package;
+            }
             return itemPreviewInfo != null;
         }
     }
 
+    public class FortGameContentItem
+    {
+        public ItemTileInfo? Info;
+        public GameFile File;
+    }
+
+    // TODO: rename this because this is'nt a filter
     public enum EItemFilterType
     {
         Character,

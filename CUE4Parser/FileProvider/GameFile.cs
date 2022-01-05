@@ -21,7 +21,7 @@ namespace CUE4Parse.FileProvider
             Size = size;
         }
 
-        // For GameContentModule
+        // If the item has been loaded in GameContentModule
         public bool IsItemLoaded { set; get; } = false;
 
         public abstract bool IsEncrypted { get; }

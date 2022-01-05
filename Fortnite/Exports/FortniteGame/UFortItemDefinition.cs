@@ -66,7 +66,8 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         {
             TextureRef SmallImage = null;
             if (SmallPreviewImage != null)
-                SmallImage = new TextureRef(SmallPreviewImage?.Load<UTexture2D>());
+                if (!SmallPreviewImage?.AssetPathName.IsNone ?? false)
+                    SmallImage = new TextureRef(SmallPreviewImage?.Load<UTexture2D>());
             return new ItemTileInfo() { PreviewIcon = SmallImage, Name = DisplayName };
         }
 

@@ -3,6 +3,7 @@ using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.UObject;
+using System.Collections.Generic;
 using TModel.Modules;
 
 namespace TModel.Export.Exporters
@@ -18,12 +19,28 @@ namespace TModel.Export.Exporters
                 TextureRef SmallImageRef = null;
                 if (Glider.LargePreviewImage is FSoftObjectPath ImagePath)
                     SmallImageRef = new TextureRef(ImagePath.Load<UTexture2D>());
+
+                List<ExportPreviewSet>? Styles = null;
+
+                if (Glider.ItemVariants is FPackageIndex[] Variants && Variants.Length > 0)
+                {
+                    Styles = new();
+                    foreach (var variant in Variants)
+                    {
+                        UFortCosmeticVariant CosmeticVariant = variant.Load<UFortCosmeticVariant>();
+                        ExportPreviewSet PreviewSet = new ExportPreviewSet();
+                        CosmeticVariant.GetPreviewStyle(PreviewSet);
+                        Styles.Add(PreviewSet);
+                    }
+                }
+
                 return new ExportPreviewInfo()
                 {
                     Name = Glider.DisplayName,
                     Description = Glider.Description,
                     Package = package,
-                    PreviewIcon = SmallImageRef
+                    PreviewIcon = SmallImageRef,
+                    Styles = Styles
                 };
             }
             return null;

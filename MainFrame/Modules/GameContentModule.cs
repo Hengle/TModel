@@ -14,6 +14,7 @@ using TModel.Export;
 using TModel.Export.Exporters;
 using TModel.MainFrame.Widgets;
 using TModel.Sorters;
+using System.Linq;
 using static TModel.ColorConverters;
 
 namespace TModel.Modules
@@ -35,7 +36,7 @@ namespace TModel.Modules
         int PageNum = 1;
         int TotalPages = 0;
 
-        EItemFilterType Filter = EItemFilterType.Character;
+        EItemFilterType SelectedFilter = EItemFilterType.Character;
 
         public override string ModuleName => "Game Content";
 
@@ -45,14 +46,14 @@ namespace TModel.Modules
             VerticalAlignment = VerticalAlignment.Stretch,
         };
 
-        CTextBlock PageNumberText = new CTextBlock("") 
-        { 
+        CTextBlock PageNumberText = new CTextBlock("")
+        {
             Margin = new Thickness(20, 0, 0, 0),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center
         };
-        CTextBlock LoadedCountText = new CTextBlock("") 
-        { 
+        CTextBlock LoadedCountText = new CTextBlock("")
+        {
             Margin = new Thickness(0, 0, 20, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center
@@ -243,7 +244,7 @@ namespace TModel.Modules
                     Foreground = Brushes.White,
                 };
                 radioButton.Tag = name;
-                radioButton.IsChecked = Filter.ToString() == name.ToString();
+                radioButton.IsChecked = SelectedFilter.ToString() == name.ToString();
                 FilterTypesPanel.Children.Add(radioButton);
 
                 radioButton.Click += (sender, args) =>
@@ -251,7 +252,7 @@ namespace TModel.Modules
                     cTokenSource = new CancellationTokenSource();
                     string Name = (string)((RadioButton)sender).Tag;
                     EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
-                    Filter = FilterType;
+                    SelectedFilter = FilterType;
                     CurrentExporter = FortUtils.Exporters[FilterType];
                     PageNum = 1;
                     if (FileManagerModule.HasLoaded)
@@ -259,12 +260,12 @@ namespace TModel.Modules
                         ItemsPanel.Children.Clear();
                         cTokenSource.Token.Register(() =>
                         {
+                            cTokenSource = new CancellationTokenSource();
                             VisiblePreviews = CurrentExporter.LoadedPreviews;
                             LoadPages(); // Show items that have already been loaded
                             LoadFilterType(); // Load rest of items
                             UpdatePageCount();
                             UpdateLoadedCount();
-                            cTokenSource = new CancellationTokenSource();
                         });
                         cTokenSource.Cancel();
                     }
@@ -280,56 +281,37 @@ namespace TModel.Modules
         {
             if (!CurrentExporter.bHasGameFiles)
             {
-                CurrentExporter.GameFiles = FortUtils.GetPossibleFiles(Filter);
+                CurrentExporter.GameFiles = FortUtils.GetGameFiles(CurrentExporter).ToList();
                 CurrentExporter.GameFiles.Sort(new NameSort());
                 CurrentExporter.GameFiles.Reverse();
             }
-            // gamefile.Name.Contains("cowgirl", StringComparison.OrdinalIgnoreCase) && 
             Task.Run(() =>
             {
-                if (!CurrentExporter.bHasLoadedAllPreviews)
+                foreach (var gamefile in CurrentExporter.GameFiles)
                 {
-                    foreach (var gamefile in CurrentExporter.GameFiles)
+                    cTokenSource.Token.ThrowIfCancellationRequested();
+                    try
                     {
-                        cTokenSource.Token.ThrowIfCancellationRequested();
-                        try
+                        if (FortUtils.TryLoadItemPreviewInfo(CurrentExporter, gamefile, out ItemTileInfo itemPreviewInfo))
                         {
-                            if(
-                            // !gamefile.Name.Contains("_NPC_", StringComparison.OrdinalIgnoreCase) &&
-                            // !gamefile.Name.Contains("_TBD_", StringComparison.OrdinalIgnoreCase) &&
-                            // !gamefile.Name.Contains("_VIP_", StringComparison.OrdinalIgnoreCase) &&
-                            FortUtils.TryLoadItemPreviewInfo(Filter, gamefile, out ItemTileInfo itemPreviewInfo))
+                            if (!gamefile.IsItemLoaded)
                             {
-                                if (!gamefile.IsItemLoaded)
+                                CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
+                                App.Refresh(() =>
                                 {
-                                    CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
-                                    App.Refresh(() =>
+                                    UpdatePageCount();
+                                    UpdateLoadedCount();
+                                    VisiblePreviews.Add(itemPreviewInfo);
+                                    if (PageNum == TotalPages)
                                     {
-                                        UpdatePageCount();
-                                        UpdateLoadedCount();
-                                        if (SearchTerm == null && PageNum == TotalPages ||
-                                        SearchTerm != null && itemPreviewInfo.Name.Contains(SearchTerm)) // On same page
-                                        {
-                                            VisiblePreviews.Add(itemPreviewInfo);
-                                            ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
-                                        }
-                                    });
-                                    gamefile.IsItemLoaded = true;
-                                }
+                                        ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
+                                    }
+                                });
+                                gamefile.IsItemLoaded = true;
                             }
                         }
-                        catch { }
                     }
-                }
-                else
-                {
-                    App.Refresh(() =>
-                    {
-                        foreach (var preview in CurrentExporter.LoadedPreviews)
-                        {
-                            ItemsPanel.Children.Add(new GameContentItem(preview));
-                        }
-                    });
+                    catch { }
                 }
             });
         }
@@ -414,13 +396,13 @@ namespace TModel.Modules
                 Task.Run(() =>
                 {
                     if (Info.PreviewIcon.TryGet_BitmapImage(out BitmapImage bitmapImage))
-                        App.Refresh(() => 
+                        App.Refresh(() =>
                         {
                             Root.Children.Add(new Image()
                             {
                                 Source = bitmapImage,
                                 Margin = new Thickness(ShownSize / 30),
-                            }); 
+                            });
                         });
                 });
 

@@ -34,7 +34,7 @@ namespace TModel
 
         public static DefaultFileProvider FileProvider { set; get; } = null;
 
-        // Trys to find the type of module, if found then selects it
+        // Trys to find the type of module, if found then shows it
         public static void ShowModule<T>()
         {
 #if GENERATE_MODULES && !NO_WINDOW

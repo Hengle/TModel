@@ -142,7 +142,8 @@ namespace TModel.Modules
                     AllVFS.Sort(new NameSort());
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);
-                    FilesLoaded();
+                    if (FilesLoaded != null)
+                        FilesLoaded();
                     HasLoaded = true;
                     IsLoading = false;
                     Log.Information("Finished loading");
