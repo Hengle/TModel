@@ -2112,17 +2112,15 @@ def main(context):
                     mesh.modifiers[0].object = MainSkeleton
 
 
+            # Gets a bone from the name - MUST BE IN POSE MODE TO USE
+            def GetBone(SearchName):
+                for possibleBone in bpy.context.visible_pose_bones:
+                    if possibleBone.name == SearchName:
+                        return possibleBone
+                return None
 
             if IsSkeleton:
                 bpy.ops.object.posemode_toggle()
-
-                # Gets a bone from the name
-                def GetBone(SearchName):
-                    for possibleBone in bpy.context.visible_pose_bones:
-                        if possibleBone.name == SearchName:
-                            return possibleBone
-                    return None
-
                 for PoseBone in bpy.context.visible_pose_bones:
                     if PoseBone.name.__contains__('.'):
                         Bone_Duplicate = PoseBone
@@ -2146,6 +2144,53 @@ def main(context):
 
                         bpy.ops.pose.select_all(action='DESELECT')
                         
+            def SetupIK():
+                upperarm_l = GetBone("lowerarm_l")
+                hand_l = GetBone("hand_l")
+                MainSkeleton.data.bones.active = upperarm_l.bone
+                bpy.ops.object.editmode_toggle()
+                bpy.context.active_bone.tail[0] = hand_l.bone.head_local[0]
+                bpy.context.active_bone.tail[1] = hand_l.bone.head_local[1]
+                bpy.context.active_bone.tail[2] = hand_l.bone.head_local[2]
+
+                bpy.ops.object.editmode_toggle()
+                bpy.ops.object.posemode_toggle()
+
+                bpy.ops.pose.select_all(action='DESELECT')
+
+                hand_l.bone.select = True
+                bpy.ops.object.editmode_toggle()
+                bpy.ops.armature.parent_clear(type='CLEAR')
+
+                EditBones = MainSkeleton.data.edit_bones
+                TargetBone = EditBones.new("L_Arm_IK")
+                TargetBone.head = (0.334855, 0.179714, 1.16865)
+                TargetBone.tail = (0.335759, 0.116441, 1.16933)
+
+                IkConstraint = upperarm_l.constraints.new(type='IK')
+                IkConstraint.target = MainSkeleton
+                IkConstraint.subtarget = hand_l.name
+                IkConstraint.chain_count = 2
+                IkConstraint.pole_angle = 175.0
+                # IkConstraint.pole_target = MainSkeleton
+                # IkConstraint.pole_subtarget = TargetBone.name
+
+                upperarm_l.lock_location[0] = True
+                upperarm_l.lock_location[1] = True
+                upperarm_l.lock_location[2] = True
+                upperarm_l.lock_rotation[0] = True
+                upperarm_l.lock_rotation[1] = True
+                upperarm_l.lock_rotation[2] = True
+                upperarm_l.lock_scale[0] = True
+                upperarm_l.lock_scale[1] = True
+                upperarm_l.lock_scale[2] = True
+
+            # SetupIK() # Not ready for Release yet
+
+
+            # IkConstraint.pole_subtarget = TargetBone.name
+
+
 
             def ReadTexture():
                 isValidTexture = ReadBool()
