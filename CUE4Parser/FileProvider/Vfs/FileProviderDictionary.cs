@@ -84,7 +84,7 @@ namespace CUE4Parse.FileProvider.Vfs
                 throw new KeyNotFoundException($"There is no game file with the path \"{path}\"");
             }
         }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumerator<KeyValuePair<string, GameFile>> GetEnumerator()
         {
@@ -99,7 +99,7 @@ namespace CUE4Parse.FileProvider.Vfs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
+        
         public int Count => _indicesBag.Sum(it => it.Count);
 
         private class KeyEnumerable : IEnumerable<string>

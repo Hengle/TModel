@@ -14,7 +14,6 @@ using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.Vfs;
 using CUE4Parse.Utils;
-using TModel.MainFrame.Modules;
 
 namespace CUE4Parse.UE4.IO
 {
@@ -211,6 +210,8 @@ namespace CUE4Parse.UE4.IO
             var compressedBuffer = Array.Empty<byte>();
             var uncompressedBuffer = Array.Empty<byte>();
 
+            var clonedReaders = new FArchive?[ContainerStreams.Count];
+
             for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
             {
                 ref var compressionBlock = ref TocResource.CompressionBlocks[blockIndex];
@@ -229,13 +230,11 @@ namespace CUE4Parse.UE4.IO
                     uncompressedBuffer = new byte[uncompressedSize];
                 }
 
-                // Index of container stream to use
                 var partitionIndex = (int) ((ulong) compressionBlock.Offset / TocResource.Header.PartitionSize);
                 var partitionOffset = (long) ((ulong) compressionBlock.Offset % TocResource.Header.PartitionSize);
                 FArchive reader;
                 if (IsConcurrent)
                 {
-                    var clonedReaders = new FArchive?[ContainerStreams.Count];
                     ref var clone = ref clonedReaders[partitionIndex];
                     clone ??= (FArchive) ContainerStreams[partitionIndex].Clone();
                     reader = clone;
@@ -282,12 +281,23 @@ namespace CUE4Parse.UE4.IO
                 ContainerHeader = ReadContainerHeader();
             }
 
+            if (Globals.LogVfsMounts)
+            {
+                var elapsed = watch.Elapsed;
+                var sb = new StringBuilder($"IoStore \"{Name}\": {FileCount} files");
+                if (EncryptedFileCount > 0)
+                    sb.Append($" ({EncryptedFileCount} encrypted)");
+                if (MountPoint.Contains("/"))
+                    sb.Append($", mount point: \"{MountPoint}\"");
+                sb.Append($", version {(int) Info.Version} in {elapsed}");
+                log.Information(sb.ToString());
+            }
+
             return Files;
         }
 
         public IReadOnlyDictionary<string, GameFile> ProcessIndex(bool caseInsensitive)
         {
-
             if (!HasDirectoryIndex || TocResource.DirectoryIndexBuffer == null) throw new ParserException("No directory index");
             var directoryIndex = new FByteArchive(Path, DecryptIfEncrypted(TocResource.DirectoryIndexBuffer));
 

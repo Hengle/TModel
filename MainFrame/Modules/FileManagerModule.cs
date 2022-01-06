@@ -90,13 +90,13 @@ namespace TModel.Modules
                         App.FileProvider.Initialize();
                     }
                     InitilizeGame();
-                    LoadFiles(App.FileProvider.UnloadedVFS.Keys);
+                    LoadFiles(App.FileProvider._unloadedVfs.Keys);
                 }
             };
 
             // App.FileProvider.UnloadedVfs.Sort(new NameSort()); 
             if (App.FileProvider != null)
-                LoadFiles(App.FileProvider.UnloadedVFS.Keys);
+                LoadFiles(App.FileProvider._unloadedVfs.Keys);
 
             this.Loaded += (sender, args) =>
             {
@@ -138,7 +138,7 @@ namespace TModel.Modules
                 {
                     List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
                     AllVFS.AddRange(App.FileProvider.MountedVfs);
-                    AllVFS.AddRange(App.FileProvider.UnloadedVFS.Keys);
+                    AllVFS.AddRange(App.FileProvider._unloadedVfs.Keys);
                     AllVFS.Sort(new NameSort());
                     FilesPanel.Children.Clear();
                     LoadFiles(AllVFS, true);

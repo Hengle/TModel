@@ -29,14 +29,7 @@ namespace TModel.Modules
                 ObjectPanel.Children.Clear();
                 if (Item is IEnumerable<UObject> uObjects)
                 {
-                    foreach (UObject obj in uObjects)
-                    {
-                        UIElement ObjWidget = obj.GenerateWidget();
-                        ContentControl Frame = new ContentControl();
-                        Frame.Margin = new Thickness(0, 20, 0, 20);
-                        Frame.Content = ObjWidget;
-                        ObjectPanel.Children.Add(Frame);
-                    }
+
                 }
                 else
                 {

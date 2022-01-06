@@ -31,6 +31,7 @@ namespace CUE4Parse.UE4.Versions
         GAME_UE4_20 = GameUtils.GameUe4Base + 20 << 4,
             GAME_Borderlands3 = GAME_UE4_20 + 1,
         GAME_UE4_21 = GameUtils.GameUe4Base + 21 << 4,
+            GAME_StarWarsJediFallenOrder = GAME_UE4_21 + 1,
         GAME_UE4_22 = GameUtils.GameUe4Base + 22 << 4,
         GAME_UE4_23 = GameUtils.GameUe4Base + 23 << 4,
         GAME_UE4_24 = GameUtils.GameUe4Base + 24 << 4,
@@ -40,6 +41,7 @@ namespace CUE4Parse.UE4.Versions
             GAME_KenaBridgeofSpirits = GAME_UE4_25 + 3,
         GAME_UE4_26 = GameUtils.GameUe4Base + 26 << 4,
             GAME_GTATheTrilogyDefinitiveEdition = GAME_UE4_26 + 1,
+            GAME_ReadyOrNot = GAME_UE4_26 + 2,
         GAME_UE4_27 = GameUtils.GameUe4Base + 27 << 4,
             GAME_Splitgate = GAME_UE4_27 + 1,
 

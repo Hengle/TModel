@@ -20,6 +20,9 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
                 UVChannelData = new FMeshUVChannelInfo(Ar);
         }
 
-        public FStaticMaterial() { }
+        public FStaticMaterial()
+        {
+
+        }
     }
 }

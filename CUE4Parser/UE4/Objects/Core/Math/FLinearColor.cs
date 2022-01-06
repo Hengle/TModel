@@ -15,9 +15,9 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         public float B;
         public float A;
 
-        public static FLinearColor MAX = new FLinearColor(1,1,1,1);
-
         public string Hex => ToFColor(true).Hex;
+
+        public static FLinearColor MAX = new FLinearColor(1, 1, 1, 1);
 
         public FColor ToFColor(bool sRGB)
         {
@@ -62,7 +62,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             A = a;
         }
 
-        public override string ToString() => $"R: {R}\nG: {G}\nB: {B}\nA: {A}\n\nHex: {Hex}";
+        public override string ToString() => Hex;
 
         public FLinearColor LinearRGBToHsv()
         {

@@ -1,12 +1,11 @@
 ﻿using System;
 using CUE4Parse.UE4.Assets.Readers;
 using Newtonsoft.Json;
-using TModel;
 
 namespace CUE4Parse.UE4.Assets.Objects
 {
     [JsonConverter(typeof(BoolPropertyConverter))]
-    public class BoolProperty : FPropertyTagType<bool>, TModel.IPreviewOverride
+    public class BoolProperty : FPropertyTagType<bool>
     {
         public BoolProperty(FAssetArchive Ar, FPropertyTagData? tagData, ReadType type)
         {
@@ -27,8 +26,6 @@ namespace CUE4Parse.UE4.Assets.Objects
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
-
-        public PreviewOverrideData GetCustomData(object data) => new PreviewOverrideData() { OverrideTypeName = "Bool" };
     }
 
     public class BoolPropertyConverter : JsonConverter<BoolProperty>

@@ -126,8 +126,9 @@ namespace CUE4Parse.MappingsProvider
                 var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
                 return await response.Content.ReadAsByteArrayAsync();
             }
-            catch
+            catch (Exception e)
             {
+                Log.Error("Failed to download Mappings:\n" + e.ToString());
                 return null;
             }
         }

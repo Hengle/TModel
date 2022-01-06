@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Engine;
@@ -7,7 +6,6 @@ using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 using Serilog;
-using TModel;
 
 namespace CUE4Parse.UE4.Assets.Exports.Animation
 {
@@ -20,11 +18,6 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
         public Dictionary<FName, FReferencePose> AnimRetargetSources { get; private set; }
         public Dictionary<FName, FSmartNameMapping> NameMappings { get; private set; }
         public FName[] ExistingMarkerNames { get; private set; }
-
-        public override ImageSource GetPreviewIcon()
-        {
-            return ObjectIcons.Skeleton;
-        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -44,7 +37,10 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
                 AnimRetargetSources = new Dictionary<FName, FReferencePose>(numOfRetargetSources);
                 for (var i = 0; i < numOfRetargetSources; i++)
                 {
-                    AnimRetargetSources[Ar.ReadFName()] = new FReferencePose(Ar);
+                    var name = Ar.ReadFName();
+                    var pose = new FReferencePose(Ar);
+                    ReferenceSkeleton.AdjustBoneScales(pose.ReferencePose);
+                    AnimRetargetSources[name] = pose;
                 }
             }
             else

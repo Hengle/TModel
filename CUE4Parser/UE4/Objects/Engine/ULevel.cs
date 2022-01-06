@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using Newtonsoft.Json;
-using TModel;
 
 namespace CUE4Parse.UE4.Objects.Engine
 {
@@ -116,11 +114,6 @@ namespace CUE4Parse.UE4.Objects.Engine
         public FPackageIndex NavListEnd { get; private set; }
         public FPrecomputedVisibilityHandler PrecomputedVisibilityHandler { get; private set; }
         public FPrecomputedVolumeDistanceField PrecomputedVolumeDistanceField { get; private set; }
-
-        public override ImageSource GetPreviewIcon()
-        {
-            return ObjectIcons.Level;
-        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

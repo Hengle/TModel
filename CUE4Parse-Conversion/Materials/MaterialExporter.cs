@@ -9,7 +9,7 @@ using SkiaSharp;
 
 namespace CUE4Parse_Conversion.Materials
 {
-    public class MaterialExporter : ExporterBaseArchived
+    public class MaterialExporter : ExporterBase
     {
         private readonly string _internalFilePath;
         private readonly string _fileData;
@@ -77,6 +77,9 @@ namespace CUE4Parse_Conversion.Materials
                 if (texture == unrealMaterial || texture is not UTexture2D t) continue;
                 _textures[t.Owner?.Name ?? t.Name] = t.Decode();
             }
+
+            if (!bNoOtherTextures && unrealMaterial is UMaterialInstanceConstant {Parent: { }} material)
+                _parentData = new MaterialExporter(material.Parent, bNoOtherTextures);
         }
 
         public override bool TryWriteToDir(DirectoryInfo baseDirectory, out string savedFileName)

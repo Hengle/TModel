@@ -100,6 +100,13 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             X = X >= 0 ? 1 : -1, Y = Y >= 0 ? 1 : -1, Z = Z >= 0 ? 1 : -1
         };
 
+        public void Scale(FVector scale)
+        {
+            X *= scale.X;
+            Y *= scale.Y;
+            Z *= scale.Z;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FVector operator +(FVector a) => a;
 
@@ -430,7 +437,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FRotator Rotation() => ToOrientationRotator();
 
-        public override string ToString() => $"X = {X}\nY = {Y}\nZ = {Z}";
+        public override string ToString() => $"X={X,3:F3} Y={Y,3:F3} Z={Z,3:F3}";
 
         /// <summary>
         /// Calculate the cross product of two vectors.

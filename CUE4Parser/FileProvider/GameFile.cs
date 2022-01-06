@@ -21,13 +21,12 @@ namespace CUE4Parse.FileProvider
             Size = size;
         }
 
-        // If the item has been loaded in GameContentModule
-        public bool IsItemLoaded { set; get; } = false;
-
         public abstract bool IsEncrypted { get; }
         public abstract CompressionMethod CompressionMethod { get; }
-        public string Path { get; protected set; }
+        public string Path { get; protected internal set; }
         public long Size { get; protected set; }
+
+        public bool IsItemLoaded { set; get; }
 
         public string PathWithoutExtension => Path.SubstringBeforeLast('.');
         public string Name => Path.SubstringAfterLast('/');

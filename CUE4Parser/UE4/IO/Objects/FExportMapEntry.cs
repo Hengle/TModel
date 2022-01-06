@@ -1,6 +1,4 @@
-﻿using CUE4Parse.UE4.Assets;
-using CUE4Parse.UE4.Assets.Exports;
-using CUE4Parse.UE4.Objects.UObject;
+﻿using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 
@@ -12,7 +10,7 @@ namespace CUE4Parse.UE4.IO.Objects
 
         public readonly ulong CookedSerialOffset;
         public readonly ulong CookedSerialSize;
-        public readonly FName ObjectName;
+        public readonly FMappedName ObjectName;
         public readonly FPackageObjectIndex OuterIndex;
         public readonly FPackageObjectIndex ClassIndex;
         public readonly FPackageObjectIndex SuperIndex;
@@ -22,13 +20,12 @@ namespace CUE4Parse.UE4.IO.Objects
         public readonly EObjectFlags ObjectFlags;
         public readonly byte FilterFlags; // EExportFilterFlags: client/server flags
 
-        public FExportMapEntry(FArchive Ar, IoPackage package)
+        public FExportMapEntry(FArchive Ar)
         {
             var start = Ar.Position;
-            
             CookedSerialOffset = Ar.Read<ulong>();
             CookedSerialSize = Ar.Read<ulong>();
-            ObjectName = package.CreateFNameFromMappedName(Ar.Read<FMappedName>());
+            ObjectName = Ar.Read<FMappedName>();
             OuterIndex = Ar.Read<FPackageObjectIndex>();
             ClassIndex = Ar.Read<FPackageObjectIndex>();
             SuperIndex = Ar.Read<FPackageObjectIndex>();

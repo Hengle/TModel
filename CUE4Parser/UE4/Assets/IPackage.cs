@@ -19,10 +19,9 @@ namespace CUE4Parse.UE4.Assets
         public FNameEntrySerialized[] NameMap { get; }
         public Lazy<UObject>[] ExportsLazy { get; }
 
-        public UObject Base => GetExport(Path.GetFileName(Name)) ?? ExportsLazy[0].Value;
+        public UObject Base => ExportsLazy[0].Value;
 
         public abstract bool IsFullyLoaded { get; }
-
 
         public bool HasFlags(EPackageFlags flags);
         /*public T? GetExportOfTypeOrNull<T>() where T : UObject;
@@ -30,10 +29,10 @@ namespace CUE4Parse.UE4.Assets
         public UObject? GetExportOrNull(string name, StringComparison comparisonType = StringComparison.Ordinal);
         public T? GetExportOrNull<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) where T : UObject;
         public UObject GetExport(string name, StringComparison comparisonType = StringComparison.Ordinal);
-        public UObject GetExport(int index);
         public T GetExport<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) where T : UObject;
         public Lazy<UObject>? FindObject(FPackageIndex? index);
         public ResolvedObject? ResolvePackageIndex(FPackageIndex? index);
+        public UObject? GetExport(int index);
         public IEnumerable<UObject> GetExports();
     }
 }

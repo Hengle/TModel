@@ -19,22 +19,24 @@ namespace CUE4Parse.FileProvider.Vfs
 {
     public abstract class AbstractVfsFileProvider : AbstractFileProvider, IVfsFileProvider
     {
-        public FileProviderDictionary _files;
+        protected FileProviderDictionary _files;
         public override IReadOnlyDictionary<string, GameFile> Files => _files;
         public override IReadOnlyDictionary<FPackageId, GameFile> FilesById => _files.byId;
 
-        public ConcurrentDictionary<IAesVfsReader, object?> UnloadedVFS = new ();
+        public readonly ConcurrentDictionary<IAesVfsReader, object?> _unloadedVfs = new ();
+        public IReadOnlyCollection<IAesVfsReader> UnloadedVfs => (IReadOnlyCollection<IAesVfsReader>) _unloadedVfs.Keys;
 
-        public ConcurrentDictionary<IAesVfsReader, object?> _mountedVfs = new ();
+        private readonly ConcurrentDictionary<IAesVfsReader, object?> _mountedVfs = new ();
         public IReadOnlyCollection<IAesVfsReader> MountedVfs => (IReadOnlyCollection<IAesVfsReader>) _mountedVfs.Keys;
 
-        public ConcurrentDictionary<FGuid, FAesKey> _workingKeys = new ();
-        
-        public ConcurrentDictionary<FGuid, object?> _requiredKeys = new ();
+        private readonly ConcurrentDictionary<FGuid, FAesKey> _keys = new ();
+        public IReadOnlyDictionary<FGuid, FAesKey> Keys => _keys;
+
+        protected readonly ConcurrentDictionary<FGuid, object?> _requiredKeys = new ();
         public IReadOnlyCollection<FGuid> RequiredKeys => (IReadOnlyCollection<FGuid>) _requiredKeys.Keys;
-        
-        public IoGlobalData? GlobalData { get; set; }
-        
+
+        public IoGlobalData? GlobalData { get; private set; }
+
         public IAesVfsReader.CustomEncryptionDelegate? CustomEncryption { get; set; }
 
         protected AbstractVfsFileProvider(bool isCaseInsensitive = false, VersionContainer? versions = null) : base(isCaseInsensitive, versions)
@@ -42,16 +44,6 @@ namespace CUE4Parse.FileProvider.Vfs
             _files = new FileProviderDictionary(IsCaseInsensitive);
         }
 
-        /// <summary>
-        /// Returns a <see cref="IEnumerable{string}"/> containing all names of files in given path
-        /// </summary>
-        /// <remarks>
-        /// If the name contains a '.' it is an asset.
-        /// <br/>
-        /// If not then it is a folder.
-        /// </remarks>
-        /// <param name="GivenPath">The path to search in</param>
-        /// <returns>Names of files in given path</returns>
         public IEnumerable<string> GetFilesInPath(string GivenPath)
         {
             // Makes sure the path ends with '/'
@@ -77,20 +69,6 @@ namespace CUE4Parse.FileProvider.Vfs
             return Result;
         }
 
-        public List<string> GetSubPaths(string GivenPath)
-        {
-            List<string> Result = new List<string>();
-            foreach (string path in Files.Keys)
-            {
-                if (path.StartsWith(GivenPath))
-                {
-                    Result.Add(path);
-                }
-            }
-
-            return Result;
-        }
-
         public void LoadMappings()
         {
             if (GameName.Equals("FortniteGame", StringComparison.OrdinalIgnoreCase))
@@ -99,16 +77,16 @@ namespace CUE4Parse.FileProvider.Vfs
             }
         }
 
-        public IEnumerable<IAesVfsReader> UnloadedVfsByGuid(FGuid guid) => UnloadedVFS.Keys.Where(it => it.EncryptionKeyGuid == guid);
+        public IEnumerable<IAesVfsReader> UnloadedVfsByGuid(FGuid guid) => _unloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid);
         public void UnloadAllVfs()
         {
             _files = new FileProviderDictionary(IsCaseInsensitive);
             foreach (var reader in _mountedVfs.Keys)
             {
-                _workingKeys.TryRemove(reader.EncryptionKeyGuid, out _);
+                _keys.TryRemove(reader.EncryptionKeyGuid, out _);
                 _requiredKeys[reader.EncryptionKeyGuid] = null;
                 _mountedVfs.TryRemove(reader, out _);
-                UnloadedVFS[reader] = null;
+                _unloadedVfs[reader] = null;
             }
         }
 
@@ -117,16 +95,16 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             var countNewMounts = 0;
             var tasks = new LinkedList<Task>();
-            foreach (var reader in UnloadedVFS.Keys)
+            foreach (var reader in _unloadedVfs.Keys)
             {
                 if (GlobalData == null && reader is IoStoreReader ioReader && reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase))
                 {
                     GlobalData = new IoGlobalData(ioReader);
                 }
 
-                if ((reader.IsEncrypted && CustomEncryption == null) || !reader.HasDirectoryIndex)
+                if (reader.IsEncrypted && CustomEncryption == null || !reader.HasDirectoryIndex)
                     continue;
-                
+
                 tasks.AddLast(Task.Run(() =>
                 {
                     try
@@ -134,14 +112,14 @@ namespace CUE4Parse.FileProvider.Vfs
                         // Ensure that the custom encryption delegate specified for the provider is also used for the reader
                         reader.CustomEncryption = CustomEncryption;
                         reader.MountTo(_files, IsCaseInsensitive);
-                        UnloadedVFS.TryRemove(reader, out _);
+                        _unloadedVfs.TryRemove(reader, out _);
                         _mountedVfs[reader] = null;
                         Interlocked.Increment(ref countNewMounts);
                         return reader;
                     }
                     catch (InvalidAesKeyException)
                     {
-                        // Ignore this 
+                        // Ignore this
                     }
                     catch (Exception e)
                     {
@@ -157,7 +135,7 @@ namespace CUE4Parse.FileProvider.Vfs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int SubmitKey(FGuid guid, FAesKey key) => SubmitKeys(new Dictionary<FGuid, FAesKey> {{ guid, key }});
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int SubmitKeys(IEnumerable<KeyValuePair<FGuid, FAesKey>> keys) => SubmitKeysAsync(keys).Result;
 
@@ -168,6 +146,7 @@ namespace CUE4Parse.FileProvider.Vfs
         public async Task<int> SubmitKeysAsync(IEnumerable<KeyValuePair<FGuid, FAesKey>> keys)
         {
             var countNewMounts = 0;
+            var tasks = new LinkedList<Task<IAesVfsReader?>>();
             foreach (var it in keys)
             {
                 var guid = it.Key;
@@ -178,27 +157,40 @@ namespace CUE4Parse.FileProvider.Vfs
                     {
                         GlobalData = new IoGlobalData(ioReader);
                     }
+
                     if (!reader.HasDirectoryIndex)
                         continue;
-                    try
+
+                    tasks.AddLast(Task.Run(() =>
                     {
-                        reader.MountTo(_files, IsCaseInsensitive, key);
-                        UnloadedVFS.TryRemove(reader, out _);
-                        _mountedVfs[reader] = null;
-                        Interlocked.Increment(ref countNewMounts);
-                        FAesKey localKey = reader?.AesKey;
-                        _requiredKeys.TryRemove(reader.EncryptionKeyGuid, out _);
-                        _workingKeys.TryAdd(reader.EncryptionKeyGuid, localKey);
-                    }
-                    catch (InvalidAesKeyException)
-                    {
-                        // Ignore this 
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Warning(e, $"Uncaught exception while loading pak file {reader.Path.SubstringAfterLast('/')}");
-                    }
+                        try
+                        {
+                            reader.MountTo(_files, IsCaseInsensitive, key);
+                            _unloadedVfs.TryRemove(reader, out _);
+                            _mountedVfs[reader] = null;
+                            Interlocked.Increment(ref countNewMounts);
+                            return reader;
+                        }
+                        catch (InvalidAesKeyException)
+                        {
+                            // Ignore this
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Warning(e, $"Uncaught exception while loading pak file {reader.Path.SubstringAfterLast('/')}");
+                        }
+                        return null;
+                    }));
                 }
+            }
+
+            var completed = await Task.WhenAll(tasks).ConfigureAwait(false);
+            foreach (var it in completed)
+            {
+                var key = it?.AesKey;
+                if (it == null || key == null) continue;
+                _requiredKeys.TryRemove(it.EncryptionKeyGuid, out _);
+                _keys.TryAdd(it.EncryptionKeyGuid, key);
             }
 
             return countNewMounts;
@@ -207,11 +199,11 @@ namespace CUE4Parse.FileProvider.Vfs
         public void Dispose()
         {
             _files = new FileProviderDictionary(IsCaseInsensitive);
-            foreach (var reader in UnloadedVFS.Keys) reader.Dispose();
-            UnloadedVFS.Clear();
+            foreach (var reader in UnloadedVfs) reader.Dispose();
+            _unloadedVfs.Clear();
             foreach (var reader in MountedVfs) reader.Dispose();
             _mountedVfs.Clear();
-            _workingKeys.Clear();
+            _keys.Clear();
             _requiredKeys.Clear();
             GlobalData = null;
         }

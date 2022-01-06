@@ -96,7 +96,7 @@ namespace TModel.Export.Materials
 
         public static CMaterial CreateReader(UMaterialInstanceConstant material)
         {
-            var Parent = material.Parent.Name.Text;
+            var Parent = material.Parent.Name;
             switch (Parent)
             {
                 default:

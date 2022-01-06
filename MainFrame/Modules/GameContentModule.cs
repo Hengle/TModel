@@ -395,15 +395,16 @@ namespace TModel.Modules
                 // Sets preview icon
                 Task.Run(() =>
                 {
-                    if (Info.PreviewIcon.TryGet_BitmapImage(out BitmapImage bitmapImage))
-                        App.Refresh(() =>
-                        {
-                            Root.Children.Add(new Image()
+                    if (Info.PreviewIcon != null)
+                        if (Info.PreviewIcon.TryGet_BitmapImage(out BitmapImage bitmapImage))
+                            App.Refresh(() =>
                             {
-                                Source = bitmapImage,
-                                Margin = new Thickness(ShownSize / 30),
+                                Root.Children.Add(new Image()
+                                {
+                                    Source = bitmapImage,
+                                    Margin = new Thickness(ShownSize / 30),
+                                });
                             });
-                        });
                 });
 
                 UpdateSize();

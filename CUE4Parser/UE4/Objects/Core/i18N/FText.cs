@@ -131,6 +131,11 @@ namespace CUE4Parse.UE4.Objects.Core.i18N
                 _ => new FTextHistory.None(Ar)
             };
         }
+
+        public static implicit operator string(FText? fText)
+        {
+            return fText?.Text ?? "None";
+        }
         
         public FText(string sourceString) : this("", "", sourceString) { }
 
@@ -143,8 +148,6 @@ namespace CUE4Parse.UE4.Objects.Core.i18N
             HistoryType = historyType;
             TextHistory = textHistory;
         }
-
-        public static implicit operator string(FText fText) => fText?.Text ?? string.Empty;
 
         public override string ToString() => Text;
     }

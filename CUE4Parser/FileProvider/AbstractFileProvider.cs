@@ -419,7 +419,7 @@ namespace CUE4Parse.FileProvider
 
             if (file is FPakEntry)
             {
-                return new LEGACY_Package(uassetTask, uexpTask, ubulkTask, uptnlTask, this, MappingsForThisGame, UseLazySerialization);
+                return new Package(uassetTask, uexpTask, ubulkTask, uptnlTask, this, MappingsForThisGame, UseLazySerialization);
             }
 
             if (this is not IVfsFileProvider vfsFileProvider || vfsFileProvider.GlobalData == null)
@@ -461,7 +461,7 @@ namespace CUE4Parse.FileProvider
             {
                 if (file is FPakEntry or OsGameFile)
                 {
-                    return new LEGACY_Package(uasset, uexp, lazyUbulk, lazyUptnl, this, MappingsForThisGame, UseLazySerialization);
+                    return new Package(uasset, uexp, lazyUbulk, lazyUptnl, this, MappingsForThisGame, UseLazySerialization);
                 }
 
                 if (file is FIoStoreEntry ioStoreEntry)
@@ -555,8 +555,8 @@ namespace CUE4Parse.FileProvider
             byte[] uasset = uassetTask;
             if (uasset == null)
                 return null;
-            byte[] uexp = uexpTask != null ? uexpTask: null;
-            byte[] ubulk = ubulkTask != null ? ubulkTask: null;
+            byte[] uexp = uexpTask != null ? uexpTask : null;
+            byte[] ubulk = ubulkTask != null ? ubulkTask : null;
             byte[] uptnl = uptnlTask != null ? uptnlTask : null;
 
             var dict = new Dictionary<string, byte[]>

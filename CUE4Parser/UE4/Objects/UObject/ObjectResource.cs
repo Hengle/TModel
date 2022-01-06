@@ -61,7 +61,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         public override string ToString()
         {
-            return ResolvedObject?.GetFullName() ?? Index.ToString();
+            return ResolvedObject?.ToString() ?? Index.ToString();
         }
 
         #region Loading Methods

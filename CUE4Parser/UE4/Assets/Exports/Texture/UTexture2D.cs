@@ -2,8 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -13,7 +11,6 @@ using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 using Serilog;
-using TModel.Export;
 
 namespace CUE4Parse.UE4.Assets.Exports.Texture
 {
@@ -31,18 +28,6 @@ namespace CUE4Parse.UE4.Assets.Exports.Texture
         public FIntPoint ImportedSize { get; private set; }
         public bool bRenderNearestNeighbor { get; private set; }
         public bool isNormalMap { get; private set; }
-
-        public override ImageSource GetPreviewIcon()
-        {
-            if (new TextureRef(this).TryGet_BitmapImage(out BitmapImage Result))
-            {
-                return Result;
-            }
-            else
-            {
-                return base.GetPreviewIcon();
-            }
-        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

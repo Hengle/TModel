@@ -6,8 +6,6 @@ using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 using Serilog;
-using System.Windows.Media;
-using TModel;
 
 namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
 {
@@ -21,11 +19,6 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
         public FStaticMeshRenderData? RenderData { get; private set; }
         public FStaticMaterial[]? StaticMaterials { get; private set; }
         public ResolvedObject[]? Materials { get; private set; } // UMaterialInterface[]
-
-        public override ImageSource GetPreviewIcon()
-        {
-            return ObjectIcons.StaticMesh;
-        }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {

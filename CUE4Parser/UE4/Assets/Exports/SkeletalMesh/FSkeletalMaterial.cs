@@ -15,8 +15,6 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
         public FName? ImportedMaterialSlotName;
         public FMeshUVChannelInfo? UVChannelData;
 
-        public FSkeletalMaterial() { }
-
         public FSkeletalMaterial(FAssetArchive Ar)
         {
             Material = new FPackageIndex(Ar).ResolvedObject;
@@ -46,6 +44,11 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
             }
             if (FRenderingObjectVersion.Get(Ar) >= FRenderingObjectVersion.Type.TextureStreamingMeshUVChannelData)
                 UVChannelData = new FMeshUVChannelInfo(Ar);
+        }
+
+        public FSkeletalMaterial()
+        {
+
         }
     }
 

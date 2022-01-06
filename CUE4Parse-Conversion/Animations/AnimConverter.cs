@@ -150,15 +150,13 @@ namespace CUE4Parse_Conversion.Animations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasKeys() => KeyQuat.Length + KeyPos.Length + KeyScale.Length > 0;
 
-        private const int MAX_LINEAR_KEYS = 4;
-
         private static int FindTimeKey(float[] keyTime, float frame)
         {
             // find index in time key array
             var numKeys = keyTime.Length;
             // *** binary search ***
             int low = 0, high = numKeys-1;
-            while (low + MAX_LINEAR_KEYS < high)
+            while (low + Constants.MAX_ANIM_LINEAR_KEYS < high)
             {
                 var mid = (low + high) / 2;
                 if (frame < keyTime[mid])
@@ -603,10 +601,35 @@ namespace CUE4Parse_Conversion.Animations
             for (var trackIndex = 0; trackIndex < anim.Tracks.Count; trackIndex++)
             {
                 if (trackIndex == 0) continue; // don't fix root track
+
                 var track = anim.Tracks[trackIndex];
                 for (var keyQuatIndex = 0; keyQuatIndex < track.KeyQuat.Length; keyQuatIndex++)
                 {
                     track.KeyQuat[keyQuatIndex].Conjugate();
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AdjustSequenceBySkeleton(FReferenceSkeleton skeleton, FTransform[] transforms, CAnimSequence anim)
+        {
+            if (skeleton.FinalRefBoneInfo.Length == 0 ||
+                skeleton.FinalRefBoneInfo.Length != transforms.Length)
+                return;
+
+            for (var trackIndex = 0; trackIndex < anim.Tracks.Count; trackIndex++)
+            {
+                var track = anim.Tracks[trackIndex];
+                var boneScale = skeleton.GetBoneScale(transforms, trackIndex);
+                if (Math.Abs(boneScale.X - 1.0f) > 0.001f ||
+                    Math.Abs(boneScale.Y - 1.0f) > 0.001f ||
+                    Math.Abs(boneScale.Z - 1.0f) > 0.001f)
+                {
+                    for (int keyIndex = 0; keyIndex < track.KeyPos.Length; keyIndex++)
+                    {
+                        // Scale translation by accumulated bone scale value
+                        track.KeyPos[keyIndex].Scale(boneScale);
+                    }
                 }
             }
         }
@@ -630,8 +653,8 @@ namespace CUE4Parse_Conversion.Animations
                 // Store skeleton's bone transform
                 CSkeletonBonePosition bonePosition;
                 var transform = skeleton.ReferenceSkeleton.FinalRefBonePose[boneIndex];
-                bonePosition.Position = transform.Translation;
                 bonePosition.Orientation = transform.Rotation;
+                bonePosition.Position = transform.Translation;
                 animSet.BonePositions[boneIndex] = bonePosition;
                 // Process bone retargeting mode
                 var boneMode = skeleton.BoneTree[boneIndex].TranslationRetargetingMode switch
@@ -813,6 +836,7 @@ namespace CUE4Parse_Conversion.Animations
 
             // Now should invert all imported rotations
             FixRotationKeys(dst);
+            AdjustSequenceBySkeleton(skeleton.ReferenceSkeleton, retargetTransforms ?? skeleton.ReferenceSkeleton.FinalRefBonePose, dst);
 
             return animSet;
         }

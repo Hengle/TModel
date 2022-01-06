@@ -22,12 +22,12 @@ namespace CUE4Parse.FileProvider
         /// Can be null if there is no need for loading such packages
         /// </summary>
         public ITypeMappingsProvider? MappingsContainer { get; set; }
-        
+
         /// <summary>
         /// Type Mappings for this specific game (determined by game name)
         /// </summary>
         public TypeMappings? MappingsForThisGame { get; }
-        
+
         /// <summary>
         /// the localized resources (strings) from the game
         /// </summary>
@@ -40,30 +40,30 @@ namespace CUE4Parse.FileProvider
         /// <param name="key">the string key</param>
         /// <param name="defaultValue">a fallback value in case the localized string doesn't exist</param>
         public string GetLocalizedString(string namespacee, string key, string defaultValue);
-        
+
         /// <summary>
         /// The files available in this provider in dictionary with their full path as key.
         /// If <see cref="IsCaseInsensitive"/> is set those keys are in lower case while the Path property of a <see cref="GameFile"/> remains in proper case
         /// </summary>
         public IReadOnlyDictionary<string, GameFile> Files { get; }
-        
+
         /// <summary>
         /// The files available in this provider by the FPackageId from an io store reader
         /// It only contains the id's for files from io store readers
         /// </summary>
         public IReadOnlyDictionary<FPackageId, GameFile> FilesById { get; }
-        
+
         /// <summary>
         /// Whether this file provider supports case-insensitive file lookups. 
         /// Has influence to the behaviour of <see cref="Files"/> and <see cref="FixPath"/>
         /// </summary>
         public bool IsCaseInsensitive { get; }
-        
+
         /// <summary>
         /// Whether UStructs serialized by this file provider should read the script data
         /// </summary>
         public bool ReadScriptData { get; set; }
-        
+
         /// <summary>
         /// The name of the game represented by this provider. 
         /// This is fetched from the prefix before "Game/". 
@@ -78,7 +78,7 @@ namespace CUE4Parse.FileProvider
         /// <returns>The found file</returns>
         /// <exception cref="T:System.Collections.Generic.KeyNotFoundException">If there was no file with this path</exception>
         public GameFile this[string path] { get; }
-        
+
         /// <summary>
         /// Attempts to find a game file from this provider. 
         /// </summary>
@@ -109,7 +109,7 @@ namespace CUE4Parse.FileProvider
         /// <param name="data">The asset data if it was successfully loaded; otherwise default</param>
         /// <returns>true if the asset could be loaded; false otherwise</returns>
         public bool TrySaveAsset(string path, out byte[] data);
-        
+
         /// <summary>
         /// Creates a reader for the file with the passed path. 
         /// Can throw various exceptions
@@ -222,7 +222,7 @@ namespace CUE4Parse.FileProvider
         /// <param name="export">The loaded object if loaded successfully and of correct type; default otherwise</param>
         /// <returns>true if object was loaded and of correct type; false otherwise</returns>
         public bool TryLoadObject<T>(string? objectPath, out T export) where T : UObject;
-        
+
         /// <summary>
         /// Loads an object from the Package at the passed path
         /// </summary>

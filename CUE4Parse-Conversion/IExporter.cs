@@ -20,8 +20,7 @@ namespace CUE4Parse_Conversion
         public void AppendToZip();
     }
 
-    // DELETE this after Fortnite export functionality full works.
-    public abstract class ExporterBaseArchived : IExporter
+    public abstract class ExporterBase : IExporter
     {
         public abstract bool TryWriteToDir(DirectoryInfo baseDirectory, out string savedFileName);
         public abstract bool TryWriteToZip(out byte[] zipFile);
@@ -36,9 +35,9 @@ namespace CUE4Parse_Conversion
         }
     }
 
-    public class Exporter : ExporterBaseArchived
+    public class Exporter : ExporterBase
     {
-        private readonly ExporterBaseArchived _exporterBase;
+        private readonly ExporterBase _exporterBase;
 
         public Exporter(UObject export, ETextureFormat textureFormat = ETextureFormat.Png, ELodFormat lodFormat = ELodFormat.FirstLod, EMeshFormat meshFormat = EMeshFormat.ActorX)
         {

@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Windows.Media;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
-using TModel;
 
 namespace CUE4Parse.UE4.Objects.Engine
 {
@@ -28,11 +26,6 @@ namespace CUE4Parse.UE4.Objects.Engine
                     }
                 }
             }
-        }
-
-        public override ImageSource GetPreviewIcon()
-        {
-            return ObjectIcons.Blueprint;
         }
 
         protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)

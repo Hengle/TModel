@@ -5,6 +5,7 @@ using static CUE4Parse_Conversion.Textures.TextureDecoder;
 using System.IO;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.Utils;
+using Serilog;
 
 namespace TModel.Export
 {
@@ -100,6 +101,10 @@ namespace TModel.Export
                 }
 
                 return true;
+            }
+            else
+            {
+                Log.Warning("Failed to save texture:" + Name);
             }
             return false;
         }

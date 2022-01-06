@@ -3,7 +3,7 @@ using System.IO;
 
 namespace CUE4Parse_Conversion.Animations
 {
-    public class Anim : ExporterBaseArchived
+    public class Anim : ExporterBase
     {
         public readonly string FileName;
         public readonly byte[] FileData;

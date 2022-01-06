@@ -59,10 +59,16 @@ namespace CUE4Parse.UE4.Objects.UObject
             Ar.Position += sizeof(ulong); // var hashVersion = Ar.Read<ulong>();
 
             Ar.Position += num * sizeof(ulong); // var hashes = Ar.ReadArray<ulong>(num);
-            FSerializedNameHeader[] headers = Ar.ReadArray<FSerializedNameHeader>(num); // The lengths of all names
-            FNameEntrySerialized[] entries = new FNameEntrySerialized[num]; // New empty array of num to fill in names
+            var headers = Ar.ReadArray<FSerializedNameHeader>(num);
+            var entries = new FNameEntrySerialized[num];
             for (var i = 0; i < num; i++)
-                entries[i] = new FNameEntrySerialized(headers[i].IsUtf16 ? new string(Ar.ReadArray<char>((int)headers[i].Length)) : Encoding.UTF8.GetString(Ar.ReadBytes((int)headers[i].Length)));
+            {
+                var header = headers[i];
+                var length = (int) header.Length;
+                string s = header.IsUtf16 ? new string(Ar.ReadArray<char>(length)) : Encoding.UTF8.GetString(Ar.ReadBytes(length));
+                entries[i] = new FNameEntrySerialized(s);
+            }
+
             return entries;
         }
 

@@ -10,14 +10,12 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using Serilog;
-using TModel.MainFrame.Modules;
 using static CUE4Parse.Compression.Compression;
 using static CUE4Parse.UE4.Objects.Core.Misc.ECompressionFlags;
 using static CUE4Parse.UE4.Objects.UObject.FPackageFileSummary;
 
 namespace CUE4Parse.UE4.Readers
 {
-    // Provides reading functionality
     public abstract class FArchive : Stream, ICloneable
     {
         public VersionContainer Versions;
@@ -107,14 +105,14 @@ namespace CUE4Parse.UE4.Readers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] ReadArray<T>(Func<T> getter)
+        public virtual T[] ReadArray<T>(Func<T> getter)
         {
             var length = Read<int>();
             return ReadArray(length, getter);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] ReadArray<T>() where T : struct
+        public virtual T[] ReadArray<T>() where T : struct
         {
             var length = Read<int>();
             return length > 0 ? ReadArray<T>(length) : Array.Empty<T>();
@@ -269,7 +267,7 @@ namespace CUE4Parse.UE4.Readers
             }
         }
 
-        public string ReadFString()
+        public virtual string ReadFString()
         {
             // > 0 for ANSICHAR, < 0 for UCS2CHAR serialization
             var length = Read<int>();

@@ -2053,7 +2053,7 @@ def main(context):
 
     # Loads file with cosmetic info
     if exists(ExportDataPath):
-        try:
+        # try:
             file = open(ExportDataPath, "br")
 
             def ReadString():
@@ -2075,8 +2075,8 @@ def main(context):
                 ObjectName = ReadString()
                 IsSkeleton = not ObjectName.endswith("x")
                 pskimport(ObjectName)
-                Skeleton = bpy.context.selected_objects[0]
                 if IsSkeleton:
+                    Skeleton = bpy.context.selected_objects[0]
                     Skeleton.select_set(False)
                     Mesh = bpy.data.objects[Skeleton.name.replace(".ao", ".mo")]
                     Mesh.select_set(True)
@@ -2143,6 +2143,8 @@ def main(context):
                         bpy.ops.object.posemode_toggle()
 
                         bpy.ops.pose.select_all(action='DESELECT')
+
+                bpy.ops.object.posemode_toggle()
                         
             def SetupIK():
                 upperarm_l = GetBone("lowerarm_l")
@@ -2172,8 +2174,8 @@ def main(context):
                 IkConstraint.subtarget = hand_l.name
                 IkConstraint.chain_count = 2
                 IkConstraint.pole_angle = 175.0
-                # IkConstraint.pole_target = MainSkeleton
-                # IkConstraint.pole_subtarget = TargetBone.name
+                # IkConstraint.pole_target = MainSkeleton # doesnt work
+                # IkConstraint.pole_subtarget = TargetBone.name # doesnt work
 
                 upperarm_l.lock_location[0] = True
                 upperarm_l.lock_location[1] = True
@@ -2290,9 +2292,9 @@ def main(context):
                 except Exception as e:
                     print(e)
 
-        except Exception as e:
-            print(e)
-        finally:
+        # except Exception as e:
+            # print(e)
+        # finally:
             file.close()
 
     else: # Export data does not exist - Shows an error message

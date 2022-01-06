@@ -14,9 +14,9 @@ namespace CUE4Parse.UE4.Objects.Core.Math
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct FColor : IUStruct
     {
-        public readonly byte R;
-        public readonly byte G;
         public readonly byte B;
+        public readonly byte G;
+        public readonly byte R;
         public readonly byte A;
 
         public string Hex => A is 1 or 0 ? UnsafePrint.BytesToHex(R, G, B) : UnsafePrint.BytesToHex(A, R, G, B);
@@ -39,7 +39,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
 
         public static implicit operator Vector4(FColor color) => new Vector4(color.R, color.G, color.B, color.A);
 
-        public override string ToString() => $"R: {R}\nG: {G}\nB: {B}\nA: {A}\n\nHex: {Hex}";
+        public override string ToString() => Hex;
 
         public static byte Requantize16to8(int value16)
         {
