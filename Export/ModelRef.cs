@@ -2,8 +2,10 @@
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
+using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse_Conversion.Meshes;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using TModel.Export.Materials;
@@ -15,6 +17,8 @@ namespace TModel.Export
         USkeletalMesh? SkeletalMesh;
 
         UStaticMesh? StaticMesh;
+
+        FTransform Transform = new FTransform(new FQuat(0, 0, 0, 0), new FVector(0, 0,0), new FVector(1,1,1));
 
         public List<CMaterial> Materials { get; } = new List<CMaterial>();
 
@@ -95,6 +99,12 @@ namespace TModel.Export
                 if (meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName))
                 {
                     writer.Write(SaveName);
+                    writer.Write((Single)Transform.Translation.X);
+                    writer.Write((Single)Transform.Translation.Y);
+                    writer.Write((Single)Transform.Translation.Z);
+                    writer.Write((Single)Transform.Rotation.X);
+                    writer.Write((Single)Transform.Rotation.Y);
+                    writer.Write((Single)Transform.Rotation.Z);
                 }
                 else
                 {
