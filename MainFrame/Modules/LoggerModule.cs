@@ -30,6 +30,8 @@ namespace TModel.MainFrame.Modules
 
         public LoggerModule() : base()
         {
+            // TODO: Convert this to using a RichTextBlock
+
             Background = HexBrush("#092041");
             scrollViewer.Content = LogPanel;
             Root.Children.Add(new CTextBlock("LOGGER")

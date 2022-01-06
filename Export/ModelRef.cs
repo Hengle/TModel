@@ -59,7 +59,7 @@ namespace TModel.Export
             }
         }
 
-        // This saves the model as a .psk(x) to the Storage Folder defined in Preferences
+        // This saves the model as a .psk(x) to the ExportsPath defined in Preferences
         public void SaveMesh(CBinaryWriter writer)
         {
             Log.Information("Wring Mesh: " + SkeletalMesh?.Name ?? StaticMesh.Name);
@@ -92,8 +92,18 @@ namespace TModel.Export
             if (meshExporter != null)
             {
                 Directory.CreateDirectory(Preferences.ExportsPath);
-                meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName);
-                writer.Write(SaveName);
+                if (meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName))
+                {
+                    writer.Write(SaveName);
+                }
+                else
+                {
+                    Log.Error($"Failed to save \'{StaticMesh?.Name ?? StaticMesh?.Name}\' mesh");
+                }
+            }
+            else
+            {
+                Log.Error("MeshExporter is null for: " + StaticMesh?.Name ?? StaticMesh?.Name ?? "NULL");
             }
         }
     }

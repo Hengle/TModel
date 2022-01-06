@@ -14,7 +14,7 @@ namespace TModel.Export
     // Supported formats are: UTexture2D, BitmapImage, and SKImage.
     public class TextureRef
     {
-        private string Name;
+        public string Name;
 
         private UTexture2D? _UTexture2D;
 

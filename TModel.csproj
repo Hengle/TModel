@@ -31,10 +31,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="Resources\UObject.png" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="DotNetZip" Version="1.16.0" />
 		<PackageReference Include="LZMA-SDK" Version="19.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
@@ -46,5 +42,9 @@
 		<PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0023" />
 		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0023" />
 		<PackageReference Include="SkiaSharp" Version="2.80.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Resources\" />
 	</ItemGroup>
 </Project>

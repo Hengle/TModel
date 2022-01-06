@@ -2144,7 +2144,47 @@ def main(context):
 
                         bpy.ops.pose.select_all(action='DESELECT')
 
-                bpy.ops.object.posemode_toggle()
+                
+
+                def ConnectBones(parent, child):
+                    if parent is not None and child is not None:
+                        MainSkeleton.data.bones.active = parent.bone
+                        child.bone.select = True
+
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.armature.parent_set(type='OFFSET')
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.object.posemode_toggle()
+
+                
+            C_group_dynamic = MainSkeleton.pose.bone_groups.new(name = "Dynamic")
+            C_group_dynamic.color_set = 'THEME07'
+
+            C_group_twist = MainSkeleton.pose.bone_groups.new(name = "Twist")
+            C_group_twist.color_set = 'THEME04'
+
+            C_group_main = MainSkeleton.pose.bone_groups.new(name = "Main")
+            C_group_main.color_set = 'THEME01'
+
+            C_group_face = MainSkeleton.pose.bone_groups.new(name = "Face")
+            C_group_face.color_set = 'THEME02'
+
+            for PoseBone in bpy.context.visible_pose_bones:
+                Name = PoseBone.name
+                if Name.startswith("dyn"):
+                    PoseBone.bone_group = C_group_dynamic
+                    continue
+                if Name.__contains__("twist"):
+                    PoseBone.bone_group = C_group_twist
+                    continue
+                if Name.__contains__("calf") or  Name.__contains__("thigh") or Name.__contains__("hand") or Name.__contains__("arm"):
+                    PoseBone.bone_group = C_group_main
+                    continue
+                if Name.__contains__("tongue") or Name.__contains__("brow") or Name.__contains__("eye") or Name.__contains__("cheek") or Name.__contains__("lip")  or Name.__contains__("nose")  or Name.__contains__("teeth")  or Name.__contains__("jaw"):
+                    PoseBone.bone_group = C_group_face
+                    continue
+
+
                         
             def SetupIK():
                 upperarm_l = GetBone("lowerarm_l")

@@ -71,11 +71,6 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             return new ItemTileInfo() { PreviewIcon = SmallImage, Name = DisplayName };
         }
 
-        public override ImageSource GetPreviewIcon()
-        {
-            return ObjectIcons.FortItem;
-        }
-
         public virtual void DeepDeserialize()
         {
             ItemType = GetOrDefault<EFortItemType>(nameof(ItemType));
