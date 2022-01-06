@@ -29,9 +29,7 @@ namespace TModel
             [EItemFilterType.Pickaxe] = pickaxeExporter,
             [EItemFilterType.Weapon] = weaponExporter,
             [EItemFilterType.Prop] = propExporter,
-#if !RELEASE
             [EItemFilterType.Playset] = PlaysetExporter,
-#endif
         };
 
         // Gets all paths that could be a possible valid export (using the SearchTerm) for the given exporter
@@ -70,8 +68,6 @@ namespace TModel
         Pickaxe,
         Weapon,
         Prop,
-#if !RELEASE
         Playset
-#endif
     }
 }

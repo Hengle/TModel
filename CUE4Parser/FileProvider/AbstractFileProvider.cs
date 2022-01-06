@@ -38,6 +38,8 @@ namespace CUE4Parse.FileProvider
         public bool ReadScriptData { get; set; } = false;
         public virtual bool UseLazySerialization { get; set; } = true;
 
+        public static Dictionary<string, UObject> UObjectCache { get; } = new Dictionary<string, UObject>();
+
         protected AbstractFileProvider(bool isCaseInsensitive = false, VersionContainer? versions = null)
         {
             IsCaseInsensitive = isCaseInsensitive;
@@ -612,8 +614,13 @@ namespace CUE4Parse.FileProvider
                 packagePath = packagePath.Substring(0, dotIndex);
             }
 
+            if (UObjectCache.TryGetValue(packagePath + '.' + objectName, out UObject uObject))
+                return uObject;
+
             var pkg = LoadPackageAsync(packagePath);
-            return pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            UObject FinalExport = pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            UObjectCache[packagePath + '.' + objectName] = FinalExport;
+            return FinalExport;
         }
 
         public virtual UObject? TryLoadObjectAsync(string? objectPath)
@@ -632,8 +639,13 @@ namespace CUE4Parse.FileProvider
                 packagePath = packagePath.Substring(0, dotIndex);
             }
 
-            var pkg = TryLoadPackageAsync(packagePath);
-            return pkg?.GetExportOrNull(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            if (UObjectCache.TryGetValue(packagePath + '.' + objectName, out UObject uObject))
+                return uObject;
+
+            var pkg = LoadPackageAsync(packagePath);
+            UObject FinalExport = pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            UObjectCache[packagePath + '.' + objectName] = FinalExport;
+            return FinalExport;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

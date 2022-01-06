@@ -18,7 +18,7 @@ namespace TModel.Export
 
         UStaticMesh? StaticMesh;
 
-        FTransform Transform = new FTransform(new FQuat(0, 0, 0, 0), new FVector(0, 0,0), new FVector(1,1,1));
+        public FTransform Transform = new FTransform(new FQuat(0, 0, 0, 0), new FVector(0, 0,0), new FVector(1,1,1));
 
         public List<CMaterial> Materials { get; } = new List<CMaterial>();
 
@@ -99,12 +99,13 @@ namespace TModel.Export
                 if (meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName))
                 {
                     writer.Write(SaveName);
+                    FRotator Rotation = Transform.Rotation.Rotator();
                     writer.Write((Single)Transform.Translation.X);
                     writer.Write((Single)Transform.Translation.Y);
                     writer.Write((Single)Transform.Translation.Z);
-                    writer.Write((Single)Transform.Rotation.X);
-                    writer.Write((Single)Transform.Rotation.Y);
-                    writer.Write((Single)Transform.Rotation.Z);
+                    writer.Write((Single)Rotation.Pitch);
+                    writer.Write((Single)Rotation.Yaw);
+                    writer.Write((Single)Rotation.Roll);
                 }
                 else
                 {
@@ -116,5 +117,7 @@ namespace TModel.Export
                 Log.Error("MeshExporter is null for: " + StaticMesh?.Name ?? StaticMesh?.Name ?? "NULL");
             }
         }
+
+        public override string ToString() => SkeletalMesh?.Name ?? StaticMesh.Name ?? "None";
     }
 }

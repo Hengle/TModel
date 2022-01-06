@@ -21,6 +21,7 @@ namespace TModel.Modules
 {
     // Module for selecting items for exporting.
     // ItemPreviewModule shows the selected item from this module.
+    // TODO: Stop there being duplicates of items when switching tabs
     public class GameContentModule : ModuleBase
     {
         // The number of items that can be shown on a page.
@@ -147,7 +148,7 @@ namespace TModel.Modules
             {
                 SearchTerm = SearchBox.Text.Normalize().Trim();
                 if (string.IsNullOrWhiteSpace(SearchTerm)) SearchTerm = null;
-                List<ItemTileInfo> ItemTiles = CurrentExporter.LoadedPreviews;
+                List<ItemTileInfo> ItemTiles = CurrentExporter.LoadedPreviews.ToArray().ToList();
                 if (SearchTerm != null)
                 {
                     List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
@@ -292,7 +293,9 @@ namespace TModel.Modules
                     cTokenSource.Token.ThrowIfCancellationRequested();
                     try
                     {
-                        if (FortUtils.TryLoadItemPreviewInfo(CurrentExporter, gamefile, out ItemTileInfo itemPreviewInfo))
+                        if (FortUtils.TryLoadItemPreviewInfo(CurrentExporter, gamefile, out ItemTileInfo itemPreviewInfo)
+                        // && gamefile.Name.Contains("PID_CP_Props_M_Yacht_a")
+                        )
                         {
                             if (!gamefile.IsItemLoaded)
                             {

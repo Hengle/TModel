@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !RELEASE
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,3 +36,5 @@ namespace TModel.MainFrame.Modules
         }
     }
 }
+
+#endif

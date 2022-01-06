@@ -38,6 +38,7 @@ namespace CUE4Parse.UE4.Assets
             Lazy<FArchive?>? ubulk = null, Lazy<FArchive?>? uptnl = null,
             IFileProvider? provider = null, TypeMappings? mappings = null) : base(uasset.Name.SubstringBeforeLast('.'), provider, mappings)
         {
+            string FullPackagePath = uasset.Name;
             GlobalData = globalData;
             var uassetAr = new FAssetArchive(uasset, this);
 
@@ -106,7 +107,7 @@ namespace CUE4Parse.UE4.Assets
 
                 // Export map
                 uassetAr.Position = summary.ExportMapOffset;
-                ExportMap = uasset.ReadArray(Summary.ExportCount, () => new FExportMapEntry(uassetAr));
+                ExportMap = uasset.ReadArray(Summary.ExportCount, () => new FExportMapEntry(uassetAr, this));
                 ExportsLazy = new Lazy<UObject>[Summary.ExportCount];
 
                 // Export bundle entries
@@ -148,7 +149,7 @@ namespace CUE4Parse.UE4.Assets
 
                 // Export map
                 uassetAr.Position = summary.ExportMapOffset;
-                ExportMap = uasset.ReadArray(Summary.ExportCount, () => new FExportMapEntry(uassetAr));
+                ExportMap = uasset.ReadArray(Summary.ExportCount, () => new FExportMapEntry(uassetAr, this));
                 ExportsLazy = new Lazy<UObject>[Summary.ExportCount];
 
                 // Export bundles
@@ -179,36 +180,47 @@ namespace CUE4Parse.UE4.Assets
 
             // Populate lazy exports
             var currentExportDataOffset = allExportDataOffset;
-            foreach (var exportBundle in exportBundleHeaders)
+            foreach (FExportBundleHeader exportBundle in exportBundleHeaders)
             {
-                for (var i = 0u; i < exportBundle.EntryCount; i++)
+                for (uint i = 0u; i < exportBundle.EntryCount; i++)
                 {
-                    var entry = exportBundleEntries[exportBundle.FirstEntryIndex + i];
+                    FExportBundleEntry entry = exportBundleEntries[exportBundle.FirstEntryIndex + i];
                     if (entry.CommandType == EExportCommandType.ExportCommandType_Serialize)
                     {
-                        var localExportIndex = entry.LocalExportIndex;
-                        var export = ExportMap[localExportIndex];
-                        var localExportDataOffset = currentExportDataOffset;
-                        ExportsLazy[localExportIndex] = new Lazy<UObject>(() =>
+                        uint localExportIndex = entry.LocalExportIndex;
+                        FExportMapEntry export = ExportMap[localExportIndex];
+                        int localExportDataOffset = currentExportDataOffset;
+                        if (AbstractFileProvider.UObjectCache.TryGetValue(FullPackagePath + '.' + export.ObjectName.Text, out UObject uObject))
                         {
-                            // Create
-                            var obj = ConstructObject(ResolveObjectIndex(export.ClassIndex)?.Object?.Value as UStruct);
-                            obj.Name = CreateFNameFromMappedName(export.ObjectName).Text;
-                            obj.Outer = (ResolveObjectIndex(export.OuterIndex) as ResolvedExportObject)?.ExportObject.Value ?? this;
-                            obj.Super = ResolveObjectIndex(export.SuperIndex) as ResolvedExportObject;
-                            obj.Template = ResolveObjectIndex(export.TemplateIndex) as ResolvedExportObject;
-                            obj.Flags |= export.ObjectFlags; // We give loaded objects the RF_WasLoaded flag in ConstructObject, so don't remove it again in here
+                            ExportsLazy[localExportIndex] = new Lazy<UObject>(uObject);
+                        }
+                        else
+                        {
+                            ExportsLazy[localExportIndex] = new Lazy<UObject>(() =>
+                            {
+                                // Create
+                                UObject obj = ConstructObject(ResolveObjectIndex(export.ClassIndex)?.Object?.Value as UStruct);
+                                obj.Name = export.ObjectName.Text;
+                                obj.Outer = (ResolveObjectIndex(export.OuterIndex) as ResolvedExportObject)?.ExportObject.Value ?? this;
+                                obj.Super = ResolveObjectIndex(export.SuperIndex) as ResolvedExportObject;
+                                obj.Template = ResolveObjectIndex(export.TemplateIndex) as ResolvedExportObject;
+                                obj.Flags |= export.ObjectFlags; // We give loaded objects the RF_WasLoaded flag in ConstructObject, so don't remove it again in here
 
-                            // Serialize
-                            var Ar = (FAssetArchive) uassetAr.Clone();
-                            Ar.AbsoluteOffset = (int) export.CookedSerialOffset - localExportDataOffset;
-                            Ar.Position = localExportDataOffset;
-                            DeserializeObject(obj, Ar, (long) export.CookedSerialSize);
-                            // TODO right place ???
-                            obj.Flags |= EObjectFlags.RF_LoadCompleted;
-                            obj.PostLoad();
-                            return obj;
-                        });
+                                // Serialize
+                                FAssetArchive Ar = (FAssetArchive)uassetAr.Clone();
+                                Ar.AbsoluteOffset = (int)export.CookedSerialOffset - localExportDataOffset;
+                                Ar.Position = localExportDataOffset;
+                                DeserializeObject(obj, Ar, (long)export.CookedSerialSize);
+                                // TODO right place ???
+                                obj.Flags |= EObjectFlags.RF_LoadCompleted;
+                                obj.PostLoad();
+
+                                AbstractFileProvider.UObjectCache[FullPackagePath + '.' + export.ObjectName.Text] = obj;
+
+                                return obj;
+                            });
+                        }
+
                         currentExportDataOffset += (int) export.CookedSerialSize;
                     }
                 }
@@ -224,7 +236,7 @@ namespace CUE4Parse.UE4.Assets
         { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FName CreateFNameFromMappedName(FMappedName mappedName) =>
+        public FName CreateFNameFromMappedName(FMappedName mappedName) =>
             new(mappedName, mappedName.IsGlobal ? GlobalData.GlobalNameMap : NameMap);
 
         private void LoadExportBundles(FArchive Ar, int graphDataSize, out FExportBundleHeader[] bundleHeadersArray, out FExportBundleEntry[] bundleEntriesArray)
@@ -271,7 +283,7 @@ namespace CUE4Parse.UE4.Assets
             for (var i = 0; i < ExportMap.Length; i++)
             {
                 var export = ExportMap[i];
-                if (CreateFNameFromMappedName(export.ObjectName).Text.Equals(name, comparisonType))
+                if (export.ObjectName.Text.Equals(name, comparisonType))
                 {
                     return ExportsLazy[i].Value;
                 }
@@ -366,7 +378,7 @@ namespace CUE4Parse.UE4.Assets
                 ExportObject = package.ExportsLazy[exportIndex];
             }
 
-            public override FName Name => ((IoPackage) Package).CreateFNameFromMappedName(ExportMapEntry.ObjectName);
+            public override FName Name => ExportMapEntry.ObjectName;
             public override ResolvedObject Outer => ((IoPackage) Package).ResolveObjectIndex(ExportMapEntry.OuterIndex) ?? new ResolvedLoadedObject((UObject) Package);
             public override ResolvedObject? Class => ((IoPackage) Package).ResolveObjectIndex(ExportMapEntry.ClassIndex);
             public override ResolvedObject? Super => ((IoPackage) Package).ResolveObjectIndex(ExportMapEntry.SuperIndex);

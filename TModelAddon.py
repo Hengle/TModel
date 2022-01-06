@@ -72,6 +72,7 @@ from mathutils import Euler
 from struct import unpack, unpack_from, Struct
 import time
 import os
+import math
 
 
 ExportDataPath = os.getenv('APPDATA') + "\\TModel\\BlenderData.export"
@@ -2073,12 +2074,12 @@ def main(context):
             # Imports models
             for mesh in range(pathsNum):
                 ObjectName = ReadString()
-                locX = ReadSingle()
-                locY = ReadSingle()
-                locZ = ReadSingle()
-                rotX = ReadSingle()
-                rotY = ReadSingle()
-                rotZ = ReadSingle()
+                locX = (ReadSingle() / 100) * -1
+                locY = ReadSingle() / 100
+                locZ = ReadSingle() / 100
+                Pitch = ReadSingle()
+                Yaw = ReadSingle()
+                Roll = ReadSingle()
                 IsSkeleton = not ObjectName.endswith("x")
                 pskimport(ObjectName)
                 if IsSkeleton:
@@ -2092,11 +2093,13 @@ def main(context):
                 else:
                     # Only static meshes should have there location changed
                     bpy.ops.transform.translate(value=(locX, locY, locZ))
-                    bpy.ops.transform.rotate(value=((rotX * 0.7854) * -1), orient_axis='X')
-                    bpy.ops.transform.rotate(value=((rotY * 0.7854) * -1), orient_axis='Y')
-                    bpy.ops.transform.rotate(value=((rotZ * 0.7854) * -1), orient_axis='Z')
-
                     Mesh = bpy.context.selected_objects[0]
+                    Mesh.rotation_euler[2] = math.radians(Yaw - 180)
+                    # bpy.ops.transform.rotate(value=((rotX * 0.7854) * -1), orient_axis='X')
+                    # bpy.ops.transform.rotate(value=(rotY * 0.7854), orient_axis='Y')
+                    # bpy.ops.transform.rotate(value=((rotZ * 0.7854) * -1) - 176.715, orient_axis='Z')
+
+                    
                     Meshes.append(Mesh)
                     bpy.ops.object.shade_smooth()
 
@@ -2168,47 +2171,47 @@ def main(context):
                         bpy.ops.object.editmode_toggle()
                         bpy.ops.object.posemode_toggle()
 
-                
-            C_group_dynamic = MainSkeleton.pose.bone_groups.new(name = "Dynamic")
-            C_group_dynamic.color_set = 'THEME07'
+            if IsSkeleton: 
+                C_group_dynamic = MainSkeleton.pose.bone_groups.new(name = "Dynamic")
+                C_group_dynamic.color_set = 'THEME07'
 
-            C_group_main = MainSkeleton.pose.bone_groups.new(name = "Main")
-            C_group_main.color_set = 'THEME01'
+                C_group_main = MainSkeleton.pose.bone_groups.new(name = "Main")
+                C_group_main.color_set = 'THEME01'
 
-            C_group_face = MainSkeleton.pose.bone_groups.new(name = "Face")
-            C_group_face.color_set = 'THEME02'
+                C_group_face = MainSkeleton.pose.bone_groups.new(name = "Face")
+                C_group_face.color_set = 'THEME02'
 
-            C_group_hair = MainSkeleton.pose.bone_groups.new(name = "Hair")
-            C_group_hair.color_set = 'THEME12'
+                C_group_hair = MainSkeleton.pose.bone_groups.new(name = "Hair")
+                C_group_hair.color_set = 'THEME12'
 
-            C_group_deform = MainSkeleton.pose.bone_groups.new(name = "Deform")
-            C_group_deform.color_set = 'THEME09'
+                C_group_deform = MainSkeleton.pose.bone_groups.new(name = "Deform")
+                C_group_deform.color_set = 'THEME09'
 
-            C_group_hand = MainSkeleton.pose.bone_groups.new(name = "Hand")
-            C_group_hand.color_set = 'THEME03'
+                C_group_hand = MainSkeleton.pose.bone_groups.new(name = "Hand")
+                C_group_hand.color_set = 'THEME03'
 
-            for PoseBone in bpy.context.visible_pose_bones:
-                Name = PoseBone.name
-                if Name.startswith("dyn") and Name.__contains__("braid") or Name.__contains__("ponytail") or Name.__contains__("hair") or Name.__contains__("bang"):
-                    PoseBone.bone_group = C_group_hair
-                    continue
-                if Name.startswith("dyn") or Name.__contains__("default") or Name.__contains__("deault"):
-                    PoseBone.bone_group = C_group_dynamic
-                    continue
-                if Name.__contains__("twist") or Name.__contains__("volume") or Name.startswith("deform")  or Name.__contains__("glute") or Name.__contains__("knee") or Name.__contains__("elbow") or Name.startswith("bicep") or Name.startswith("crouch") or Name.startswith("pec"):
-                    PoseBone.bone_group = C_group_deform
-                    continue
-                if Name.__contains__("calf") or Name.startswith("clavicle") or Name.startswith("spine") or Name.startswith("head") or Name.startswith("neck") or Name.startswith("pelvis") or Name.__contains__("thigh") or Name.__contains__("hand") or Name.__contains__("arm") or Name.__contains__("foot") or Name.__contains__("ball"):
-                    PoseBone.bone_group = C_group_main
-                    continue
-                if Name.__contains__("tongue") or Name.__contains__("brow") or Name.__contains__("eye") or Name.__contains__("cheek") or Name.__contains__("lip")  or Name.__contains__("nose")  or Name.__contains__("teeth")  or Name.__contains__("jaw"):
-                    PoseBone.bone_group = C_group_face
-                    continue
-                if Name.__contains__("thumb") or Name.__contains__("index") or Name.__contains__("middle") or Name.__contains__("ring") or Name.__contains__("pinky"):
-                    PoseBone.bone_group = C_group_hand
-                    continue
+                for PoseBone in bpy.context.visible_pose_bones:
+                    Name = PoseBone.name
+                    if Name.startswith("dyn") and Name.__contains__("braid") or Name.__contains__("ponytail") or Name.__contains__("hair") or Name.__contains__("bang"):
+                        PoseBone.bone_group = C_group_hair
+                        continue
+                    if Name.startswith("dyn") or Name.__contains__("default") or Name.__contains__("deault"):
+                        PoseBone.bone_group = C_group_dynamic
+                        continue
+                    if Name.__contains__("twist") or Name.__contains__("volume") or Name.startswith("deform")  or Name.__contains__("glute") or Name.__contains__("knee") or Name.__contains__("elbow") or Name.startswith("bicep") or Name.startswith("crouch") or Name.startswith("pec"):
+                        PoseBone.bone_group = C_group_deform
+                        continue
+                    if Name.__contains__("calf") or Name.startswith("clavicle") or Name.startswith("spine") or Name.startswith("head") or Name.startswith("neck") or Name.startswith("pelvis") or Name.__contains__("thigh") or Name.__contains__("hand") or Name.__contains__("arm") or Name.__contains__("foot") or Name.__contains__("ball"):
+                        PoseBone.bone_group = C_group_main
+                        continue
+                    if Name.__contains__("tongue") or Name.__contains__("brow") or Name.__contains__("eye") or Name.__contains__("cheek") or Name.__contains__("lip")  or Name.__contains__("nose")  or Name.__contains__("teeth")  or Name.__contains__("jaw"):
+                        PoseBone.bone_group = C_group_face
+                        continue
+                    if Name.__contains__("thumb") or Name.__contains__("index") or Name.__contains__("middle") or Name.__contains__("ring") or Name.__contains__("pinky"):
+                        PoseBone.bone_group = C_group_hand
+                        continue
 
-            bpy.ops.object.posemode_toggle()
+                bpy.ops.object.posemode_toggle()
 
 
                         
@@ -2282,7 +2285,7 @@ def main(context):
                 SpecularMasks = ReadTexture()
                 Normals = ReadTexture()
                 Emissive = ReadTexture()
-                Metallic = ReadTexture()
+                Misc = ReadTexture()
 
                 SkinBoostColor = ReadVector()
 
@@ -2338,9 +2341,9 @@ def main(context):
                         EmissiveImage.image = GetImage(Emissive)
                         CurrentMat.node_tree.links.new(bsdf.inputs['Emission'], EmissiveImage.outputs[0])
 
-                    if Metallic is not None:
+                    if Misc is not None:
                         MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                        MetallicImage.image = GetImage(Metallic)
+                        MetallicImage.image = GetImage(Misc)
                         MetallicSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
                         MultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
                         MultiplyNode.blend_type = 'MULTIPLY'

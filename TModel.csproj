@@ -23,7 +23,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-	  <Optimize>False</Optimize>
+	  <Optimize>True</Optimize>
 	</PropertyGroup>
 
 	<ItemGroup>

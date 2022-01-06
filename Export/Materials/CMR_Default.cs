@@ -23,7 +23,7 @@ namespace TModel.Export.Materials
             TrySetTexture("SpecularMasks", ref SpecularMasks);
             TrySetTexture("Normals", ref Normals);
             TrySetTexture("Emissive", ref Emissive);
-            TrySetTexture("M", ref Metallic);
+            TrySetTexture("M", ref Misc);
 
             TrySetVector("Skin Boost Color And Exponent", ref SkinBoostColor);
         }

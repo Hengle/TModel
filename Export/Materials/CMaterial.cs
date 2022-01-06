@@ -32,7 +32,7 @@ namespace TModel.Export.Materials
         protected TextureRef? SpecularMasks = null;
         protected TextureRef? Normals = null;
         protected TextureRef? Emissive = null;
-        protected TextureRef? Metallic = null;
+        protected TextureRef? Misc = null;
 
         protected CMaterial(UMaterialInstanceConstant material)
         {
@@ -52,7 +52,7 @@ namespace TModel.Export.Materials
             WriteTexture(SpecularMasks);
             WriteTexture(Normals);
             WriteTexture(Emissive);
-            WriteTexture(Metallic);
+            WriteTexture(Misc);
 
             WriteVector(SkinBoostColor);
 
@@ -88,10 +88,14 @@ namespace TModel.Export.Materials
                 value = color;
         }
 
-        protected void TrySetTexture(string name, ref TextureRef value)
+        protected bool TrySetTexture(string name, ref TextureRef value)
         {
             if (Textures.TryGetValue(name, out FPackageIndex texture))
+            {
                 value = new TextureRef(texture.Load<UTexture2D>());
+                return true;
+            }
+            return false;
         }
 
         public static CMaterial CreateReader(UMaterialInstanceConstant material)
@@ -115,5 +119,7 @@ namespace TModel.Export.Materials
         }
 
         protected abstract void ReadParameters();
+
+        public override string ToString() => Name;
     }
 }

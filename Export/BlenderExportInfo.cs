@@ -23,42 +23,51 @@ namespace TModel.Export
         {
             List<CMaterial> Result = new List<CMaterial>();
             foreach (var model in Models)
-            {
                 foreach (var material in model.Materials)
                 {
+                    bool AlreadyAdded = false;
                     foreach (var item in Result)
-                    {
                         if (item.Name == material.Name)
                         {
+                            AlreadyAdded = true;
                             break;
                         }
-                    }
-                    Result.Add(material);
+                    if (!AlreadyAdded)
+                        Result.Add(material);
                 }
-            }
             return Result;
         }
 
         public void Save()
         {
             string BlenderDataPath = Path.Combine(Preferences.StorageFolder, "BlenderData.export");
-            CBinaryWriter Writer = new CBinaryWriter(File.Open(BlenderDataPath, FileMode.OpenOrCreate, FileAccess.Write));
-
-            Writer.Write((byte)Models.Count);
-            foreach (var model in Models)
+            CBinaryWriter Writer = null;
+            try
             {
-                model.SaveMesh(Writer);
+                Writer = new CBinaryWriter(File.Open(BlenderDataPath, FileMode.OpenOrCreate, FileAccess.Write));
             }
-
-            List<CMaterial> Materials = GetMaterials();
-            Writer.Write((byte)Materials.Count);
-            foreach (var material in Materials)
+            catch (Exception e)
             {
-                material.SaveAndWriteBinary(Writer);
+                Log.Error("Cant write to file (try restarting blender):" + e.ToString());
             }
+            if (Writer != null)
+            {
+                Writer.Write((byte)Models.Count);
+                foreach (var model in Models)
+                {
+                    model.SaveMesh(Writer);
+                }
 
-            Writer.Close();
-            Log.Information("Finished!");
+                List<CMaterial> Materials = GetMaterials();
+                Writer.Write((byte)Materials.Count);
+                foreach (var material in Materials)
+                {
+                    material.SaveAndWriteBinary(Writer);
+                }
+
+                Writer.Close();
+                Log.Information("Finished!");
+            }
         }
     }
 }

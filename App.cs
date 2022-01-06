@@ -114,8 +114,6 @@ namespace TModel
             Module_Right.AddModule(new ObjectViewerModule());
 #endif
             Module_Left.AddModule(new SettingsModule());
-            // Module_Right.AddModule(new SearchModule());
-            Module_Right.AddModule(new HexEditorModule());
             Module_Right.AddModule(new ItemPreviewModule());
 
 
