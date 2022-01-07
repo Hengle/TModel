@@ -48,7 +48,8 @@ namespace TModel.Exporters
                     Description = Backpack.Description,
                     Package = package,
                     PreviewIcon = previewIcon,
-                    Styles = Styles
+                    Styles = Styles,
+                    FileName = Backpack.Name
                 };
             }
             return null;

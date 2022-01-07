@@ -2044,9 +2044,10 @@ def GetImage(name):
         LoadedImage = bpy.data.images.load(name)
         return LoadedImage
 
-# Load cosmetics operator
 
-def main(context):
+IkContraints = []
+
+def LoadTModelItem(context):
 
     IsSkeleton = True
 
@@ -2079,11 +2080,17 @@ def main(context):
                 locX = (ReadSingle() / 100) * -1
                 locY = ReadSingle() / 100
                 locZ = ReadSingle() / 100
+
                 # Rotation
                 rotX = ReadSingle()
                 rotY = ReadSingle()
                 rotZ = ReadSingle()
                 print(str(rotZ))
+
+                # Scale
+                scaleX = ReadSingle()
+                scaleY = ReadSingle()
+                scaleZ = ReadSingle()
 
                 IsSkeleton = not ObjectName.endswith("x")
                 pskimport(ObjectName)
@@ -2101,6 +2108,7 @@ def main(context):
                     Mesh = bpy.context.selected_objects[0]
                     Mesh.rotation_mode = 'XYZ'
                     Mesh.rotation_euler  = mathutils.Euler((math.radians(rotX), math.radians(rotY), math.radians(rotZ)), 'XYZ')
+                    bpy.ops.transform.resize(value=(scaleX, scaleY, scaleZ))
                     # bpy.ops.transform.rotate(value=((rotX * 0.7854) * -1), orient_axis='X')
                     # bpy.ops.transform.rotate(value=(rotY * 0.7854), orient_axis='Y')
                     # bpy.ops.transform.rotate(value=((rotZ * 0.7854) * -1) - 176.715, orient_axis='Z')
@@ -2135,6 +2143,7 @@ def main(context):
 
             # Gets a bone from the name - MUST BE IN POSE MODE TO USE
             def GetBone(SearchName):
+                bpy.ops.object.mode_set(mode="POSE")
                 for possibleBone in bpy.context.visible_pose_bones:
                     if possibleBone.name == SearchName:
                         return possibleBone
@@ -2167,47 +2176,70 @@ def main(context):
 
                 
 
-                def ConnectBones(parent, child):
-                    if parent is not None and child is not None:
-                        MainSkeleton.data.bones.active = parent.bone
-                        child.bone.select = True
+            def ConnectBones(parent, child):
+                if parent is not None and child is not None:
+                    bpy.ops.object.mode_set(mode="POSE")
+                    MainSkeleton.data.bones.active = parent.bone
+                    child.bone.select = True
 
-                        bpy.ops.object.editmode_toggle()
-                        bpy.ops.armature.parent_set(type='OFFSET')
-                        bpy.ops.object.editmode_toggle()
-                        bpy.ops.object.posemode_toggle()
+                    bpy.ops.object.mode_set(mode="EDIT")
+                    bpy.ops.armature.parent_set(type='OFFSET')
+                    bpy.ops.object.mode_set(mode="POSE")
+                    bpy.ops.pose.select_all(action='DESELECT')
 
             if IsSkeleton: 
-                C_group_dynamic = MainSkeleton.pose.bone_groups.new(name = "Dynamic")
-                C_group_dynamic.color_set = 'THEME07'
+
+                def rgb( r, g, b ):
+                    return (r / 255, g / 255, b / 255)
 
                 C_group_main = MainSkeleton.pose.bone_groups.new(name = "Main")
-                C_group_main.color_set = 'THEME01'
+                C_group_main.color_set = 'CUSTOM'
+                C_group_main.colors.normal = rgb(188, 8, 8)
+                C_group_main.colors.active = rgb(230,80,80)
+                C_group_main.colors.select = rgb(255,25,25)
+
+                C_group_dynamic = MainSkeleton.pose.bone_groups.new(name = "Dynamic")
+                C_group_dynamic.color_set = 'CUSTOM'
+                C_group_dynamic.colors.normal = rgb(2, 27, 136)
+                C_group_dynamic.colors.active = rgb(92, 117, 238)
+                C_group_dynamic.colors.select = rgb(28, 54, 184)
 
                 C_group_face = MainSkeleton.pose.bone_groups.new(name = "Face")
-                C_group_face.color_set = 'THEME02'
+                C_group_face.color_set = 'CUSTOM'
+                C_group_face.colors.normal = rgb(8, 97, 16)
+                C_group_face.colors.active = rgb(115, 235, 126)
+                C_group_face.colors.select = rgb(69, 249, 85)
 
                 C_group_hair = MainSkeleton.pose.bone_groups.new(name = "Hair")
-                C_group_hair.color_set = 'THEME12'
+                C_group_hair.color_set = 'CUSTOM'
+                C_group_hair.colors.normal = rgb(169, 17, 179)
+                C_group_hair.colors.active = rgb(226, 81, 235)
+                C_group_hair.colors.select = rgb(178, 40, 186)
 
                 C_group_deform = MainSkeleton.pose.bone_groups.new(name = "Deform")
-                C_group_deform.color_set = 'THEME09'
+                C_group_deform.color_set = 'CUSTOM'
+                C_group_deform.colors.normal = rgb(7, 126, 80)
+                C_group_deform.colors.active = rgb(102, 237, 169)
+                C_group_deform.colors.select = rgb(34, 191, 112)
 
                 C_group_hand = MainSkeleton.pose.bone_groups.new(name = "Hand")
-                C_group_hand.color_set = 'THEME03'
+                C_group_hand.color_set = 'CUSTOM'
+                C_group_hand.colors.normal = rgb(32, 163, 202)
+                C_group_hand.colors.active = rgb(105, 209, 241)
+                C_group_hand.colors.select = rgb(20, 162, 205)
 
                 for PoseBone in bpy.context.visible_pose_bones:
                     Name = PoseBone.name
-                    if Name.startswith("dyn") and Name.__contains__("braid") or Name.__contains__("ponytail") or Name.__contains__("hair") or Name.__contains__("bang"):
+                    if (Name.startswith("dyn") and Name.__contains__("braid") or Name.__contains__("ponytail") or Name.__contains__("hair") or Name.__contains__("bang")) or Name.startswith("pigtail"):
                         PoseBone.bone_group = C_group_hair
                         continue
-                    if Name.startswith("dyn") or Name.__contains__("default") or Name.__contains__("deault"):
+                    if Name.startswith("dyn") or Name.__contains__("default") or Name.__contains__("deault") or Name.startswith("skirt") or Name.startswith("bag") or Name.startswith("tail") or Name.startswith("back_bow"):
                         PoseBone.bone_group = C_group_dynamic
                         continue
                     if Name.__contains__("twist") or Name.__contains__("volume") or Name.startswith("deform")  or Name.__contains__("glute") or Name.__contains__("knee") or Name.__contains__("elbow") or Name.startswith("bicep") or Name.startswith("crouch") or Name.startswith("pec"):
                         PoseBone.bone_group = C_group_deform
                         continue
-                    if Name.__contains__("calf") or Name.startswith("clavicle") or Name.startswith("spine") or Name.startswith("head") or Name.startswith("neck") or Name.startswith("pelvis") or Name.__contains__("thigh") or Name.__contains__("hand") or Name.__contains__("arm") or Name.__contains__("foot") or Name.__contains__("ball"):
+                    if Name.__contains__("calf") or Name.startswith("clavicle") or Name.startswith("spine") or Name.startswith("head") or Name.startswith("neck") or Name.startswith("pelvis") or Name.__contains__("thigh") or Name.__contains__("hand") or Name.startswith("upperarm") or Name.startswith("lowerarm") or Name.__contains__("foot") or Name.__contains__("ball"):
                         PoseBone.bone_group = C_group_main
                         continue
                     if Name.__contains__("tongue") or Name.__contains__("brow") or Name.__contains__("eye") or Name.__contains__("cheek") or Name.__contains__("lip")  or Name.__contains__("nose")  or Name.__contains__("teeth")  or Name.__contains__("jaw"):
@@ -2216,58 +2248,128 @@ def main(context):
                     if Name.__contains__("thumb") or Name.__contains__("index") or Name.__contains__("middle") or Name.__contains__("ring") or Name.__contains__("pinky"):
                         PoseBone.bone_group = C_group_hand
                         continue
-
-                bpy.ops.object.posemode_toggle()
-
-
-                        
-            def SetupIK():
-                upperarm_l = GetBone("lowerarm_l")
-                hand_l = GetBone("hand_l")
-                MainSkeleton.data.bones.active = upperarm_l.bone
-                bpy.ops.object.editmode_toggle()
-                bpy.context.active_bone.tail[0] = hand_l.bone.head_local[0]
-                bpy.context.active_bone.tail[1] = hand_l.bone.head_local[1]
-                bpy.context.active_bone.tail[2] = hand_l.bone.head_local[2]
-
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.object.posemode_toggle()
-
-                bpy.ops.pose.select_all(action='DESELECT')
-
-                hand_l.bone.select = True
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.armature.parent_clear(type='CLEAR')
-
-                EditBones = MainSkeleton.data.edit_bones
-                TargetBone = EditBones.new("L_Arm_IK")
-                TargetBone.head = (0.334855, 0.179714, 1.16865)
-                TargetBone.tail = (0.335759, 0.116441, 1.16933)
-
-                IkConstraint = upperarm_l.constraints.new(type='IK')
-                IkConstraint.target = MainSkeleton
-                IkConstraint.subtarget = hand_l.name
-                IkConstraint.chain_count = 2
-                IkConstraint.pole_angle = 175.0
-                # IkConstraint.pole_target = MainSkeleton # doesnt work
-                # IkConstraint.pole_subtarget = TargetBone.name # doesnt work
-
-                upperarm_l.lock_location[0] = True
-                upperarm_l.lock_location[1] = True
-                upperarm_l.lock_location[2] = True
-                upperarm_l.lock_rotation[0] = True
-                upperarm_l.lock_rotation[1] = True
-                upperarm_l.lock_rotation[2] = True
-                upperarm_l.lock_scale[0] = True
-                upperarm_l.lock_scale[1] = True
-                upperarm_l.lock_scale[2] = True
-
-            # SetupIK() # Not ready for Release yet
+                    PoseBone.bone_group = C_group_dynamic # if all are false then it's probaly just dynamic
 
 
-            # IkConstraint.pole_subtarget = TargetBone.name
+
+                # bpy.ops.object.posemode_toggle()
+
+            bpy.ops.curve.primitive_bezier_circle_add(enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+            CircleCurve = bpy.context.selected_objects[0]
+            CircleCurve.select_set(False)
+            context.view_layer.objects.active = MainSkeleton
 
 
+            def SetupIK(IkTarget, IkBone, poleTargetName, poleAngle):
+                if IkBone is not None and IkTarget is not None:
+                    bpy.ops.object.mode_set(mode="POSE")
+                    MainSkeleton.data.bones.active = IkBone.bone
+                    bpy.ops.object.editmode_toggle()
+                    bpy.context.active_bone.tail[0] = IkTarget.bone.head_local[0]
+                    bpy.context.active_bone.tail[1] = IkTarget.bone.head_local[1]
+                    bpy.context.active_bone.tail[2] = IkTarget.bone.head_local[2]
+
+                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.object.posemode_toggle()
+
+                    bpy.ops.pose.select_all(action='DESELECT')
+
+                    IkTarget.bone.select = True
+                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.armature.parent_clear(type='CLEAR')
+
+                    IkConstraint = IkBone.constraints.new(type='IK')
+                    IkConstraint.target = MainSkeleton
+                    IkConstraint.subtarget = IkTarget.name
+                    IkConstraint.chain_count = 2
+                    IkConstraint.pole_angle = 180.0
+                    IkConstraint.pole_target = MainSkeleton
+                    IkConstraint.pole_subtarget = poleTargetName
+                    IkContraints.append(IkConstraint)
+
+                    IkBone.custom_shape = CircleCurve
+                    IkBone.parent.custom_shape = CircleCurve
+
+                    IkBone.lock_location[0] = True
+                    IkBone.lock_location[1] = True
+                    IkBone.lock_location[2] = True
+                    IkBone.lock_rotation[0] = True
+                    IkBone.lock_rotation[1] = True
+                    IkBone.lock_rotation[2] = True
+                    IkBone.lock_scale[0] = True
+                    IkBone.lock_scale[1] = True
+                    IkBone.lock_scale[2] = True
+                    IkBone.bone.layers[1] = True
+                    IkBone.bone.layers[2] = True
+
+
+            # Arm Ik
+
+            bpy.ops.object.editmode_toggle()
+            EditBones = MainSkeleton.data.edit_bones
+            LeftArm_TB = EditBones.new("L_Arm_IK")
+            LeftArm_TB.head = (0.334855, 0.179714, 1.16865)
+            LeftArm_TB.tail = (0.335759, 0.116441, 1.16933)
+            SetupIK(GetBone("hand_l"), GetBone("lowerarm_l"), "L_Arm_IK", 160)
+
+            bpy.ops.object.mode_set(mode="EDIT")
+            LeftArm_TB = EditBones.new("R_Arm_IK")
+            LeftArm_TB.head = (-0.289055, 0.179714, 1.16933)
+            LeftArm_TB.tail = (-0.288151, 0.116441, 1.16933)
+            SetupIK(GetBone("hand_r"), GetBone("lowerarm_r"), "R_Arm_IK", -160)
+
+            # Leg IK
+
+            bpy.ops.object.mode_set(mode="EDIT")
+            LeftArm_TB = EditBones.new("L_Calf_IK")
+            LeftArm_TB.head = (0.121137, -0.359408, 0.562778)
+            LeftArm_TB.tail = (0.122041, -0.422681, 0.563458)
+            SetupIK(GetBone("foot_l"), GetBone("calf_l"), "L_Calf_IK", 160)
+
+            bpy.ops.object.mode_set(mode="EDIT")
+            LeftArm_TB = EditBones.new("R_Calf_IK")
+            LeftArm_TB.head = (-0.119541, -0.359408, 0.562778)
+            LeftArm_TB.tail = (-0.118637, -0.422681, 0.563458)
+            SetupIK(GetBone("foot_r"), GetBone("calf_r"), "R_Calf_IK", -160)
+
+            bpy.ops.object.mode_set(mode="OBJECT")
+            bpy.ops.mesh.primitive_circle_add(radius=1, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+
+            CircleMesh = bpy.context.selected_objects[0]
+            CircleMesh.select_set(False)
+
+            context.view_layer.objects.active = MainSkeleton
+            bpy.ops.object.mode_set(mode="POSE")
+
+            LeftHandBone = GetBone("hand_l")
+            LeftHandBone.custom_shape = CircleMesh
+            LeftHandBone.custom_shape_rotation_euler[0] = math.radians(90)
+            LeftHandBone.custom_shape_scale_xyz = (2,2,2)
+
+            RightHandBone = GetBone("hand_r")
+            RightHandBone.custom_shape = CircleMesh
+            RightHandBone.custom_shape_rotation_euler[0] = math.radians(90)
+            RightHandBone.custom_shape_scale_xyz = (2,2,2)
+
+
+            LeftFootBone = GetBone("foot_l")
+            LeftFootBone.custom_shape = CircleMesh
+            LeftFootBone.custom_shape_rotation_euler[0] = 0
+            LeftFootBone.custom_shape_scale_xyz = (1,1,1)
+
+            RightFootBone = GetBone("foot_r")
+            RightFootBone.custom_shape = CircleMesh
+            RightFootBone.custom_shape_rotation_euler[1] = math.radians(90)
+            RightFootBone.custom_shape_scale_xyz = (1,1,1)
+
+            bpy.ops.object.mode_set(mode="POSE")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+
+            ConnectBones(GetBone("spine_02"), GetBone("spine_03"))
+            ConnectBones(GetBone("neck_02"), GetBone("head"))
+            ConnectBones(GetBone("neck_01"), GetBone("neck_02"))
+            ConnectBones(GetBone("spine_05"), GetBone("neck_01"))
 
             def ReadTexture():
                 isValidTexture = ReadBool()
@@ -2390,12 +2492,14 @@ class SimpleOperator(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        main(context)
+        LoadTModelItem(context)
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.posemode_toggle()
+        for constraint in IkContraints:
+            constraint.use_tail = False
+            constraint.use_tail = True
+        IkContraints.clear()
         return {'FINISHED'}
-
-class TModelSourcePath(bpy.types.Operator):
-    bl_idname = "misc.TModelPath"
-    bl_label = "TModel Data Path"
 
 
 
@@ -2418,10 +2522,11 @@ class LayoutDemoPanel(bpy.types.Panel):
         row = layout.row()
         row.scale_y = 3.0
         row.operator("object.simple_operator")
-        
+
         row = layout.row()
         row.scale_y = 1.0
         row.operator("object.remove_mesh")
+
 
         
 def register():

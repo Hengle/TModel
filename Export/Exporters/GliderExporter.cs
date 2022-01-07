@@ -26,7 +26,8 @@ namespace TModel.Export.Exporters
                     Name = Glider.DisplayName,
                     Description = Glider.Description,
                     Package = package,
-                    PreviewIcon = SmallImageRef
+                    PreviewIcon = SmallImageRef,
+                    FileName = Glider.Name
                 };
             }
             return null;

@@ -8,6 +8,7 @@ using Serilog;
 using System.Collections.Generic;
 using TModel.Export.Materials;
 using TModel.Modules;
+using static CUE4Parse.Utils.StringUtils;
 
 namespace TModel.Export.Exporters
 {
@@ -45,7 +46,8 @@ namespace TModel.Export.Exporters
                     Description = Character.Description,
                     PreviewIcon = previewIcon,
                     Package = package,
-                    Styles = Styles
+                    Styles = Styles,
+                    FileName = Character.Name
                 };
             }
             return null;

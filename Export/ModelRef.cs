@@ -46,7 +46,8 @@ namespace TModel.Export
             }
         }
 
-        public ModelRef(UStaticMesh staticMesh)
+        // texIndex: The texture index for prop materials
+        public ModelRef(UStaticMesh staticMesh, int texIndex = 0)
         {
             Log.Information("Static Mesh: " + staticMesh.Name);
             StaticMesh = staticMesh;
@@ -57,7 +58,7 @@ namespace TModel.Export
                     UMaterialInterface LoadedMaterial = material.MaterialInterface.Load<UMaterialInterface>();
                     if (LoadedMaterial is UMaterialInstanceConstant InstanceConstant)
                     {
-                        Materials.Add(CMaterial.CreateReader(InstanceConstant));
+                        Materials.Add(CMaterial.CreateReader(InstanceConstant, texIndex));
                     }
                 }
             }
@@ -117,6 +118,11 @@ namespace TModel.Export
                     writer.Write(MeshRotation.Roll);
                     writer.Write(MeshRotation.Pitch);
                     writer.Write(MeshRotation.Yaw);
+
+                    // Scale
+                    writer.Write((Single)Transform.Scale3D.X);
+                    writer.Write((Single)Transform.Scale3D.Y);
+                    writer.Write((Single)Transform.Scale3D.Z);
                 }
                 else
                 {

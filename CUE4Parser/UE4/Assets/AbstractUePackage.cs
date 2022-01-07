@@ -114,10 +114,8 @@ namespace CUE4Parse.UE4.Assets
             where T : UObject => GetExportOrNull(name, comparisonType) as T;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UObject GetExport(string name, StringComparison comparisonType = StringComparison.Ordinal) =>
-            GetExportOrNull(name, comparisonType) ??
-            throw new NullReferenceException(
-                $"Package '{Name}' does not have an export with the name '{name}'");
+        public UObject GetExportOrFirst(string name, StringComparison comparisonType = StringComparison.Ordinal) =>
+            GetExportOrNull(name, comparisonType) ?? ExportsLazy[0].Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetExport<T>(string name, StringComparison comparisonType = StringComparison.Ordinal) where T : UObject =>

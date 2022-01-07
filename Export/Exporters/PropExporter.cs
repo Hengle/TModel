@@ -38,7 +38,8 @@ namespace TModel.Export.Exporters
                     Name = Prop.DisplayName,
                     Description = Prop.Description,
                     Package = package,
-                    PreviewIcon = previewIcon
+                    PreviewIcon = previewIcon,
+                    FileName = Prop.Name
                 };
             }
             return null;

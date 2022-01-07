@@ -19,7 +19,10 @@ namespace TModel.Export.Materials
 
         protected override void ReadParameters()
         {
-            TrySetTexture("Diffuse", ref Diffuse);
+            if (!TrySetTexture($"Diffuse_Texture_{TextureIndex}", ref Diffuse))
+            {
+                TrySetTexture("Diffuse", ref Diffuse);
+            }
             TrySetTexture("SpecularMasks", ref SpecularMasks);
             TrySetTexture("Normals", ref Normals);
             TrySetTexture("Emissive", ref Emissive);

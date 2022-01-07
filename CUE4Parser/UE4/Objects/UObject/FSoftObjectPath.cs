@@ -7,6 +7,7 @@ using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
+using TModel;
 using static CUE4Parse.Utils.StringUtils;
 using UExport = CUE4Parse.UE4.Assets.Exports.UObject;
 
@@ -62,7 +63,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Load<T>() where T : UExport =>
-            Load<T>(Owner?.Provider ?? throw new ParserException("Package was loaded without a IFileProvider"));
+            Load<T>(App.FileProvider);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryLoad<T>(out T export) where T : UExport

@@ -30,7 +30,8 @@ namespace TModel.Export.Exporters
                     Name = Pickaxe.DisplayName,
                     Description = Pickaxe.Description,
                     Package = package,
-                    PreviewIcon = previewIcon
+                    PreviewIcon = previewIcon,
+                    FileName = Pickaxe.Name
                 };
             }
             return null;

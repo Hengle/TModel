@@ -32,7 +32,8 @@ namespace TModel.Export.Exporters
                 {
                     Name = Weapon.DisplayName,
                     Package = package,
-                    PreviewIcon = SmallImageRef
+                    PreviewIcon = SmallImageRef,
+                    FileName = Weapon.Name
                 };
             }
             return null;

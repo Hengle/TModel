@@ -61,32 +61,70 @@ namespace TModel.Export.Exporters
             {
                 PlaysetDef.DeepDeserialize();
 
-                foreach (FortPreviewActorData ActorData in PlaysetDef.PreviewActorData)
+                if (package.ExportsLazy[1].Value is ULevelSaveRecordCollection LevelRecord)
                 {
-#if true
-                    try
+                    for (int i = 0; i < LevelRecord.Items.Length; i++)
                     {
-                        IPackage PropPackage = App.FileProvider.LoadPackage(Path.ChangeExtension(ActorData.ActorClass.AssetPathName.Text, ".uasset"));
-                        foreach (Lazy<UObject> uObject in PropPackage.ExportsLazy)
+                        try
                         {
-                            if (uObject.Value is UStaticMeshComponent Mesh)
+                            LevelSaveRecordCollectionItem item = LevelRecord.Items[i];
+                            FortPreviewActorData ActorData = PlaysetDef.PreviewActorData[i];
+                            IPackage PropPackage = App.FileProvider.LoadPackage(Path.ChangeExtension(ActorData.ActorClass.AssetPathName.Text, ".uasset"));
+                            foreach (Lazy<UObject> uObject in PropPackage.ExportsLazy)
                             {
-                                if (Mesh.StaticMesh is ResolvedObject MeshPath)
+                                if (uObject.Value is UStaticMeshComponent Mesh)
                                 {
-                                    UStaticMesh StaticMesh = MeshPath.Load<UStaticMesh>();
-                                    ModelRef modelRef = new ModelRef(StaticMesh);
-                                    modelRef.Transform = new FTransform(new FQuat(ActorData.RelativeRotation), ActorData.RelativeLocation, new FVector(1, 1, 1));
-                                    ExportInfo.Models.Add(modelRef);
-                                    break;
+                                    if (Mesh.StaticMesh is ResolvedObject MeshPath)
+                                    {
+                                        UStaticMesh StaticMesh = MeshPath.Load<UStaticMesh>();
+                                        ModelRef modelRef;
+                                        if (int.TryParse(item.RecordUniqueName.Text.SubstringAfterLast('_'), out int texIndex))
+                                            modelRef = new ModelRef(StaticMesh, texIndex - 1);
+                                        else
+                                            modelRef = new ModelRef(StaticMesh);
+                                        modelRef.Transform = new FTransform(new FQuat(ActorData.RelativeRotation), ActorData.RelativeLocation, item.Transform.Scale3D);
+                                        ExportInfo.Models.Add(modelRef);
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        catch (Exception e)
+                        {
+                            Log.Error("Failed to read prop:\n" + e.ToString());
+                        }
+
                     }
-                    catch (Exception e)
+                }
+                else
+                {
+                    foreach (FortPreviewActorData ActorData in PlaysetDef.PreviewActorData)
                     {
-                        Log.Error("Failed to read prop:\n" + e.ToString());
-                    }
+#if true
+                        try
+                        {
+                            IPackage PropPackage = App.FileProvider.LoadPackage(Path.ChangeExtension(ActorData.ActorClass.AssetPathName.Text, ".uasset"));
+                            foreach (Lazy<UObject> uObject in PropPackage.ExportsLazy)
+                            {
+                                if (uObject.Value is UStaticMeshComponent Mesh)
+                                {
+                                    if (Mesh.StaticMesh is ResolvedObject MeshPath)
+                                    {
+                                        UStaticMesh StaticMesh = MeshPath.Load<UStaticMesh>();
+                                        ModelRef modelRef = new ModelRef(StaticMesh);
+                                        modelRef.Transform = new FTransform(new FQuat(ActorData.RelativeRotation), ActorData.RelativeLocation, new FVector(1, 1, 1));
+                                        ExportInfo.Models.Add(modelRef);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error("Failed to read prop:\n" + e.ToString());
+                        }
 #endif
+                    }
                 }
             }
 

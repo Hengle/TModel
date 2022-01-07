@@ -617,7 +617,7 @@ namespace CUE4Parse.FileProvider
                 return uObject;
 
             var pkg = LoadPackageAsync(packagePath);
-            UObject FinalExport = pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            UObject FinalExport = pkg.GetExportOrFirst(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
             UObjectCache[packagePath + '.' + objectName] = FinalExport;
             return FinalExport;
         }
@@ -642,7 +642,7 @@ namespace CUE4Parse.FileProvider
                 return uObject;
 
             var pkg = LoadPackageAsync(packagePath);
-            UObject FinalExport = pkg.GetExport(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            UObject FinalExport = pkg.GetExportOrFirst(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
             UObjectCache[packagePath + '.' + objectName] = FinalExport;
             return FinalExport;
         }

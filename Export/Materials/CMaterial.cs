@@ -20,6 +20,8 @@ namespace TModel.Export.Materials
     {
         public string Name => Material.Name;
 
+        public int TextureIndex = 0;
+
         public UMaterialInstanceConstant Material { get; private set; }
 
         protected Dictionary<string, float> Scalars => Material.ScalarParameterValues;
@@ -40,10 +42,25 @@ namespace TModel.Export.Materials
             Material = material;
         }
 
+        private void LoadParent(UMaterialInstanceConstant Instance)
+        {
+            foreach (KeyValuePair<string, FPackageIndex> textureParam in Instance.TextureParameterValues)
+            {
+                if (!Textures.TryGetValue(textureParam.Key, out _))
+                {
+                    Textures[textureParam.Key] = textureParam.Value;
+                }
+            }
+
+            if (Instance.Parent is UMaterialInstanceConstant parent)
+                LoadParent(parent);
+        }
+
         public void SaveAndWriteBinary(CBinaryWriter Writer)
         {
             Log.Information("Writing material: " + Material.Name);
-
+            if (Material.Parent is UMaterialInstanceConstant parent)
+                LoadParent(parent);
             ReadParameters();
 
             Writer.Write(Name);
@@ -107,13 +124,13 @@ namespace TModel.Export.Materials
             return false;
         }
 
-        public static CMaterial CreateReader(UMaterialInstanceConstant material)
+        public static CMaterial CreateReader(UMaterialInstanceConstant material, int texIndex = 0)
         {
             var Parent = material.Parent.Name;
             switch (Parent)
             {
                 default:
-                    return new CMR_Default(material);
+                    return new CMR_Default(material) { TextureIndex = texIndex };
             }
         }
 
