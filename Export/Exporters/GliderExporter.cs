@@ -16,31 +16,17 @@ namespace TModel.Export.Exporters
         {
             if (package.Base is UAthenaGliderItemDefinition Glider)
             {
+                Glider.DeepDeserialize();
                 TextureRef SmallImageRef = null;
                 if (Glider.LargePreviewImage is FSoftObjectPath ImagePath)
                     SmallImageRef = new TextureRef(ImagePath.Load<UTexture2D>());
-
-                List<ExportPreviewSet>? Styles = null;
-
-                if (Glider.ItemVariants is FPackageIndex[] Variants && Variants.Length > 0)
-                {
-                    Styles = new();
-                    foreach (var variant in Variants)
-                    {
-                        UFortCosmeticVariant CosmeticVariant = variant.Load<UFortCosmeticVariant>();
-                        ExportPreviewSet PreviewSet = new ExportPreviewSet();
-                        CosmeticVariant.GetPreviewStyle(PreviewSet);
-                        Styles.Add(PreviewSet);
-                    }
-                }
 
                 return new ExportPreviewInfo()
                 {
                     Name = Glider.DisplayName,
                     Description = Glider.Description,
                     Package = package,
-                    PreviewIcon = SmallImageRef,
-                    Styles = Styles
+                    PreviewIcon = SmallImageRef
                 };
             }
             return null;

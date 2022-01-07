@@ -16,6 +16,7 @@ using TModel.MainFrame.Widgets;
 using TModel.Sorters;
 using System.Linq;
 using static TModel.ColorConverters;
+using CUE4Parse.FileProvider;
 
 namespace TModel.Modules
 {
@@ -37,7 +38,9 @@ namespace TModel.Modules
         int PageNum = 1;
         int TotalPages = 0;
 
-        EItemFilterType SelectedFilter = EItemFilterType.Character;
+        GameItemType SelectedFilter = GameItemType.Character;
+
+        public List<ItemTileInfo> VisiblePreviews = new List<ItemTileInfo>();
 
         public override string ModuleName => "Game Content";
 
@@ -75,8 +78,6 @@ namespace TModel.Modules
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
-
-        List<ItemTileInfo> VisiblePreviews = new List<ItemTileInfo>();
 
         string? SearchTerm = null;
 
@@ -148,23 +149,21 @@ namespace TModel.Modules
             {
                 SearchTerm = SearchBox.Text.Normalize().Trim();
                 if (string.IsNullOrWhiteSpace(SearchTerm)) SearchTerm = null;
-                List<ItemTileInfo> ItemTiles = CurrentExporter.LoadedPreviews.ToArray().ToList();
+                List<ItemTileInfo> ItemTiles = VisiblePreviews.ToArray().ToList(); // Clones array so it doesnt get changed will enumarating
                 if (SearchTerm != null)
                 {
                     List<ItemTileInfo> MatchingPreviews = new List<ItemTileInfo>();
                     foreach (var item in ItemTiles)
                     {
-                        if (item.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                        if (item.DisplayName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
                         {
                             MatchingPreviews.Add(item);
                         }
                     }
-                    VisiblePreviews = MatchingPreviews;
-                    LoadPages();
+                    LoadPages(MatchingPreviews);
                 }
                 else
                 {
-                    VisiblePreviews = ItemTiles;
                     LoadPages();
                 }
                 PageNum = 1;
@@ -235,7 +234,7 @@ namespace TModel.Modules
 
         void GenerateFilterTypes()
         {
-            foreach (string name in Enum.GetNames(typeof(EItemFilterType)))
+            foreach (string name in Enum.GetNames(typeof(GameItemType)))
             {
                 RadioButton radioButton = new RadioButton()
                 {
@@ -252,23 +251,27 @@ namespace TModel.Modules
                 {
                     cTokenSource = new CancellationTokenSource();
                     string Name = (string)((RadioButton)sender).Tag;
-                    EItemFilterType FilterType = Enum.Parse<EItemFilterType>(Name);
-                    SelectedFilter = FilterType;
-                    CurrentExporter = FortUtils.Exporters[FilterType];
-                    PageNum = 1;
-                    if (FileManagerModule.HasLoaded)
+                    GameItemType ClickedItemType = Enum.Parse<GameItemType>(Name);
+                    if (SelectedFilter != ClickedItemType) // Stops user from selecting already selected button
                     {
-                        ItemsPanel.Children.Clear();
-                        cTokenSource.Token.Register(() =>
+                        VisiblePreviews.Clear();
+                        SelectedFilter = ClickedItemType;
+                        CurrentExporter = FortUtils.Exporters[ClickedItemType];
+                        PageNum = 1;
+                        if (FileManagerModule.HasLoaded)
                         {
-                            cTokenSource = new CancellationTokenSource();
-                            VisiblePreviews = CurrentExporter.LoadedPreviews;
-                            LoadPages(); // Show items that have already been loaded
-                            LoadFilterType(); // Load rest of items
-                            UpdatePageCount();
-                            UpdateLoadedCount();
-                        });
-                        cTokenSource.Cancel();
+                            ItemsPanel.Children.Clear();
+                            cTokenSource.Token.Register(() =>
+                            {
+                                cTokenSource = new CancellationTokenSource();
+                                VisiblePreviews.Clear();
+                                LoadPages(); // Show items that have already been loaded
+                                LoadFilterType(); // Load rest of items
+                                UpdatePageCount();
+                                UpdateLoadedCount();
+                            });
+                            cTokenSource.Cancel();
+                        }
                     }
                 };
             }
@@ -276,7 +279,7 @@ namespace TModel.Modules
 
         void UpdatePageCount() => PageNumberText.Text = $"Page {PageNum}/{TotalPages = (VisiblePreviews.Count / PageSize) + 1}";
 
-        void UpdateLoadedCount() => LoadedCountText.Text = $"Loaded {CurrentExporter.LoadedPreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
+        void UpdateLoadedCount() => LoadedCountText.Text = $"Loaded {VisiblePreviews.Count}/{CurrentExporter.GameFiles.Count - 1}";
 
         void LoadFilterType()
         {
@@ -288,30 +291,41 @@ namespace TModel.Modules
             }
             Task.Run(() =>
             {
-                foreach (var gamefile in CurrentExporter.GameFiles)
+                foreach (GameContentItemPreview gamefile in CurrentExporter.GameFiles)
                 {
                     cTokenSource.Token.ThrowIfCancellationRequested();
                     try
                     {
-                        if (FortUtils.TryLoadItemPreviewInfo(CurrentExporter, gamefile, out ItemTileInfo itemPreviewInfo)
-                        // && gamefile.Name.Contains("PID_CP_Props_M_Yacht_a")
-                        )
+                        if (!gamefile.bHasLoaded)
                         {
-                            if (!gamefile.IsItemLoaded)
+                            if (FortUtils.TryLoadItemPreviewInfo(CurrentExporter, gamefile.File, out ItemTileInfo itemPreviewInfo))
                             {
-                                CurrentExporter.LoadedPreviews.Add(itemPreviewInfo);
+                                VisiblePreviews.Add(itemPreviewInfo);
+                                gamefile.Info = itemPreviewInfo;
                                 App.Refresh(() =>
                                 {
                                     UpdatePageCount();
                                     UpdateLoadedCount();
-                                    VisiblePreviews.Add(itemPreviewInfo);
                                     if (PageNum == TotalPages)
                                     {
                                         ItemsPanel.Children.Add(new GameContentItem(itemPreviewInfo));
                                     }
                                 });
-                                gamefile.IsItemLoaded = true;
+                                gamefile.bHasLoaded = true;
                             }
+                        }
+                        else
+                        {
+                            VisiblePreviews.Add(gamefile.Info);
+                            App.Refresh(() =>
+                            {
+                                UpdatePageCount();
+                                UpdateLoadedCount();
+                                if (PageNum == TotalPages)
+                                {
+                                    ItemsPanel.Children.Add(new GameContentItem(gamefile.Info));
+                                }
+                            });
                         }
                     }
                     catch { }
@@ -319,15 +333,15 @@ namespace TModel.Modules
             });
         }
 
-        void LoadPages()
+        void LoadPages(List<ItemTileInfo>? overridePreviews = null)
         {
             ItemsPanel.Children.Clear();
 
-            int FinalSize = (PageSize * PageNum) > VisiblePreviews.Count ? VisiblePreviews.Count : (PageSize * PageNum);
+            int FinalSize = (PageSize * PageNum) > (overridePreviews?.Count ?? VisiblePreviews.Count) ? (overridePreviews?.Count ?? VisiblePreviews.Count) : (PageSize * PageNum);
 
             for (int i = (PageSize * PageNum) - PageSize; i < FinalSize; i++)
             {
-                ItemsPanel.Children.Add(new GameContentItem(VisiblePreviews[i]));
+               ItemsPanel.Children.Add(new GameContentItem(overridePreviews?[i] ?? VisiblePreviews[i]));
             }
         }
 
@@ -378,8 +392,17 @@ namespace TModel.Modules
                 SelectedItem = this;
                 if (SelectionChanged is not null)
                 {
-                    App.ShowModule<ItemPreviewModule>();
-                    SelectionChanged(CurrentExporter.GetExportPreviewInfo(Info.Package));
+                    try
+                    {
+                        App.ShowModule<ItemPreviewModule>();
+                        SelectionChanged(CurrentExporter.GetExportPreviewInfo(Info.Package));
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("Failed to select item:\n" + e.ToString());
+                        Deselect();
+                    }
+
                 }
                 BackBorder.BorderBrush = Theme.BorderSelected;
             }
@@ -392,14 +415,14 @@ namespace TModel.Modules
             public GameContentItem(ItemTileInfo info) : this()
             {
                 Info = info;
-
-                Root.ToolTip = new CTooltip(Info?.Name ?? "NULL");
+                Tag = info;
+                Root.ToolTip = new CTooltip(Info?.DisplayName ?? "NULL");
 
                 // Sets preview icon
                 Task.Run(() =>
                 {
-                    if (Info.PreviewIcon != null)
-                        if (Info.PreviewIcon.TryGet_BitmapImage(out BitmapImage bitmapImage))
+                    if (Info.PreviewIcon.Value != null)
+                        if (Info.PreviewIcon.Value.TryGet_BitmapImage(out BitmapImage bitmapImage))
                             App.Refresh(() =>
                             {
                                 Root.Children.Add(new Image()
@@ -415,13 +438,21 @@ namespace TModel.Modules
         }
     }
 
+    public class GameContentItemPreview
+    {
+        public bool bHasLoaded;
+        public ItemTileInfo Info;
+        public GameFile File;
+    }
+
     // Holds information for a single item to be displayed in GameContentModule.
     public class ItemTileInfo
     {
         public IPackage Package { set; get; }
-        public string Name { set; get; } = "";
+        public string DisplayName { set; get; } = "";
+        public string FileName { get; set; }
         public string FullPath { set; get; } = "";
-        public TextureRef? PreviewIcon { set; get; } = null;
+        public Lazy<TextureRef?> PreviewIcon { set; get; } = null;
     }
 
     // Holds information to be displayed in ItemPreviewModule
@@ -430,6 +461,8 @@ namespace TModel.Modules
         public IPackage Package { set; get; }
 
         public string Name { set; get; } = string.Empty;
+
+        public string FileName { get; set; }
 
         public string Description { set; get; } = string.Empty;
 

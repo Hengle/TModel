@@ -73,6 +73,7 @@ from struct import unpack, unpack_from, Struct
 import time
 import os
 import math
+import mathutils
 
 
 ExportDataPath = os.getenv('APPDATA') + "\\TModel\\BlenderData.export"
@@ -2071,15 +2072,19 @@ def main(context):
                 return struct.unpack('?', file.read(1))[0]
 
             pathsNum = ReadInt8()
-            # Imports models
+            # Imports models # Quaternion((quat_w, quat_x, quat_y, quat_z))
             for mesh in range(pathsNum):
-                ObjectName = ReadString()
+                ObjectName = ReadString() # Path to psk or pskx of mesh
+                # Location
                 locX = (ReadSingle() / 100) * -1
                 locY = ReadSingle() / 100
                 locZ = ReadSingle() / 100
-                Pitch = ReadSingle()
-                Yaw = ReadSingle()
-                Roll = ReadSingle()
+                # Rotation
+                rotX = ReadSingle()
+                rotY = ReadSingle()
+                rotZ = ReadSingle()
+                print(str(rotZ))
+
                 IsSkeleton = not ObjectName.endswith("x")
                 pskimport(ObjectName)
                 if IsSkeleton:
@@ -2094,7 +2099,8 @@ def main(context):
                     # Only static meshes should have there location changed
                     bpy.ops.transform.translate(value=(locX, locY, locZ))
                     Mesh = bpy.context.selected_objects[0]
-                    Mesh.rotation_euler[2] = math.radians(Yaw - 180)
+                    Mesh.rotation_mode = 'XYZ'
+                    Mesh.rotation_euler  = mathutils.Euler((math.radians(rotX), math.radians(rotY), math.radians(rotZ)), 'XYZ')
                     # bpy.ops.transform.rotate(value=((rotX * 0.7854) * -1), orient_axis='X')
                     # bpy.ops.transform.rotate(value=(rotY * 0.7854), orient_axis='Y')
                     # bpy.ops.transform.rotate(value=((rotZ * 0.7854) * -1) - 176.715, orient_axis='Z')
@@ -2270,7 +2276,7 @@ def main(context):
                 else:
                     return None
 
-            def ReadVector():
+            def ReadLinearColor():
                 R = ReadSingle()
                 G = ReadSingle()
                 B = ReadSingle()
@@ -2287,7 +2293,7 @@ def main(context):
                 Emissive = ReadTexture()
                 Misc = ReadTexture()
 
-                SkinBoostColor = ReadVector()
+                SkinBoostColor = ReadLinearColor()
 
                 try:
                     CurrentMat = bpy.data.materials[MatName]

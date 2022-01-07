@@ -14,7 +14,8 @@ namespace TModel.Sorters
         IComparer<DirectoryModule.AssetItem>, 
         IComparer<DirectoryModule.FolderItem>, 
 #endif
-        IComparer<GameFile>
+        IComparer<GameFile>,
+        IComparer<GameContentItemPreview>
     {
         public int Compare(IAesVfsReader? x, IAesVfsReader? y)
         {
@@ -34,6 +35,11 @@ namespace TModel.Sorters
         public int Compare(GameFile? x, GameFile? y)
         {
             return x.Name.CompareTo(y.Name);
+        }
+
+        public int Compare(GameContentItemPreview? x, GameContentItemPreview? y)
+        {
+            return x.File.Name.CompareTo(y.File.Name);
         }
     }
 

@@ -21,23 +21,23 @@ namespace TModel
         public static PropExporter propExporter { get; } = new PropExporter();
         public static PlaysetExporter PlaysetExporter { get; } = new PlaysetExporter();
 
-        public static Dictionary<EItemFilterType, ExporterBase> Exporters { get; } = new()
+        public static Dictionary<GameItemType, ExporterBase> Exporters { get; } = new()
         {
-            [EItemFilterType.Character] = characterExporter,
-            [EItemFilterType.Backpack] = backpackExporter,
-            [EItemFilterType.Glider] = gliderExporter,
-            [EItemFilterType.Pickaxe] = pickaxeExporter,
-            [EItemFilterType.Weapon] = weaponExporter,
-            [EItemFilterType.Prop] = propExporter,
-            [EItemFilterType.Playset] = PlaysetExporter,
+            [GameItemType.Character] = characterExporter,
+            [GameItemType.Backpack] = backpackExporter,
+            [GameItemType.Glider] = gliderExporter,
+            [GameItemType.Pickaxe] = pickaxeExporter,
+            [GameItemType.Weapon] = weaponExporter,
+            [GameItemType.Prop] = propExporter,
+            [GameItemType.Playset] = PlaysetExporter,
         };
 
         // Gets all paths that could be a possible valid export (using the SearchTerm) for the given exporter
-        public static IEnumerable<GameFile> GetGameFiles(ExporterBase exporter)
+        public static IEnumerable<GameContentItemPreview> GetGameFiles(ExporterBase exporter)
         {
             foreach (var path in App.FileProvider.Files)
                 if (exporter.SearchTerm.CheckName(path.Key))
-                    yield return path.Value;
+                    yield return new GameContentItemPreview() { File = path.Value };
         }
 
         public static bool TryLoadItemPreviewInfo(ExporterBase exporter, GameFile gameFile, out ItemTileInfo itemPreviewInfo)
@@ -59,8 +59,7 @@ namespace TModel
         public GameFile File;
     }
 
-    // TODO: rename this because this is'nt a filter
-    public enum EItemFilterType
+    public enum GameItemType
     {
         Character,
         Backpack,

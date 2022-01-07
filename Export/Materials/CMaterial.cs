@@ -92,7 +92,16 @@ namespace TModel.Export.Materials
         {
             if (Textures.TryGetValue(name, out FPackageIndex texture))
             {
-                value = new TextureRef(texture.Load<UTexture2D>());
+                if (!texture.IsNull)
+                {
+                    UTexture2D LoadedTexture = texture.Load<UTexture2D>();
+                    if (LoadedTexture != null)
+                        value = new TextureRef(LoadedTexture);
+                }
+                else
+                {
+                    Log.Warning($"Could'nt load texture parameter \'{name}\' for material \'{Name}\'");
+                }
                 return true;
             }
             return false;

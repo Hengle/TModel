@@ -66,7 +66,11 @@ namespace TModel.Export
         // This saves the model as a .psk(x) to the ExportsPath defined in Preferences
         public void SaveMesh(CBinaryWriter writer)
         {
-            Log.Information("Wring Mesh: " + SkeletalMesh?.Name ?? StaticMesh.Name);
+            if (SkeletalMesh == null)
+                Log.Information("Wring Mesh: " + StaticMesh.Name);
+            else
+                Log.Information("Wring Mesh: " + SkeletalMesh.Name);
+
 
             MeshExporter meshExporter = null;
             if (SkeletalMesh is USkeletalMesh skeletalMesh)
@@ -98,14 +102,21 @@ namespace TModel.Export
                 Directory.CreateDirectory(Preferences.ExportsPath);
                 if (meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName))
                 {
-                    writer.Write(SaveName);
-                    FRotator Rotation = Transform.Rotation.Rotator();
+                    writer.Write(SaveName); // Mesh name
+
+                    // == Transform data for mesh (only needed if is static mesh) == 
+
+                    // Location
                     writer.Write((Single)Transform.Translation.X);
                     writer.Write((Single)Transform.Translation.Y);
                     writer.Write((Single)Transform.Translation.Z);
-                    writer.Write((Single)Rotation.Pitch);
-                    writer.Write((Single)Rotation.Yaw);
-                    writer.Write((Single)Rotation.Roll);
+
+                    // Rotation
+                    FRotator MeshRotation = Transform.Rotation.Rotator();
+
+                    writer.Write(MeshRotation.Roll);
+                    writer.Write(MeshRotation.Pitch);
+                    writer.Write(MeshRotation.Yaw);
                 }
                 else
                 {

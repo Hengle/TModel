@@ -329,21 +329,6 @@ namespace CUE4Parse_Conversion.Meshes
 
                 new VMaterial(materialName, i, 0u, 0, 0u, 0, 0).Serialize(Ar);
             }
-
-            var numNormals = share.Normals.Count;
-            normHdr.DataCount = numNormals;
-            normHdr.DataSize = 12;
-            Ar.SerializeChunkHeader(normHdr, "VTXNORMS");
-            for (var i = 0; i < numNormals; i++)
-            {
-                var normal = (FVector)share.Normals[i];
-
-                // Normalize
-                normal /= MathF.Sqrt(normal | normal);
-
-                normal.Y = -normal.Y; // MIRROR_MESH
-                normal.Serialize(Ar);
-            }
         }
 
         private void ExportSkeletonData(FArchiveWriter Ar, List<CSkelMeshBone> bones)

@@ -29,7 +29,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             if (HeroDefinition is null)
                 return null;
             ItemTileInfo HeroInfo = HeroDefinition.GetPreviewInfo();
-            HeroInfo.Name = DisplayName;
+            HeroInfo.DisplayName = DisplayName;
             return HeroInfo;
         }
 

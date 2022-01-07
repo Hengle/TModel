@@ -22,7 +22,7 @@ namespace TModel.Modules
         {
             Grid Root = new Grid();
 
-            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(100, GridUnitType.Pixel) });
+            Root.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(130, GridUnitType.Pixel) });
             Root.RowDefinitions.Add(new RowDefinition());
 
             Grid LowerPanel = new Grid();
@@ -232,7 +232,7 @@ namespace TModel.Modules
                 StylePickerPanel.Children.Clear();
 
                 DisplayName.Text = item.Name;
-                Description.Text = item.Description;
+                Description.Text = item.FileName ?? "Missing \'FileName\'";
                 if (item.PreviewIcon.TryGet_BitmapImage(out BitmapImage Source))
                 {
                     PreviewIcon.Source = Source;

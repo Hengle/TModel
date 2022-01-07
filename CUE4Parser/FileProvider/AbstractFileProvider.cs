@@ -476,7 +476,6 @@ namespace CUE4Parse.FileProvider
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to load package " + file);
                 return null;
             }
         }
