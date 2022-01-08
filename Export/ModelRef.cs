@@ -1,4 +1,6 @@
-﻿using CUE4Parse.UE4.Assets;
+﻿using CUE4Parse.FN.Structs.FortniteGame;
+using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
@@ -61,6 +63,26 @@ namespace TModel.Export
                         Materials.Add(CMaterial.CreateReader(InstanceConstant, texIndex));
                     }
                 }
+            }
+        }
+
+        public void ApplyMaterialOverrides(FCustomPartMaterialOverrideData[] MaterialOverrides)
+        {
+            foreach (FCustomPartMaterialOverrideData overrideMaterial in MaterialOverrides)
+            {
+                UObject LoadedOverriedMaterial;
+                try
+                {
+                    LoadedOverriedMaterial = overrideMaterial.OverrideMaterial.Load();
+                    if (LoadedOverriedMaterial is UMaterialInstanceConstant InstanceMat)
+                    {
+                        Materials[overrideMaterial.MaterialOverrideIndex] = CMaterial.CreateReader(InstanceMat);
+                    }
+                }
+                catch
+                {
+                    Log.Error("Failed to load override material");
+                };
             }
         }
 

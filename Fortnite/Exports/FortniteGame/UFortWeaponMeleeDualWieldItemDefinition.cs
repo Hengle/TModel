@@ -33,8 +33,8 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
-#if false
             WeaponMeshOffhandOverride = GetOrDefault<FSoftObjectPath>(nameof(WeaponMeshOffhandOverride));
+#if false
             IdleEffectOffhand = GetOrDefault<FSoftObjectPath>(nameof(IdleEffectOffhand));
             IdleEffectOffhandNiagara = GetOrDefault<FSoftObjectPath>(nameof(IdleEffectOffhandNiagara));
             SwingEffectOffhand = GetOrDefault<FSoftObjectPath>(nameof(SwingEffectOffhand));

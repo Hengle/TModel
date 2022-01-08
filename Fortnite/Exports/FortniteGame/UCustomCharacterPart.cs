@@ -97,24 +97,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
         public ModelRef GetModelRef()
         {
             ModelRef model = new ModelRef(SkeletalMesh.Load<USkeletalMesh>());
-
-            foreach (var overrideMaterial in MaterialOverrides)
-            {
-                UObject LoadedOverriedMaterial;
-                try
-                {
-                    LoadedOverriedMaterial = overrideMaterial.OverrideMaterial.Load();
-                    if (LoadedOverriedMaterial is UMaterialInstanceConstant InstanceMat)
-                    {
-                        model.Materials[overrideMaterial.MaterialOverrideIndex] = CMaterial.CreateReader(InstanceMat);
-                    }
-                }
-                catch
-                {
-                    Log.Error("Failed to load override material");
-                };
-            }
-
+            model.ApplyMaterialOverrides(MaterialOverrides);
             return model;
         }
     }

@@ -20,9 +20,9 @@
 bl_info = {
     "name": "TModel Importer Addon",
     "author": "Tinfoilhat",
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "blender": (3, 0, 0),
-    "location": "Scene Properties > TModel Importer",
+    "location": "Outliner > Scene Properties > TModel Importer",
     "description": "Import exports from TModel",
     "category": "Import",
 }
@@ -2008,33 +2008,9 @@ if __name__ == "io_import_scene_unreal_psa_psk_270_dev":
     import pskpsadev
 
 
-# Clear Scene
-
-def removemesh(context):
-    try:
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-    except:
-        bpy.ops.object.posemode_toggle()
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-    
-class RemoveMesh(bpy.types.Operator):
-    """Removes all meshes in scene (DONT USE THIS)"""
-    bl_idname = "object.remove_mesh"
-    bl_label = "Remove Mesh"
-
-    @classmethod
-    def poll(cls, context):
-        return len(bpy.data.objects) > 0
-
-    def execute(self, context):
-        removemesh(context)
-        return {'FINISHED'}
 
 
 def GetImage(name):
-    print(name)
     LastSlahshe = name.rindex("\\") + 1
     ImageName = name[LastSlahshe:len(name)]
     FoundImage = bpy.data.images.get(ImageName)
@@ -2047,6 +2023,9 @@ def GetImage(name):
 
 IkContraints = []
 
+CircleMesh = None
+CircleCurve = None
+
 def LoadTModelItem(context):
 
     IsSkeleton = True
@@ -2056,7 +2035,7 @@ def LoadTModelItem(context):
 
     # Loads file with cosmetic info
     if exists(ExportDataPath):
-        # try:
+        try:
             file = open(ExportDataPath, "br")
 
             def ReadString():
@@ -2072,10 +2051,14 @@ def LoadTModelItem(context):
             def ReadBool():
                 return struct.unpack('?', file.read(1))[0]
 
-            pathsNum = ReadInt8()
+            IsCharacter = ReadBool()
+            MeshesNum = ReadInt8()
+            ImportedCount = 0
+
             # Imports models # Quaternion((quat_w, quat_x, quat_y, quat_z))
-            for mesh in range(pathsNum):
+            for mesh in range(MeshesNum):
                 ObjectName = ReadString() # Path to psk or pskx of mesh
+
                 # Location
                 locX = (ReadSingle() / 100) * -1
                 locY = ReadSingle() / 100
@@ -2085,7 +2068,6 @@ def LoadTModelItem(context):
                 rotX = ReadSingle()
                 rotY = ReadSingle()
                 rotZ = ReadSingle()
-                print(str(rotZ))
 
                 # Scale
                 scaleX = ReadSingle()
@@ -2093,9 +2075,11 @@ def LoadTModelItem(context):
                 scaleZ = ReadSingle()
 
                 IsSkeleton = not ObjectName.endswith("x")
-                pskimport(ObjectName)
+                pskimport(ObjectName, context)
                 if IsSkeleton:
                     Skeleton = bpy.context.selected_objects[0]
+                    if not IsCharacter:
+                        bpy.ops.transform.translate(value=(0.5 * ImportedCount, 0, 0))
                     Skeleton.select_set(False)
                     Mesh = bpy.data.objects[Skeleton.name.replace(".ao", ".mo")]
                     Mesh.select_set(True)
@@ -2117,22 +2101,23 @@ def LoadTModelItem(context):
                     Meshes.append(Mesh)
                     bpy.ops.object.shade_smooth()
 
+                ImportedCount = ImportedCount + 1
+
                 # Deletes all unsused bones
                 if IsSkeleton:
-                    bpy.ops.object.posemode_toggle()
+                    bpy.ops.object.mode_set(mode="POSE")
                     for PoseBone in bpy.context.visible_pose_bones:
                         if PoseBone.bone_group is not None:
                             PoseBone.bone.select = True
                         else:
                             PoseBone.bone.select = False
-                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.object.mode_set(mode="EDIT")
                     bpy.ops.armature.delete()
-                    bpy.ops.object.editmode_toggle()
-
+                    bpy.ops.object.mode_set(mode="OBJECT")
                     bpy.ops.object.select_all(action='DESELECT')
 
             # Merges all skeletons and makes all meshes use MainSkeleton
-            if IsSkeleton:
+            if IsCharacter:
                 for skeleton in Skeletons:
                     skeleton.select_set(True)
                 bpy.ops.object.join()
@@ -2141,7 +2126,7 @@ def LoadTModelItem(context):
                     mesh.modifiers[0].object = MainSkeleton
 
 
-            # Gets a bone from the name - MUST BE IN POSE MODE TO USE
+            # Gets a bone from the name
             def GetBone(SearchName):
                 bpy.ops.object.mode_set(mode="POSE")
                 for possibleBone in bpy.context.visible_pose_bones:
@@ -2150,7 +2135,7 @@ def LoadTModelItem(context):
                 return None
 
             if IsSkeleton:
-                bpy.ops.object.posemode_toggle()
+                bpy.ops.object.mode_set(mode="POSE")
                 for PoseBone in bpy.context.visible_pose_bones:
                     if PoseBone.name.__contains__('.'):
                         Bone_Duplicate = PoseBone
@@ -2158,19 +2143,17 @@ def LoadTModelItem(context):
                         MainSkeleton.data.bones.active = Bone_Origin.bone
                         Bone_Duplicate.bone.select = True
 
-                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.object.mode_set(mode="EDIT")
                         bpy.ops.armature.parent_set(type='OFFSET')
-                        bpy.ops.object.editmode_toggle()
-                        bpy.ops.object.posemode_toggle()
+                        bpy.ops.object.mode_set(mode="POSE")
 
                         MainSkeleton.data.bones.active = None
                         Bone_Duplicate.bone.select = True
                         Bone_Origin.bone.select = False
                         
-                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.object.mode_set(mode="EDIT")
                         bpy.ops.armature.delete()
-                        bpy.ops.object.editmode_toggle()
-                        bpy.ops.object.posemode_toggle()
+                        bpy.ops.object.mode_set(mode="POSE")
 
                         bpy.ops.pose.select_all(action='DESELECT')
 
@@ -2187,7 +2170,7 @@ def LoadTModelItem(context):
                     bpy.ops.object.mode_set(mode="POSE")
                     bpy.ops.pose.select_all(action='DESELECT')
 
-            if IsSkeleton: 
+            if IsCharacter: 
 
                 def rgb( r, g, b ):
                     return (r / 255, g / 255, b / 255)
@@ -2253,29 +2236,28 @@ def LoadTModelItem(context):
 
 
                 # bpy.ops.object.posemode_toggle()
-
-            bpy.ops.curve.primitive_bezier_circle_add(enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
-            CircleCurve = bpy.context.selected_objects[0]
-            CircleCurve.select_set(False)
-            context.view_layer.objects.active = MainSkeleton
+            if IsCharacter:
+                bpy.ops.curve.primitive_bezier_circle_add(enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+                CircleCurve = bpy.context.selected_objects[0]
+                CircleCurve.select_set(False)
+                context.view_layer.objects.active = MainSkeleton
 
 
             def SetupIK(IkTarget, IkBone, poleTargetName, poleAngle):
                 if IkBone is not None and IkTarget is not None:
                     bpy.ops.object.mode_set(mode="POSE")
                     MainSkeleton.data.bones.active = IkBone.bone
-                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.object.mode_set(mode="EDIT")
                     bpy.context.active_bone.tail[0] = IkTarget.bone.head_local[0]
                     bpy.context.active_bone.tail[1] = IkTarget.bone.head_local[1]
                     bpy.context.active_bone.tail[2] = IkTarget.bone.head_local[2]
 
-                    bpy.ops.object.editmode_toggle()
-                    bpy.ops.object.posemode_toggle()
+                    bpy.ops.object.mode_set(mode="POSE")
 
                     bpy.ops.pose.select_all(action='DESELECT')
 
                     IkTarget.bone.select = True
-                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.object.mode_set(mode="EDIT")
                     bpy.ops.armature.parent_clear(type='CLEAR')
 
                     IkConstraint = IkBone.constraints.new(type='IK')
@@ -2302,74 +2284,72 @@ def LoadTModelItem(context):
                     IkBone.bone.layers[1] = True
                     IkBone.bone.layers[2] = True
 
+            if IsCharacter:
 
-            # Arm Ik
+                # Arm Ik
+                bpy.ops.object.mode_set(mode="EDIT")
+                EditBones = MainSkeleton.data.edit_bones
+                LeftArm_TB = EditBones.new("L_Arm_IK")
+                LeftArm_TB.head = (0.334855, 0.179714, 1.16865)
+                LeftArm_TB.tail = (0.335759, 0.116441, 1.16933)
+                SetupIK(GetBone("hand_l"), GetBone("lowerarm_l"), "L_Arm_IK", 160)
 
-            bpy.ops.object.editmode_toggle()
-            EditBones = MainSkeleton.data.edit_bones
-            LeftArm_TB = EditBones.new("L_Arm_IK")
-            LeftArm_TB.head = (0.334855, 0.179714, 1.16865)
-            LeftArm_TB.tail = (0.335759, 0.116441, 1.16933)
-            SetupIK(GetBone("hand_l"), GetBone("lowerarm_l"), "L_Arm_IK", 160)
+                bpy.ops.object.mode_set(mode="EDIT")
+                LeftArm_TB = EditBones.new("R_Arm_IK")
+                LeftArm_TB.head = (-0.289055, 0.179714, 1.16933)
+                LeftArm_TB.tail = (-0.288151, 0.116441, 1.16933)
+                SetupIK(GetBone("hand_r"), GetBone("lowerarm_r"), "R_Arm_IK", -160)
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            LeftArm_TB = EditBones.new("R_Arm_IK")
-            LeftArm_TB.head = (-0.289055, 0.179714, 1.16933)
-            LeftArm_TB.tail = (-0.288151, 0.116441, 1.16933)
-            SetupIK(GetBone("hand_r"), GetBone("lowerarm_r"), "R_Arm_IK", -160)
+                # Leg IK
 
-            # Leg IK
+                bpy.ops.object.mode_set(mode="EDIT")
+                LeftArm_TB = EditBones.new("L_Calf_IK")
+                LeftArm_TB.head = (0.121137, -0.359408, 0.562778)
+                LeftArm_TB.tail = (0.122041, -0.422681, 0.563458)
+                SetupIK(GetBone("foot_l"), GetBone("calf_l"), "L_Calf_IK", 160)
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            LeftArm_TB = EditBones.new("L_Calf_IK")
-            LeftArm_TB.head = (0.121137, -0.359408, 0.562778)
-            LeftArm_TB.tail = (0.122041, -0.422681, 0.563458)
-            SetupIK(GetBone("foot_l"), GetBone("calf_l"), "L_Calf_IK", 160)
+                bpy.ops.object.mode_set(mode="EDIT")
+                LeftArm_TB = EditBones.new("R_Calf_IK")
+                LeftArm_TB.head = (-0.119541, -0.359408, 0.562778)
+                LeftArm_TB.tail = (-0.118637, -0.422681, 0.563458)
+                SetupIK(GetBone("foot_r"), GetBone("calf_r"), "R_Calf_IK", -160)
 
-            bpy.ops.object.mode_set(mode="EDIT")
-            LeftArm_TB = EditBones.new("R_Calf_IK")
-            LeftArm_TB.head = (-0.119541, -0.359408, 0.562778)
-            LeftArm_TB.tail = (-0.118637, -0.422681, 0.563458)
-            SetupIK(GetBone("foot_r"), GetBone("calf_r"), "R_Calf_IK", -160)
+                bpy.ops.object.mode_set(mode="OBJECT")
+                bpy.ops.mesh.primitive_circle_add(radius=1, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+
+                CircleMesh = bpy.context.selected_objects[0]
+                CircleMesh.select_set(False)
+
+                context.view_layer.objects.active = MainSkeleton
+                bpy.ops.object.mode_set(mode="POSE")
+
+                def CustomBoneShape(boneName, rotIndex, Angle, Size):
+                    CustomBone = GetBone(boneName)
+                    if CustomBone is not None:
+                        CustomBone.custom_shape = CircleMesh
+                        CustomBone.custom_shape_rotation_euler[rotIndex] = math.radians(Angle)
+                        CustomBone.custom_shape_scale_xyz = (Size,Size,Size)
+
+                CustomBoneShape("hand_l", 0, 90, 2)
+                CustomBoneShape("hand_r", 0, 90, 2)
+                CustomBoneShape("foot_l", 0, 0, 1)
+                CustomBoneShape("foot_r", 1, 90, 1)
+
+                bpy.ops.object.mode_set(mode="POSE")
+                bpy.ops.pose.select_all(action='DESELECT')
+
+
+                ConnectBones(GetBone("neck_02"), GetBone("head"))
+                ConnectBones(GetBone("neck_01"), GetBone("neck_02"))
+                ConnectBones(GetBone("spine_05"), GetBone("neck_01"))
+                ConnectBones(GetBone("spine_04"), GetBone("spine_05"))
+                ConnectBones(GetBone("spine_03"), GetBone("spine_04"))
+                ConnectBones(GetBone("spine_02"), GetBone("spine_03"))
+                ConnectBones(GetBone("spine_01"), GetBone("spine_02"))
+                ConnectBones(GetBone("pelvis"), GetBone("spine_01"))
+
 
             bpy.ops.object.mode_set(mode="OBJECT")
-            bpy.ops.mesh.primitive_circle_add(radius=1, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
-
-            CircleMesh = bpy.context.selected_objects[0]
-            CircleMesh.select_set(False)
-
-            context.view_layer.objects.active = MainSkeleton
-            bpy.ops.object.mode_set(mode="POSE")
-
-            LeftHandBone = GetBone("hand_l")
-            LeftHandBone.custom_shape = CircleMesh
-            LeftHandBone.custom_shape_rotation_euler[0] = math.radians(90)
-            LeftHandBone.custom_shape_scale_xyz = (2,2,2)
-
-            RightHandBone = GetBone("hand_r")
-            RightHandBone.custom_shape = CircleMesh
-            RightHandBone.custom_shape_rotation_euler[0] = math.radians(90)
-            RightHandBone.custom_shape_scale_xyz = (2,2,2)
-
-
-            LeftFootBone = GetBone("foot_l")
-            LeftFootBone.custom_shape = CircleMesh
-            LeftFootBone.custom_shape_rotation_euler[0] = 0
-            LeftFootBone.custom_shape_scale_xyz = (1,1,1)
-
-            RightFootBone = GetBone("foot_r")
-            RightFootBone.custom_shape = CircleMesh
-            RightFootBone.custom_shape_rotation_euler[1] = math.radians(90)
-            RightFootBone.custom_shape_scale_xyz = (1,1,1)
-
-            bpy.ops.object.mode_set(mode="POSE")
-            bpy.ops.pose.select_all(action='DESELECT')
-
-
-            ConnectBones(GetBone("spine_02"), GetBone("spine_03"))
-            ConnectBones(GetBone("neck_02"), GetBone("head"))
-            ConnectBones(GetBone("neck_01"), GetBone("neck_02"))
-            ConnectBones(GetBone("spine_05"), GetBone("neck_01"))
 
             def ReadTexture():
                 isValidTexture = ReadBool()
@@ -2387,7 +2367,6 @@ def LoadTModelItem(context):
 
             MaterialsNum = ReadInt8()
             for material in range(MaterialsNum):
-
                 MatName = ReadString()
                 Diffuse = ReadTexture()
                 SpecularMasks = ReadTexture()
@@ -2449,29 +2428,29 @@ def LoadTModelItem(context):
                         EmissiveImage.image = GetImage(Emissive)
                         CurrentMat.node_tree.links.new(bsdf.inputs['Emission'], EmissiveImage.outputs[0])
 
-                    if Misc is not None:
-                        MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
-                        MetallicImage.image = GetImage(Misc)
-                        MetallicSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
-                        MultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
-                        MultiplyNode.blend_type = 'MULTIPLY'
-                        SecondMultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
-                        SecondMultiplyNode.blend_type = 'MULTIPLY'
-                        SecondMultiplyNode.inputs[0].default_value = 1.0
-                        SecondMultiplyNode.inputs[1].default_value = (SkinBoostColor[0], SkinBoostColor[1], SkinBoostColor[2], 1.0)
-                        SecondMultiplyNode.inputs[2].default_value = (SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3])
-                        CurrentMat.node_tree.links.new(MultiplyNode.inputs[1], DiffuseImage.outputs[0])
-                        CurrentMat.node_tree.links.new(MultiplyNode.inputs[2], SecondMultiplyNode.outputs[0])
-                        CurrentMat.node_tree.links.new(MultiplyNode.inputs[0], MetallicSeperator.outputs["B"])
-                        CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], MultiplyNode.outputs[0])
-                        CurrentMat.node_tree.links.new(MetallicSeperator.inputs[0], MetallicImage.outputs["Color"])
+                    # if Misc is not None:
+                    #     MetallicImage = CurrentMat.node_tree.nodes.new('ShaderNodeTexImage')
+                    #     MetallicImage.image = GetImage(Misc)
+                    #     MetallicSeperator = CurrentMat.node_tree.nodes.new('ShaderNodeSeparateRGB')
+                    #     MultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
+                    #     MultiplyNode.blend_type = 'MULTIPLY'
+                    #     SecondMultiplyNode = CurrentMat.node_tree.nodes.new('ShaderNodeMixRGB')
+                    #     SecondMultiplyNode.blend_type = 'MULTIPLY'
+                    #     SecondMultiplyNode.inputs[0].default_value = 1.0
+                    #     SecondMultiplyNode.inputs[1].default_value = (SkinBoostColor[0], SkinBoostColor[1], SkinBoostColor[2], 1.0)
+                    #     SecondMultiplyNode.inputs[2].default_value = (SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3], SkinBoostColor[3])
+                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[1], DiffuseImage.outputs[0])
+                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[2], SecondMultiplyNode.outputs[0])
+                    #     CurrentMat.node_tree.links.new(MultiplyNode.inputs[0], MetallicSeperator.outputs["B"])
+                    #     CurrentMat.node_tree.links.new(bsdf.inputs['Base Color'], MultiplyNode.outputs[0])
+                    #     CurrentMat.node_tree.links.new(MetallicSeperator.inputs[0], MetallicImage.outputs["Color"])
 
                 except Exception as e:
                     print(e)
 
-        # except Exception as e:
-            # print(e)
-        # finally:
+        except Exception as e:
+          raise e
+        finally:
             file.close()
 
     else: # Export data does not exist - Shows an error message
@@ -2482,7 +2461,7 @@ def LoadTModelItem(context):
 
 
 
-class SimpleOperator(bpy.types.Operator):
+class LoadItemOperator(bpy.types.Operator):
     """Imports exported item from TModel"""
     bl_idname = "object.simple_operator"
     bl_label = "Import TModel Item"
@@ -2493,12 +2472,15 @@ class SimpleOperator(bpy.types.Operator):
 
     def execute(self, context):
         LoadTModelItem(context)
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.posemode_toggle()
-        for constraint in IkContraints:
-            constraint.use_tail = False
-            constraint.use_tail = True
-        IkContraints.clear()
+        if len(IkContraints) > 0:
+            bpy.ops.object.mode_set(mode="POSE")
+            # Updates IK constraints
+            for constraint in IkContraints:
+                constraint.use_tail = False
+                constraint.use_tail = True
+            bpy.ops.object.mode_set(mode="OBJECT")
+            IkContraints.clear()
+
         return {'FINISHED'}
 
 
@@ -2523,26 +2505,21 @@ class LayoutDemoPanel(bpy.types.Panel):
         row.scale_y = 3.0
         row.operator("object.simple_operator")
 
-        row = layout.row()
-        row.scale_y = 1.0
-        row.operator("object.remove_mesh")
-
-
+def load_handler(dummy):
+    bpy.ops.object.SimpleOperator('INVOKE_DEFAULT')
         
 def register():
     from bpy.utils import register_class
         
 
-    bpy.utils.register_class(RemoveMesh)
-    bpy.utils.register_class(SimpleOperator)
+    bpy.utils.register_class(LoadItemOperator)
     bpy.utils.register_class(LayoutDemoPanel)
     
 def unregister():
     from bpy.utils import unregister_class
         
 
-    bpy.utils.unregister_class(RemoveMesh)
-    bpy.utils.unregister_class(SimpleOperator)
+    bpy.utils.unregister_class(LoadItemOperator)
     bpy.utils.unregister_class(LayoutDemoPanel)
     del bpy.types.Scene.pskpsa_import
     

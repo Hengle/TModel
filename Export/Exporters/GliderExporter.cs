@@ -48,7 +48,9 @@ namespace TModel.Export.Exporters
             {
                 Glider.DeepDeserialize();
                 USkeletalMesh GliderMesh = Glider.SkeletalMesh.Load<USkeletalMesh>();
-                ExportInfo.Models.Add(new ModelRef(GliderMesh));
+                ModelRef model = new ModelRef(GliderMesh);
+                model.ApplyMaterialOverrides(Glider.MaterialOverrides);
+                ExportInfo.Models.Add(model);
             }
 
             return ExportInfo;

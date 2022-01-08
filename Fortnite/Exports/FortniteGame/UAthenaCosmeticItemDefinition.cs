@@ -105,7 +105,7 @@ namespace CUE4Parse.FN.Exports.FortniteGame
                 }
             }
 
-            MaterialOverrides = GetOrDefault<FAthenaCosmeticMaterialOverride[]>(nameof(MaterialOverrides));
+            MaterialOverrides = GetOrDefault<FAthenaCosmeticMaterialOverride[]>(nameof(MaterialOverrides), Array.Empty<FAthenaCosmeticMaterialOverride>());
             ObservedPlayerStats = GetOrDefault<FGameplayTagContainer>(nameof(ObservedPlayerStats));
 
             // Prevents this object from becoming the montage object

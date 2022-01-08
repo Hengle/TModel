@@ -62,7 +62,7 @@ namespace TModel.Export.Exporters
 
         public override BlenderExportInfo GetBlenderExportInfo(IPackage package, int[]? styles = null)
         {
-            BlenderExportInfo ExportInfo = new BlenderExportInfo();
+            BlenderExportInfo ExportInfo = new BlenderExportInfo() { IsCharacter = true };
             ExportInfo.Name = package.Name;
             if (package.Base is UAthenaCharacterItemDefinition Character)
             {

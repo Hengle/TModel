@@ -15,6 +15,8 @@ namespace TModel.Export
 
         public List<ModelRef> Models { get; } = new List<ModelRef>();
 
+        // If the Ik constraints and colored bones should be created
+        public bool IsCharacter = false;
 
         // Returns list of all materials of all Models combined excluding duplicates.
         // (Some models may use the same materials so it doesnt need to load the same one
@@ -44,14 +46,16 @@ namespace TModel.Export
             CBinaryWriter Writer = null;
             try
             {
+                File.Delete(BlenderDataPath);
                 Writer = new CBinaryWriter(File.Open(BlenderDataPath, FileMode.OpenOrCreate, FileAccess.Write));
             }
             catch (Exception e)
             {
-                Log.Error("Cant write to file (try restarting blender):" + e.ToString());
+                Log.Error("Cant write to export file (try restarting blender): " + e.Message);
             }
             if (Writer != null)
             {
+                Writer.Write(IsCharacter);
                 Writer.Write((byte)Models.Count);
                 foreach (var model in Models)
                 {

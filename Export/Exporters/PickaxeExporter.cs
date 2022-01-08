@@ -56,10 +56,17 @@ namespace TModel.Export.Exporters
                     WeaponDef.DeepDeserialize();
                     USkeletalMesh WeaponTestMesh = WeaponDef.WeaponMeshOverride.Load<USkeletalMesh>();
                     ExportInfo.Models.Add(new ModelRef(WeaponTestMesh));
-                }
-                
-            }
 
+                    if (WeaponDef is UFortWeaponMeleeDualWieldItemDefinition DualWieldDef)
+                    {
+                        if (DualWieldDef.WeaponMeshOffhandOverride is FSoftObjectPath VOffHandMeshPath)
+                        {
+                            USkeletalMesh OffHandMesh = VOffHandMeshPath.Load<USkeletalMesh>();
+                            ExportInfo.Models.Add(new ModelRef(OffHandMesh));
+                        }
+                    }
+                }
+            }
             return ExportInfo;
         }
     }
