@@ -15,6 +15,15 @@ namespace CUE4Parse.Utils
             return Characters.ToCharArray()[random.Next(Characters.Length)];
         }
 
+        public static int NumOccurrences(this string s, char delimiter)
+        {
+            int Counter = 0;
+            foreach (var item in s.ToCharArray())
+                if (item == delimiter)
+                    Counter++;
+            return Counter;
+        }
+
         public static string RandomString(int length = 10)
         {
             var random = new Random();

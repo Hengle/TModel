@@ -68,6 +68,10 @@ namespace CUE4Parse.FileProvider
                     }
                     _unloadedVfs[reader] = null;
                 }
+                catch (InvalidUtocMagicException ex)
+                {
+
+                }
                 catch (Exception e)
                 {
                     Log.Warning(e.ToString());
@@ -83,6 +87,10 @@ namespace CUE4Parse.FileProvider
                         _requiredKeys[reader.Info.EncryptionKeyGuid] = null;
                     }
                     _unloadedVfs[reader] = null;
+                }
+                catch (InvalidUtocMagicException ex)
+                {
+
                 }
                 catch (Exception e)
                 {

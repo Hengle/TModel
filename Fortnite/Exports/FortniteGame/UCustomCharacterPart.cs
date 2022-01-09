@@ -94,11 +94,19 @@ namespace CUE4Parse.FN.Exports.FortniteGame
             bAutoActivate = GetOrDefault<bool>(nameof(bAutoActivate));
         }
 
-        public ModelRef GetModelRef()
+        public ModelRef? GetModelRef()
         {
-            ModelRef model = new ModelRef(SkeletalMesh.Load<USkeletalMesh>());
-            model.ApplyMaterialOverrides(MaterialOverrides);
-            return model;
+            try
+            {
+                ModelRef model = new ModelRef(SkeletalMesh.Load<USkeletalMesh>());
+                model.ApplyMaterialOverrides(MaterialOverrides);
+                return model;
+            }
+            catch (Exception e)
+            {
+                Log.Warning("Could'nt load mesh: " + e.ToString());
+                return null;
+            }
         }
     }
 }

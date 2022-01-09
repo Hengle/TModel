@@ -49,6 +49,8 @@ namespace TModel
         [STAThread]
         public static void Main()
         {
+            Directory.CreateDirectory(Preferences.StorageFolder);
+
 #if GENERATE_MODULES && !NO_WINDOW
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()

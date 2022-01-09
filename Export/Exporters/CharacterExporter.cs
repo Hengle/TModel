@@ -97,40 +97,48 @@ namespace TModel.Export.Exporters
 
                             if (VariantOptions != null)
                             {
-                                // Should be determined by 'styles'
-                                StyleOptionBase SelectedOption = VariantOptions[styles[j]];
-
-                                foreach (var variantPart in SelectedOption.VariantParts)
+                                try
                                 {
-                                    UCustomCharacterPart LoadedPart = variantPart.Load<UCustomCharacterPart>();
-                                    if (CharacterPart.CharacterPartType == LoadedPart.CharacterPartType)
-                                    {
-                                        PartModelRef = LoadedPart.GetModelRef();
-                                    }
-                                }
+                                    // Should be determined by 'styles'
+                                    StyleOptionBase SelectedOption = VariantOptions[styles[j]];
 
-
-                                // Applys material overrides to ModelRef
-                                foreach (MaterialVariant overrideMaterial in SelectedOption.VariantMaterials)
-                                {
-                                    for (int i = 0; i < PartModelRef.Materials.Count; i++)
+                                    foreach (var variantPart in SelectedOption.VariantParts)
                                     {
-                                        if (PartModelRef.Materials[i].Material == overrideMaterial.MaterialToSwap)
+                                        UCustomCharacterPart LoadedPart = variantPart.Load<UCustomCharacterPart>();
+                                        if (CharacterPart.CharacterPartType == LoadedPart.CharacterPartType)
                                         {
-                                            if (overrideMaterial.OverrideMaterial.TryLoad(out UObject LoadedMaterial))
+                                            PartModelRef = LoadedPart.GetModelRef();
+                                        }
+                                    }
+
+
+                                    // Applys material overrides to ModelRef
+                                    foreach (MaterialVariant overrideMaterial in SelectedOption.VariantMaterials)
+                                    {
+                                        for (int i = 0; i < PartModelRef.Materials.Count; i++)
+                                        {
+                                            if (PartModelRef.Materials[i].Material == overrideMaterial.MaterialToSwap)
                                             {
-                                                if (LoadedMaterial is UMaterialInstanceConstant Instance)
+                                                if (overrideMaterial.OverrideMaterial.TryLoad(out UObject LoadedMaterial))
                                                 {
-                                                    PartModelRef.Materials[i] = CMaterial.CreateReader(Instance);
-                                                }
-                                                else
-                                                {
-                                                    Log.Error($"Failed to override material | Can't load material of type: {LoadedMaterial.ExportType}");
+                                                    if (LoadedMaterial is UMaterialInstanceConstant Instance)
+                                                    {
+                                                        PartModelRef.Materials[i] = CMaterial.CreateReader(Instance);
+                                                    }
+                                                    else
+                                                    {
+                                                        Log.Error($"Failed to override material | Can't load material of type: {LoadedMaterial.ExportType}");
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
+                                catch (System.Exception e)
+                                {
+                                    Log.Error("Failed to apply style: " + e.ToString());
+                                }
+
                             }
 
                         }

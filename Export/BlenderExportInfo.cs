@@ -25,18 +25,19 @@ namespace TModel.Export
         {
             List<CMaterial> Result = new List<CMaterial>();
             foreach (var model in Models)
-                foreach (var material in model.Materials)
-                {
-                    bool AlreadyAdded = false;
-                    foreach (var item in Result)
-                        if (item.Name == material.Name)
-                        {
-                            AlreadyAdded = true;
-                            break;
-                        }
-                    if (!AlreadyAdded)
-                        Result.Add(material);
-                }
+                if (model != null)
+                    foreach (var material in model.Materials)
+                    {
+                        bool AlreadyAdded = false;
+                        foreach (var item in Result)
+                            if (item.Name == material.Name)
+                            {
+                                AlreadyAdded = true;
+                                break;
+                            }
+                        if (!AlreadyAdded)
+                            Result.Add(material);
+                    }
             return Result;
         }
 
@@ -58,9 +59,8 @@ namespace TModel.Export
                 Writer.Write(IsCharacter);
                 Writer.Write((byte)Models.Count);
                 foreach (var model in Models)
-                {
-                    model.SaveMesh(Writer);
-                }
+                    if (model != null)
+                        model.SaveMesh(Writer);
 
                 List<CMaterial> Materials = GetMaterials();
                 Writer.Write((byte)Materials.Count);

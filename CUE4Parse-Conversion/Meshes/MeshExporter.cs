@@ -82,7 +82,7 @@ namespace CUE4Parse_Conversion.Meshes
                         throw new ArgumentOutOfRangeException(nameof(meshFormat), meshFormat, null);
                 }
 
-                MeshLods.Add(new Mesh($"{MeshName}_LOD{i}.{ext}", Ar.GetBuffer(), materialExports ?? new List<MaterialExporter>()));
+                MeshLods.Add(new Mesh($"{MeshName}.{ext}", Ar.GetBuffer(), materialExports ?? new List<MaterialExporter>()));
                 if (lodFormat == ELodFormat.FirstLod) break;
                 i++;
             }
@@ -129,7 +129,7 @@ namespace CUE4Parse_Conversion.Meshes
                         throw new ArgumentOutOfRangeException(nameof(meshFormat), meshFormat, null);
                 }
 
-                MeshLods.Add(new Mesh($"{MeshName}_LOD{i}.{ext}", Ar.GetBuffer(), materialExports ?? new List<MaterialExporter>()));
+                MeshLods.Add(new Mesh($"{MeshName}.{ext}", Ar.GetBuffer(), materialExports ?? new List<MaterialExporter>()));
                 if (lodFormat == ELodFormat.FirstLod) break;
                 i++;
             }

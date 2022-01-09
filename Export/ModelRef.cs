@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using TModel.Export.Materials;
+using static CUE4Parse.Utils.StringUtils;
 
 namespace TModel.Export
 {
@@ -123,33 +124,37 @@ namespace TModel.Export
             if (meshExporter != null)
             {
                 Directory.CreateDirectory(Preferences.ExportsPath);
-                if (meshExporter.TryWriteToDir(new DirectoryInfo(Preferences.ExportsPath), out string SaveName))
-                {
-                    writer.Write(SaveName); // Mesh name
+                Mesh FirstLod = meshExporter.MeshLods[0];
+                string GameMeshFullPath = FirstLod.FileName;
+                string MeshExtentionWithPeriod = Path.GetExtension(GameMeshFullPath);
+                string MeshNameWithOutPathAndExtension = Path.GetFileName(GameMeshFullPath).SubstringBeforeLast('.');
+                string ParentFolderName = FirstLod.FileName.SubstringBeforeLast('/').SubstringAfterLast('/');
+                string ParentFolderFirstCharacterInName = ParentFolderName.Substring(0,1);
+                int NumOfSlashesInGameMeshPath = GameMeshFullPath.NumOccurrences('/');
+                string NewMeshNameWithParentNameFirstChar = $"{MeshNameWithOutPathAndExtension}_{ParentFolderFirstCharacterInName}{NumOfSlashesInGameMeshPath}{MeshExtentionWithPeriod}";
+                string NewFullSavePath = Path.Combine(Preferences.ExportsPath, NewMeshNameWithParentNameFirstChar);;
+                File.WriteAllBytes(NewFullSavePath, FirstLod.FileData);
 
-                    // == Transform data for mesh (only needed if is static mesh) == 
+                writer.Write(NewFullSavePath); // Mesh name
 
-                    // Location
-                    writer.Write((Single)Transform.Translation.X);
-                    writer.Write((Single)Transform.Translation.Y);
-                    writer.Write((Single)Transform.Translation.Z);
+                // == Transform data for mesh (only needed if is static mesh) == 
 
-                    // Rotation
-                    FRotator MeshRotation = Transform.Rotation.Rotator();
+                // Location
+                writer.Write((Single)Transform.Translation.X);
+                writer.Write((Single)Transform.Translation.Y);
+                writer.Write((Single)Transform.Translation.Z);
 
-                    writer.Write(MeshRotation.Roll);
-                    writer.Write(MeshRotation.Pitch);
-                    writer.Write(MeshRotation.Yaw);
+                // Rotation
+                FRotator MeshRotation = Transform.Rotation.Rotator();
 
-                    // Scale
-                    writer.Write((Single)Transform.Scale3D.X);
-                    writer.Write((Single)Transform.Scale3D.Y);
-                    writer.Write((Single)Transform.Scale3D.Z);
-                }
-                else
-                {
-                    Log.Error($"Failed to save \'{StaticMesh?.Name ?? StaticMesh?.Name}\' mesh");
-                }
+                writer.Write(MeshRotation.Roll);
+                writer.Write(MeshRotation.Pitch);
+                writer.Write(MeshRotation.Yaw);
+
+                // Scale
+                writer.Write((Single)Transform.Scale3D.X);
+                writer.Write((Single)Transform.Scale3D.Y);
+                writer.Write((Single)Transform.Scale3D.Z);
             }
             else
             {

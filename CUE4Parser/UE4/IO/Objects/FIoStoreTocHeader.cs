@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Readers;
@@ -60,7 +61,7 @@ namespace CUE4Parse.UE4.IO.Objects
         {
             TocMagic = Ar.ReadBytes(16);
             if (!TOC_MAGIC.SequenceEqual(TocMagic))
-                throw new ParserException(Ar, "Invalid utoc magic");
+                throw new InvalidUtocMagicException(Ar, "Invalid utoc magic");
             Version = Ar.Read<EIoStoreTocVersion>();
             _reserved0 = Ar.Read<byte>();
             _reserved1 = Ar.Read<ushort>();
@@ -84,6 +85,14 @@ namespace CUE4Parse.UE4.IO.Objects
             _reserved7 = Ar.Read<uint>();
             _reserved8 = Ar.ReadArray<ulong>(5);
             Ar.Position = Ar.Position.Align(4);
+        }
+    }
+
+    public class InvalidUtocMagicException : ParserException
+    {
+        public InvalidUtocMagicException(FArchive reader, string? message = null) : base(reader, message)
+        {
+
         }
     }
 }

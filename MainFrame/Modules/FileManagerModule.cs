@@ -89,7 +89,6 @@ namespace TModel.Modules
                         App.FileProvider = new DefaultFileProvider(Preferences.GameDirectory, SearchOption.TopDirectoryOnly, false, new VersionContainer(EGame.GAME_UE5_1));
                         App.FileProvider.Initialize();
                     }
-                    InitilizeGame();
                     LoadFiles(App.FileProvider._unloadedVfs.Keys);
                 }
             };
@@ -136,17 +135,20 @@ namespace TModel.Modules
             {
                 if (App.FileProvider != null)
                 {
-                    List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
-                    AllVFS.AddRange(App.FileProvider.MountedVfs);
-                    AllVFS.AddRange(App.FileProvider._unloadedVfs.Keys);
-                    AllVFS.Sort(new NameSort());
-                    FilesPanel.Children.Clear();
-                    LoadFiles(AllVFS, true);
-                    if (FilesLoaded != null)
-                        FilesLoaded();
-                    HasLoaded = true;
-                    IsLoading = false;
-                    Log.Information("Finished loading");
+                    if (App.FileProvider.MappingsForThisGame != null)
+                    {
+                        HasLoaded = true;
+                        IsLoading = false;
+                        List<IAesVfsReader> AllVFS = new List<IAesVfsReader>();
+                        AllVFS.AddRange(App.FileProvider.MountedVfs);
+                        AllVFS.AddRange(App.FileProvider._unloadedVfs.Keys);
+                        AllVFS.Sort(new NameSort());
+                        FilesPanel.Children.Clear();
+                        LoadFiles(AllVFS, true);
+                        if (FilesLoaded != null)
+                            FilesLoaded();
+                        Log.Information("Finished loading");
+                    }
                 }
             });
         }

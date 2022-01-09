@@ -1,8 +1,10 @@
-﻿using CUE4Parse.UE4.Assets;
+﻿using CUE4Parse.FileProvider;
+using CUE4Parse.UE4.Assets;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,9 +16,6 @@ using TModel.Export;
 using TModel.Export.Exporters;
 using TModel.MainFrame.Widgets;
 using TModel.Sorters;
-using System.Linq;
-using static TModel.ColorConverters;
-using CUE4Parse.FileProvider;
 
 namespace TModel.Modules
 {
@@ -401,6 +400,10 @@ namespace TModel.Modules
                     {
                         Log.Error("Failed to select item:\n" + e.ToString());
                         Deselect();
+
+#if DEBUG
+                        throw;
+#endif
                     }
 
                 }

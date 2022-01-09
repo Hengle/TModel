@@ -79,7 +79,6 @@ namespace TModel.MainFrame.Modules
                 Preferences.GameDirectory = GameDirectoryText.Text;
                 Preferences.AutoLoad = AutoLoadOnStartup.IsChecked ?? false;
                 Preferences.Save();
-                Log.Information("Restart required for changes to take affect");
             });
 
             ButtonPanel.Children.Add(SaveButton);
@@ -94,6 +93,7 @@ namespace TModel.MainFrame.Modules
                 App.FileProvider.LoadMappings();
                 Log.Information("Updated AES keys");
                 FileManagerModule.LoadAES(true);
+                Log.Information("Restart required for changes to take affect");
             };
 
             ReadSettings += () =>
@@ -110,7 +110,6 @@ namespace TModel.MainFrame.Modules
 
         public void AddOption(string name, UIElement input)
         {
-
             CTextBlock NameText = new CTextBlock(name, 20)
             {
                 VerticalAlignment = VerticalAlignment.Center,
