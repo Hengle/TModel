@@ -1,4 +1,4 @@
-﻿
+
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -2322,18 +2322,6 @@ def LoadTModelItem(context):
 
                 context.view_layer.objects.active = MainSkeleton
                 bpy.ops.object.mode_set(mode="POSE")
-
-                def CustomBoneShape(boneName, rotIndex, Angle, Size):
-                    CustomBone = GetBone(boneName)
-                    if CustomBone is not None:
-                        CustomBone.custom_shape = CircleMesh
-                        CustomBone.custom_shape_rotation_euler[rotIndex] = math.radians(Angle)
-                        CustomBone.custom_shape_scale_xyz = (Size,Size,Size)
-
-                CustomBoneShape("hand_l", 0, 90, 2)
-                CustomBoneShape("hand_r", 0, 90, 2)
-                CustomBoneShape("foot_l", 0, 0, 1)
-                CustomBoneShape("foot_r", 1, 90, 1)
 
                 bpy.ops.object.mode_set(mode="POSE")
                 bpy.ops.pose.select_all(action='DESELECT')
